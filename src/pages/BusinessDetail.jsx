@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, MapPin, Phone, Clock, Globe, Shield, Crown } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Phone, Clock, Globe, Shield, Crown, Lock } from "lucide-react";
+import ContactMask from "../components/common/ContactMask";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,9 +15,12 @@ export default function BusinessDetail() {
   const navigate = useNavigate();
   const [business, setBusiness] = useState(null);
   const [translatedDesc, setTranslatedDesc] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     async function load() {
+      const authed = await base44.auth.isAuthenticated();
+      setIsLoggedIn(authed);
       if (!businessId.startsWith("biz-")) {
         const data = await base44.entities.Business.get(businessId);
         setBusiness(data);
@@ -96,12 +100,6 @@ export default function BusinessDetail() {
                 <span className="text-sm">{business.city}, {business.state}</span>
               </div>
             )}
-            {business.phone && (
-              <a href={`tel:${business.phone}`} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-smooth">
-                <Phone className="w-4 h-4 text-green-600" />
-                <span className="text-sm">{business.phone}</span>
-              </a>
-            )}
             {business.hours && (
               <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50">
                 <Clock className="w-4 h-4 text-blue-600" />
@@ -114,6 +112,16 @@ export default function BusinessDetail() {
                 <span className="text-sm">{business.website}</span>
               </a>
             )}
+          </div>
+
+          <div className="mb-5">
+            <h3 className="text-sm font-bold mb-3">Contact Information</h3>
+            <ContactMask
+              phone={business.phone}
+              email={business.email}
+              address={business.address}
+              isLoggedIn={isLoggedIn}
+            />
           </div>
 
           {business.tags?.length > 0 && (
