@@ -139,22 +139,22 @@ export default function Home() {
         </>
       )}
 
-      {/* Groups */}
-      <SectionHeader title="👥 Communities" subtitle="Join your local group" linkTo="/groups" />
-      <div className="px-4 space-y-3 pb-2">
-        {groups.slice(0, 3).map((g, i) => (
-          <GroupCard key={g.id} group={g} index={i} />
-        ))}
-      </div>
-
       {/* Businesses */}
       <SectionHeader title="🏪 Businesses" subtitle="Mongolian-owned" linkTo="/businesses" />
-      <div className="px-4 pb-6">
+      <div className="px-4 pb-4">
         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
           {businesses.map((b, i) => (
             <BusinessCard key={b.id} business={b} index={i} />
           ))}
         </div>
+      </div>
+
+      {/* Groups */}
+      <SectionHeader title="👥 Communities" subtitle="Join your local group" linkTo="/groups" />
+      <div className="px-4 space-y-3 pb-6">
+        {groups.slice(0, 3).map((g, i) => (
+          <GroupCard key={g.id} group={g} index={i} />
+        ))}
       </div>
     </div>
   );
