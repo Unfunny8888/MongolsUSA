@@ -237,53 +237,6 @@ export const MOCK_LISTINGS = [
   }
 ];
 
-export const MOCK_POSTS = [
-  {
-    id: "post-1",
-    group_id: "grp-1",
-    author_name: "Болд Б.",
-    author_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-    author_email: "bold@gmail.com",
-    content: "Just arrived in Chicago! Looking for good Mongolian restaurants nearby. Suggestions?",
-    image_url: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=600",
-    like_count: 45,
-    comment_count: 12,
-    repost_count: 3,
-    type: "post",
-    reactions: { "❤️": 25, "🔥": 20 },
-    created_date: "2026-05-07T10:30:00Z"
-  },
-  {
-    id: "post-2",
-    group_id: "grp-2",
-    author_name: "Батбаяр Н.",
-    author_avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200",
-    author_email: "batbayar@gmail.com",
-    content: "Best CDL companies to work for in 2026? Share your experiences!",
-    like_count: 67,
-    comment_count: 28,
-    repost_count: 9,
-    type: "post",
-    reactions: { "👍": 45, "🚛": 22 },
-    created_date: "2026-05-06T14:15:00Z"
-  },
-  {
-    id: "post-3",
-    group_id: "grp-3",
-    author_name: "Сарнай Д.",
-    author_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
-    author_email: "sarnai@gmail.com",
-    content: "Community cleanup event this weekend! Free coffee and donuts for volunteers.",
-    image_url: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=600",
-    like_count: 89,
-    comment_count: 34,
-    repost_count: 15,
-    type: "post",
-    reactions: { "❤️": 60, "👏": 29 },
-    created_date: "2026-05-05T09:00:00Z"
-  }
-];
-
 export const MOCK_GROUPS = [
   {
     id: "grp-1",
@@ -412,40 +365,6 @@ export const MOCK_BUSINESSES = [
     is_verified: true,
     is_premium: true,
     tags: ["salon", "beauty", "hair"]
-  },
-  {
-    id: "biz-5",
-    name: "Blue Mountain Trading",
-    description: "Import/export goods from Mongolia. Traditional crafts and modern goods. Монголын бүтээгдэхүүн.",
-    category: "retail",
-    logo: "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=200",
-    banner: "https://images.unsplash.com/photo-1441984904556-0b8b8b6a8a8b?w=800",
-    city: "New York",
-    state: "NY",
-    phone: "(212) 555-1234",
-    hours: "Daily 10am-8pm",
-    rating: 4.4,
-    review_count: 62,
-    is_verified: true,
-    is_premium: false,
-    tags: ["import", "mongolian", "crafts"]
-  },
-  {
-    id: "biz-6",
-    name: "Nomad Healthcare",
-    description: "Bilingual healthcare clinic serving Mongolian families. Монголчуудын эрүүлийн төв.",
-    category: "healthcare",
-    logo: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=200",
-    banner: "https://images.unsplash.com/photo-1631217314831-c6227db76b6e?w=800",
-    city: "Houston",
-    state: "TX",
-    phone: "(713) 555-9999",
-    hours: "Mon-Fri 8am-6pm, Sat 9am-2pm",
-    rating: 4.8,
-    review_count: 145,
-    is_verified: true,
-    is_premium: true,
-    tags: ["healthcare", "bilingual", "clinic"]
   }
 ];
 
@@ -466,8 +385,7 @@ export const ICONS = {
   Wrench: "🔧",
   Calendar: "📅",
   Smartphone: "📱",
-  Users: "👥",
-  globe: "🌍"
+  Users: "👥"
 };
 
 export const TRENDING_SEARCHES = [
@@ -488,116 +406,5 @@ export const CITIES = [
   { name: "New York", state: "NY", count: 432 },
   { name: "Virginia", state: "VA", count: 321 },
   { name: "Korea", state: "", count: 234 },
-  { name: "Europe", state: "", count: 187 },
-  { name: "Houston", state: "TX", count: 892 },
-  { name: "Phoenix", state: "AZ", count: 654 },
-  { name: "Philadelphia", state: "PA", count: 567 },
-  { name: "San Antonio", state: "TX", count: 432 },
-  { name: "San Diego", state: "CA", count: 789 },
-  { name: "Dallas", state: "TX", count: 923 },
-  { name: "San Jose", state: "CA", count: 543 },
-  { name: "Austin", state: "TX", count: 678 },
-  { name: "Jacksonville", state: "FL", count: 456 },
-  { name: "Denver", state: "CO", count: 612 },
-  { name: "Boston", state: "MA", count: 834 },
-  { name: "Las Vegas", state: "NV", count: 345 },
-  { name: "Minneapolis", state: "MN", count: 567 },
-  { name: "Nashville", state: "TN", count: 489 },
-  { name: "Atlanta", state: "GA", count: 721 },
-  { name: "Portland", state: "OR", count: 534 },
-  { name: "Miami", state: "FL", count: 678 },
-  { name: "Detroit", state: "MI", count: 456 },
-  { name: "Baltimore", state: "MD", count: 389 },
-  { name: "Louisville", state: "KY", count: 267 },
-  { name: "Milwaukee", state: "WI", count: 398 },
-  { name: "Albuquerque", state: "NM", count: 234 },
-  { name: "Tucson", state: "AZ", count: 178 },
-  { name: "Sacramento", state: "CA", count: 321 },
-  { name: "Cleveland", state: "OH", count: 289 },
-  { name: "Columbus", state: "OH", count: 445 },
-  { name: "Mesa", state: "AZ", count: 212 },
-  { name: "Arlington", state: "TX", count: 334 },
-  { name: "Bakersfield", state: "CA", count: 189 },
-  { name: "Long Beach", state: "CA", count: 276 },
-  { name: "Anaheim", state: "CA", count: 198 },
-  { name: "Irving", state: "TX", count: 267 },
-  { name: "Oakland", state: "CA", count: 345 },
-  { name: "Stockton", state: "CA", count: 156 },
-  { name: "Saint Paul", state: "MN", count: 287 },
-  { name: "Saint Louis", state: "MO", count: 423 },
-  { name: "Riverside", state: "CA", count: 298 },
-  { name: "Irvine", state: "CA", count: 267 },
-  { name: "Corpus Christi", state: "TX", count: 178 },
-  { name: "Lexington", state: "KY", count: 234 },
-  { name: "Plano", state: "TX", count: 289 },
-  { name: "Chandler", state: "AZ", count: 156 },
-  { name: "Garland", state: "TX", count: 198 },
-  { name: "Durham", state: "NC", count: 267 },
-  { name: "Laredo", state: "TX", count: 134 },
-  { name: "Henderson", state: "NV", count: 178 },
-  { name: "Lubbock", state: "TX", count: 145 },
-  { name: "Winston-Salem", state: "NC", count: 189 },
-  { name: "Norfolk", state: "VA", count: 212 },
-  { name: "Greensboro", state: "NC", count: 223 },
-  { name: "Chula Vista", state: "CA", count: 156 },
-  { name: "Madison", state: "WI", count: 234 },
-  { name: "Baton Rouge", state: "LA", count: 267 },
-  { name: "Birmingham", state: "AL", count: 189 },
-  { name: "Huntsville", state: "AL", count: 145 },
-  { name: "Tallahassee", state: "FL", count: 167 },
-  { name: "New Orleans", state: "LA", count: 398 },
-  { name: "Montgomery", state: "AL", count: 123 },
-  { name: "Memphis", state: "TN", count: 345 },
-  { name: "Fresno", state: "CA", count: 278 },
-  { name: "Worcester", state: "MA", count: 198 },
-  { name: "Providence", state: "RI", count: 156 },
-  { name: "Hartford", state: "CT", count: 134 },
-  { name: "Richmond", state: "VA", count: 289 },
-  { name: "Jacksonville", state: "NC", count: 112 },
-  { name: "Moreno Valley", state: "CA", count: 98 },
-  { name: "Oxnard", state: "CA", count: 145 },
-  { name: "Ontario", state: "CA", count: 167 },
-  { name: "Fontana", state: "CA", count: 123 },
-  { name: "Brownsville", state: "TX", count: 89 },
-  { name: "Modesto", state: "CA", count: 156 },
-  { name: "Glendale", state: "AZ", count: 134 },
-  { name: "Santa Ana", state: "CA", count: 189 },
-  { name: "Akron", state: "OH", count: 145 },
-  { name: "Toledo", state: "OH", count: 167 },
-  { name: "Shreveport", state: "LA", count: 98 },
-  { name: "Aurora", state: "CO", count: 212 },
-  { name: "Spokane", state: "WA", count: 187 },
-  { name: "Visalia", state: "CA", count: 145 },
-  { name: "Garland", state: "TX", count: 167 },
-  { name: "Montreal", state: "QC", count: 298 },
-  { name: "Toronto", state: "ON", count: 356 },
-  { name: "Vancouver", state: "BC", count: 267 }
-];
-
-export const VIP_BOOST_PACKAGES = [
-  {
-    id: "vip-basic",
-    name: "Basic Boost",
-    price: 4.99,
-    duration_days: 7,
-    features: ["Top placement", "250 extra views"],
-    color: "blue"
-  },
-  {
-    id: "vip-pro",
-    name: "Pro Boost",
-    price: 9.99,
-    duration_days: 14,
-    features: ["Premium placement", "1000 extra views", "Featured badge"],
-    color: "purple",
-    popular: true
-  },
-  {
-    id: "vip-premium",
-    name: "Premium Boost",
-    price: 24.99,
-    duration_days: 30,
-    features: ["Maximum visibility", "5000 extra views", "Featured badge", "Priority support"],
-    color: "gold"
-  }
+  { name: "Europe", state: "", count: 187 }
 ];
