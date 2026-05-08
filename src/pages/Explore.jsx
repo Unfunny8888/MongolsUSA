@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useRef } from "react";
+import { useState, useEffect, lazy, Suspense, useRef, useMemo, useCallback } from "react";
 import { ArrowLeft, SlidersHorizontal, X, Map, LayoutGrid, Loader2, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,10 +39,10 @@ export default function Explore() {
     if (cached) { setAllListings(cached); return; }
     base44.entities.Listing.filter({ status: "active" }, "-created_date", 200).then(data => {
       if (data && data.length > 0) { setAllListings(data); cache.set(cacheKey, data); }
-    });
-  }, []);
+    }).catch(() => {});
+  }, [cache]);
 
-  const filtered = allListings.filter((l) => {
+  const filtered = useMemo(() => allListings.filter((l) => {
     if (category && l.category !== category) return false;
     if (city && l.location_city !== city) return false;
     if (initFeatured && !l.is_featured) return false;
@@ -57,12 +57,12 @@ export default function Explore() {
       if (dateFilter === "month" && diff > 2592000000) return false;
     }
     return true;
-  });
+  }), [allListings, category, city, initFeatured, priceMin, priceMax, dateFilter]);
 
   const { visible, sentinelRef, hasMore } = useInfiniteScroll(filtered, 15);
   const activeFilters = [category, city, priceMin || priceMax, dateFilter].filter(Boolean).length;
 
-  const handlePullToRefresh = async (e) => {
+  const handlePullToRefresh = useCallback(async (e) => {
     const scrollTop = containerRef.current?.scrollTop || 0;
     if (scrollTop !== 0) return;
 
@@ -97,14 +97,27 @@ export default function Explore() {
         setPullProgress(0);
       }
     }
-  };
+  }, [pullProgress, isRefreshing, cache]);
+
+  const handleClearCategory = useCallback(() => setCategory(""), []);
+  const handleClearAllFilters = useCallback(() => {
+    setCategory("");
+    setCity("");
+    setPriceMin("");
+    setPriceMax("");
+    setDateFilter("");
+  }, []);
+  const handleClearCity = useCallback(() => {
+    setCity("");
+    setShowCityDrawer(false);
+  }, []);
 
   return (
     <div
       ref={containerRef}
-      onTouchStart={handlePullToRefresh}
-      onTouchMove={handlePullToRefresh}
-      onTouchEnd={handlePullToRefresh}
+      onTouchStart={(e) => handlePullToRefresh(e)}
+      onTouchMove={(e) => handlePullToRefresh(e)}
+      onTouchEnd={(e) => handlePullToRefresh(e)}
       className="min-h-screen overflow-y-auto relative"
     >
       {pullProgress > 0 && (
@@ -156,7 +169,7 @@ export default function Explore() {
         <div className="px-4 pb-3">
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             <button
-              onClick={() => setCategory("")}
+              onClick={handleClearCategory}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-smooth ${
                 !category ? "bg-primary text-white" : "bg-secondary text-foreground"
               }`}
@@ -237,7 +250,7 @@ export default function Explore() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => { setCategory(""); setCity(""); setPriceMin(""); setPriceMax(""); setDateFilter(""); }}
+                    onClick={handleClearAllFilters}
                     className="mt-3 text-xs text-destructive"
                   >
                     <X className="w-3 h-3 mr-1" /> Clear filters
@@ -298,10 +311,7 @@ export default function Explore() {
             </div>
             <div className="space-y-1">
               <button
-                onClick={() => {
-                  setCity("");
-                  setShowCityDrawer(false);
-                }}
+                onClick={handleClearCity}
                 className={`w-full text-left px-4 py-3 rounded-xl transition-smooth ${
                   !city
                     ? "bg-primary text-white font-semibold"

@@ -6,6 +6,9 @@
 
 @layer base {
   :root {
+    /* Viewport height variables for Safari keyboard handling */
+    --vh: 1vh;
+    --dvh-safe: 100dvh;
     --font-inter: 'Inter', sans-serif;
     --background: 140 10% 97%;
     --foreground: 160 10% 6%;
@@ -103,11 +106,23 @@
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior-y: none;
+    /* Safari iOS viewport fix */
     min-height: 100dvh;
+    min-height: 100vh;
+    /* Prevent rubber-band bounce on iOS */
+    position: fixed;
+    width: 100%;
+    /* Allow overflow only on intended scrollable areas */
+    -webkit-touch-callout: none;
   }
   #root {
     height: 100%;
+    height: 100dvh;
     overflow-x: hidden;
+    /* Prevent iOS font size auto-adjustment on orientation change */
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
   }
 }
 
@@ -116,6 +131,34 @@ input,
 textarea,
 select {
   font-size: 16px;
+  /* Prevent zoom on focus */
+  max-width: 100%;
+}
+
+/* Safari iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  body {
+    /* Use viewport height that accounts for address bar */
+    height: 100vh;
+    height: 100dvh;
+  }
+  
+  /* Prevent overscroll bounce */
+  body, html {
+    overscroll-behavior: none;
+    -webkit-user-select: text;
+    -webkit-user-select-all: none;
+  }
+  
+  /* Fix for iOS Safari fixed positioning */
+  .glass,
+  [class*="sticky"],
+  [class*="fixed"],
+  .fixed,
+  .sticky {
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+  }
 }
 
 /* Custom scrollbar */
@@ -145,6 +188,8 @@ nav,
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  /* Safari iOS: prevent scroll jank on sticky elements */
+  -webkit-transform: translate3d(0, 0, 0);
 }
 
 /* Glassmorphism utility */
@@ -166,13 +211,19 @@ nav,
 /* Keyboard-safe app container */
 .app-container {
   min-height: 100dvh;
+  min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  /* Safari iOS: prevent zoom on input focus */
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Bottom nav safe area */
 .bottom-nav {
   padding-bottom: env(safe-area-inset-bottom);
+  /* Prevent overlap with iOS keyboard */
+  position: relative;
+  z-index: 50;
 }
 
 /* Touch target optimization */
@@ -183,6 +234,9 @@ button, a, [role="button"] {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  /* iOS Safari: prevent double tap zoom on buttons */
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 /* Enable text selection on content */
