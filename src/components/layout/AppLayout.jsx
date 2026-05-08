@@ -4,6 +4,7 @@ import BottomNav from "./BottomNav";
 import PageHeader from "./PageHeader";
 import { useNavigationStack } from "@/lib/useNavigationStack";
 import PageTransition from "./PageTransition";
+import { motion } from "framer-motion";
 
 
 
@@ -31,30 +32,43 @@ export default function AppLayout() {
 
   useEffect(() => { registerSW(); }, []);
 
+  // Smooth header hide/show on scroll with better performance
   useEffect(() => {
     const main = mainRef.current;
     const header = headerRef.current;
     if (!main || !header) return;
 
     let lastY = 0;
-    let hidden = false;
+    let isHidden = false;
+    let scrollTimeout;
 
     const onScroll = () => {
+      clearTimeout(scrollTimeout);
       const y = main.scrollTop;
       const diff = y - lastY;
 
-      if (diff > 6 && y > 60 && !hidden) {
-        header.style.transform = 'translateY(-110%)';
-        hidden = true;
-      } else if ((diff < -6 || y < 60) && hidden) {
+      // Show header immediately on scroll up
+      if (diff < -8 && isHidden) {
         header.style.transform = 'translateY(0)';
-        hidden = false;
+        isHidden = false;
+      }
+      // Hide header after scrolling down
+      else if (diff > 8 && y > 80 && !isHidden) {
+        scrollTimeout = setTimeout(() => {
+          if (main.scrollTop > 80) {
+            header.style.transform = 'translateY(-100%)';
+            isHidden = true;
+          }
+        }, 200);
       }
       lastY = y;
     };
 
     main.addEventListener('scroll', onScroll, { passive: true });
-    return () => main.removeEventListener('scroll', onScroll);
+    return () => {
+      main.removeEventListener('scroll', onScroll);
+      clearTimeout(scrollTimeout);
+    };
   }, []);
 
   // Hide header on search page

@@ -39,8 +39,11 @@ const PageHeader = forwardRef(function PageHeader(
       style={{
         height: 'calc(3.5rem + env(safe-area-inset-top))',
         paddingTop: 'env(safe-area-inset-top)',
-        transform: 'translateZ(0)',
+        transform: 'translateZ(0) translateY(0)',
         willChange: 'transform',
+        transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden',
       }}
     >
       <div className="px-3 max-w-lg mx-auto h-14 flex items-center justify-between">
