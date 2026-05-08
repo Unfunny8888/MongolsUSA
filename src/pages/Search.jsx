@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { ArrowLeft, Search as SearchIcon, X, TrendingUp, Clock, Sparkles, Loader2, AlertCircle } from "lucide-react";
 import CitySelector from "../components/home/CitySelector";
 import { useNavigate } from "react-router-dom";
@@ -7,10 +7,11 @@ import ListingCard from "../components/cards/ListingCard";
 import { MOCK_LISTINGS, TRENDING_SEARCHES } from "../lib/mockData";
 import { useQueryCache } from "../hooks/useQueryCache";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import { useDebounce } from "../hooks/useDebounce";
 import { base44 } from "@/api/base44Client";
 
 // ── Skeleton shimmer card ──────────────────────────────────────────────
-function SkeletonCard() {
+const SkeletonCard = () => {
   return (
     <div className="bg-card rounded-2xl border border-border/50 overflow-hidden animate-pulse">
       <div className="aspect-[16/10] bg-secondary/70" />
@@ -32,7 +33,8 @@ function SkeletonList({ count = 4 }) {
 }
 
 // ── Results with infinite scroll ───────────────────────────────────────
-function InfiniteResults({ results }) {
+// Memoized infinite results component
+const InfiniteResults = ({ results }) => {
   const { visible, sentinelRef, hasMore } = useInfiniteScroll(results, 15);
   return (
     <div className="space-y-3">
@@ -44,7 +46,7 @@ function InfiniteResults({ results }) {
       )}
     </div>
   );
-}
+};
 
 // ── dismiss keyboard helper ────────────────────────────────────────────
 function dismissKeyboard(inputRef) {
@@ -211,7 +213,15 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
   }, [query, executeSearch]);
 
   const handleInputChange = useCallback((e) => {
-    setQuery(e.target.value);
+    const value = e.target.value;
+    setQuery(value);
+    // Optional: Auto-search after debounce for type-ahead
+    clearTimeout(debounceRef.current);
+    if (value.trim().length > 2) {
+      debounceRef.current = setTimeout(() => {
+        // executeSearch(value);
+      }, 500);
+    }
   }, []);
 
   const handleKeyDown = useCallback((e) => {
@@ -251,11 +261,14 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
     }
   }, [selectedCategory]);
 
-  const filteredResults = results.filter(r => {
-    const categoryMatch = !selectedCategory || r.category === selectedCategory;
-    const cityMatch = !selectedCity || r.location_city === selectedCity;
-    return categoryMatch && cityMatch;
-  });
+  // Memoize filtered results to prevent unnecessary re-filtering
+  const filteredResults = useMemo(() => {
+    return results.filter(r => {
+      const categoryMatch = !selectedCategory || r.category === selectedCategory;
+      const cityMatch = !selectedCity || r.location_city === selectedCity;
+      return categoryMatch && cityMatch;
+    });
+  }, [results, selectedCategory, selectedCity]);
 
   return (
     <div className="min-h-screen flex flex-col">

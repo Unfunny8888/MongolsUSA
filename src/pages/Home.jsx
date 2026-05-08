@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -62,12 +62,21 @@ export default function Home() {
     loadData();
   }, [navigate]);
 
-  const filteredListings = listings
-    .filter(l => !selectedCategory || l.category === selectedCategory.id)
-    .filter(l => !selectedCity || l.location_city === selectedCity);
-  const { forYou, nearby, trending, fresh, featured, jobs, events } = buildFeedSections(filteredListings, currentUser);
+  // Memoize filtered listings to prevent unnecessary recalculations
+  const filteredListings = useMemo(
+    () => listings
+      .filter(l => !selectedCategory || l.category === selectedCategory.id)
+      .filter(l => !selectedCity || l.location_city === selectedCity),
+    [listings, selectedCategory, selectedCity]
+  );
+  
+  const feedSections = useMemo(
+    () => buildFeedSections(filteredListings, currentUser),
+    [filteredListings, currentUser]
+  );
+  const { forYou, nearby, trending, fresh, featured, jobs, events } = feedSections;
 
-  const handlePullToRefresh = async (e) => {
+  const handlePullToRefresh = useCallback(async (e) => {
     const scrollTop = containerRef.current?.scrollTop || 0;
     if (scrollTop !== 0) return;
 
@@ -109,7 +118,7 @@ export default function Home() {
         setPullProgress(0);
       }
     }
-  };
+  }, [pullProgress, isRefreshing]);
 
   return (
     <div

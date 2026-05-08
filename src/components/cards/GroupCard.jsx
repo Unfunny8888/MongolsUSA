@@ -1,9 +1,10 @@
+import { memo } from "react";
 import { Link } from "react-router-dom";
 import { Users, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 
-export default function GroupCard({ group, index = 0 }) {
+function GroupCard({ group, index = 0 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -47,3 +48,5 @@ export default function GroupCard({ group, index = 0 }) {
     </motion.div>
   );
 }
+
+export default memo(GroupCard);

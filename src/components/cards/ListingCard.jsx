@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Share2, MapPin, Clock } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, memo } from "react";
 import { useTapGesture } from "@/hooks/useTapGesture";
 import LocationLabel from "../common/LocationLabel";
 import ReputationBadge from "../common/ReputationBadge";
@@ -31,7 +31,7 @@ function formatPrice(listing) {
   return `${p}${suffix}`;
 }
 
-export default function ListingCard({ listing, index = 0, locationRelevance, userCity }) {
+function ListingCard({ listing, index = 0, locationRelevance, userCity }) {
   const navigate = useNavigate();
   const handleTap = useCallback(() => navigate(`/listing/${listing.id}`), [navigate, listing.id]);
   const { onTouchStart, onTouchMove, onTouchEnd } = useTapGesture(handleTap);
@@ -65,8 +65,9 @@ export default function ListingCard({ listing, index = 0, locationRelevance, use
         style={{ willChange: 'transform, box-shadow', transform: 'translateZ(0)' }}
       >
         {/* Image section */}
-        {hasImage && (
-          <div className="relative w-full bg-secondary/50" style={{ aspectRatio: '4/3' }}>
+        <div className="relative w-full bg-secondary/50" style={{ aspectRatio: '4/3' }}>
+          {hasImage ? (
+            <>
             {!imageLoaded && <div className="absolute inset-0 bg-secondary/50 animate-pulse" />}
             <img
              src={listing.images[0]}
@@ -87,8 +88,11 @@ export default function ListingCard({ listing, index = 0, locationRelevance, use
                 {price}
               </div>
             )}
-          </div>
-        )}
+            </>
+          ) : (
+            <div className="w-full h-full bg-secondary/30" />
+          )}
+        </div>
 
         {/* Content section */}
         <div className="p-4 space-y-3">
@@ -157,3 +161,5 @@ export default function ListingCard({ listing, index = 0, locationRelevance, use
     </motion.div>
   );
 }
+
+export default memo(ListingCard);
