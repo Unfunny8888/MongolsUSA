@@ -1,5 +1,5 @@
-import { useState, useEffect, lazy, Suspense } from "react";
-import { ArrowLeft, SlidersHorizontal, X, Map, LayoutGrid } from "lucide-react";
+import { useState, useEffect, lazy, Suspense, useRef } from "react";
+import { ArrowLeft, SlidersHorizontal, X, Map, LayoutGrid, Loader2, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ListingCard from "../components/cards/ListingCard";
@@ -26,7 +26,12 @@ export default function Explore() {
   const [dateFilter, setDateFilter] = useState(""); // today | week | month
   const [viewMode, setViewMode] = useState("grid"); // grid | map
   const [allListings, setAllListings] = useState(MOCK_LISTINGS);
+  const [pullProgress, setPullProgress] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showCityDrawer, setShowCityDrawer] = useState(false);
   const cache = useQueryCache();
+  const touchStartY = useRef(0);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const cacheKey = "explore_listings";
@@ -57,7 +62,67 @@ export default function Explore() {
   const { visible, sentinelRef, hasMore } = useInfiniteScroll(filtered, 15);
   const activeFilters = [category, city, priceMin || priceMax, dateFilter].filter(Boolean).length;
 
+  const handlePullToRefresh = async (e) => {
+    const scrollTop = containerRef.current?.scrollTop || 0;
+    if (scrollTop !== 0) return;
+
+    if (e.type === "touchstart") {
+      touchStartY.current = e.touches[0].clientY;
+      return;
+    }
+
+    if (e.type === "touchmove" && !isRefreshing) {
+      const touchCurrentY = e.touches[0].clientY;
+      const diff = touchCurrentY - touchStartY.current;
+      if (diff > 0) {
+        const progress = Math.min(diff / 80, 1);
+        setPullProgress(progress);
+      }
+      return;
+    }
+
+    if (e.type === "touchend") {
+      if (pullProgress > 0.7) {
+        setIsRefreshing(true);
+        setPullProgress(0);
+        setTimeout(async () => {
+          const data = await base44.entities.Listing.filter({ status: "active" }, "-created_date", 200);
+          if (data && data.length > 0) {
+            setAllListings(data);
+            cache.set("explore_listings", data);
+          }
+          setIsRefreshing(false);
+        }, 800);
+      } else {
+        setPullProgress(0);
+      }
+    }
+  };
+
   return (
+    <div
+      ref={containerRef}
+      onTouchStart={handlePullToRefresh}
+      onTouchMove={handlePullToRefresh}
+      onTouchEnd={handlePullToRefresh}
+      className="min-h-screen overflow-y-auto relative"
+    >
+      {pullProgress > 0 && (
+        <motion.div
+          className="fixed top-8 left-1/2 -translate-x-1/2 z-40"
+          animate={{ scale: pullProgress }}
+        >
+          <Loader2 className="w-5 h-5 text-primary animate-spin" />
+        </motion.div>
+      )}
+      {isRefreshing && (
+        <div className="sticky top-0 z-30 flex justify-center py-3 bg-emerald-100 dark:bg-emerald-950/30 border-b border-emerald-200 dark:border-emerald-900">
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Refreshing...
+          </div>
+        </div>
+      )}
     <div className="min-h-screen">
       {/* Header */}
       <div className="glass sticky top-0 z-40 border-b border-border/30">
@@ -123,19 +188,16 @@ export default function Explore() {
             >
               <div className="px-4 py-3">
                 <p className="text-xs font-semibold mb-2 text-muted-foreground">City</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {CITIES.map((c) => (
-                    <button
-                      key={c.name}
-                      onClick={() => setCity(city === c.name ? "" : c.name)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-smooth ${
-                        city === c.name ? "bg-primary text-white" : "bg-secondary text-foreground"
-                      }`}
-                    >
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
+                <button
+                  onClick={() => setShowCityDrawer(true)}
+                  className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border/50 text-sm text-left flex items-center justify-between hover:bg-secondary/70 transition-smooth"
+                >
+                  <span className={city ? "text-foreground font-medium" : "text-muted-foreground"}>
+                    {city || "Select city"}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
+                <div className="mb-4" />
 
                 <p className="text-xs font-semibold mb-2 text-muted-foreground">Price Range</p>
                 <div className="flex items-center gap-2 mb-4">
@@ -214,6 +276,61 @@ export default function Explore() {
           </div>
         )}
       </div>
+
+      {/* City Selection Drawer */}
+      {showCityDrawer && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowCityDrawer(false)}
+          className="fixed inset-0 z-50 bg-black/40 flex items-end"
+        >
+          <motion.div
+            initial={{ y: 400, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 400, opacity: 0 }}
+            onClick={e => e.stopPropagation()}
+            className="w-full bg-white dark:bg-slate-900 rounded-t-3xl p-4 max-h-[60vh] overflow-y-auto"
+          >
+            <div className="sticky top-0 bg-white dark:bg-slate-900 pb-3 mb-3">
+              <h3 className="text-sm font-bold text-foreground">Select City</h3>
+            </div>
+            <div className="space-y-1">
+              <button
+                onClick={() => {
+                  setCity("");
+                  setShowCityDrawer(false);
+                }}
+                className={`w-full text-left px-4 py-3 rounded-xl transition-smooth ${
+                  !city
+                    ? "bg-primary text-white font-semibold"
+                    : "bg-secondary/30 text-foreground hover:bg-secondary/50"
+                }`}
+              >
+                All Cities
+              </button>
+              {CITIES.map(c => (
+                <button
+                  key={c.name}
+                  onClick={() => {
+                    setCity(c.name);
+                    setShowCityDrawer(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-smooth ${
+                    city === c.name
+                      ? "bg-primary text-white font-semibold"
+                      : "bg-secondary/30 text-foreground hover:bg-secondary/50"
+                  }`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
     </div>
   );
 }

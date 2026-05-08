@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Camera, Loader2, Check, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CITIES } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
+import DeleteAccountDialog from "../components/common/DeleteAccountDialog";
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -16,6 +16,8 @@ export default function EditProfile() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showCityDrawer, setShowCityDrawer] = useState(false);
 
   useEffect(() => {
     base44.auth.me().then(me => {
@@ -119,14 +121,15 @@ export default function EditProfile() {
           </div>
           <div>
             <Label className="text-xs font-semibold mb-1.5 block">Your City</Label>
-            <Select value={form.preferred_city} onValueChange={v => update("preferred_city", v)}>
-              <SelectTrigger className="rounded-xl"><SelectValue placeholder="Select city" /></SelectTrigger>
-              <SelectContent>
-                {CITIES.filter(c => c.state).map(c => (
-                  <SelectItem key={c.name} value={c.name}>{c.name}, {c.state}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <button
+              onClick={() => setShowCityDrawer(true)}
+              className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border/50 text-sm text-left flex items-center justify-between hover:bg-secondary/70 transition-smooth"
+            >
+              <span className={form.preferred_city ? "text-foreground font-medium" : "text-muted-foreground"}>
+                {form.preferred_city || "Select city"}
+              </span>
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            </button>
           </div>
         </div>
 
@@ -138,7 +141,63 @@ export default function EditProfile() {
         >
           {saving ? "Saving..." : "Save Profile"}
         </motion.button>
+
+        {/* Account Deletion Section */}
+        <div className="border-t border-border/30 pt-6 mt-6">
+          <h3 className="text-sm font-bold text-foreground mb-3">Danger Zone</h3>
+          <motion.button
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setShowDeleteDialog(true)}
+            className="w-full py-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-950/50 transition-smooth"
+          >
+            Delete Account
+          </motion.button>
+          <p className="text-xs text-muted-foreground mt-2">Permanently delete your account and all associated data. This cannot be undone.</p>
+        </div>
       </div>
+
+      {/* City Selection Drawer */}
+      {showCityDrawer && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setShowCityDrawer(false)}
+          className="fixed inset-0 z-50 bg-black/40 flex items-end"
+        >
+          <motion.div
+            initial={{ y: 400, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 400, opacity: 0 }}
+            onClick={e => e.stopPropagation()}
+            className="w-full bg-white dark:bg-slate-900 rounded-t-3xl p-4 max-h-[60vh] overflow-y-auto"
+          >
+            <div className="sticky top-0 bg-white dark:bg-slate-900 pb-3 mb-3">
+              <h3 className="text-sm font-bold text-foreground">Select City</h3>
+            </div>
+            <div className="space-y-1">
+              {CITIES.filter(c => c.state).map(c => (
+                <button
+                  key={c.name}
+                  onClick={() => {
+                    update("preferred_city", c.name);
+                    setShowCityDrawer(false);
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-xl transition-smooth ${
+                    form.preferred_city === c.name
+                      ? "bg-primary text-white font-semibold"
+                      : "bg-secondary/30 text-foreground hover:bg-secondary/50"
+                  }`}
+                >
+                  {c.name}, {c.state}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      <DeleteAccountDialog isOpen={showDeleteDialog} onClose={() => setShowDeleteDialog(false)} />
     </div>
   );
 }

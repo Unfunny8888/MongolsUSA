@@ -179,6 +179,16 @@ nav,
 button, a, [role="button"] {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Enable text selection on content */
+article, [class*="card"], [class*="listing"], p:not([class*="button"]), span:not([class*="button"]), div[class*="description"], div[class*="content"], div[class*="text"] {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* Page slide transitions */

@@ -1,6 +1,7 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Search, PlusCircle, Users, User } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRef } from "react";
 
 const NAV_ITEMS = [
   { path: "/", icon: Home, label: "Home" },
@@ -16,6 +17,19 @@ function haptic() {
 
 export default function BottomNav() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const lastClickedRef = useRef(null);
+
+  const handleNavClick = (path) => {
+    if (location.pathname === path && lastClickedRef.current === path) {
+      // Double click on active tab - scroll to top
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    lastClickedRef.current = path;
+    if (location.pathname !== path) {
+      navigate(path);
+    }
+  };
 
   return (
     <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50">
@@ -26,11 +40,13 @@ export default function BottomNav() {
           const isCreate = item.path === "/create";
 
           return (
-            <Link
+            <button
               key={item.path}
-              to={item.path}
-              onClick={haptic}
-              className="relative flex flex-col items-center gap-0.5 py-2 px-3"
+              onClick={() => {
+                haptic();
+                handleNavClick(item.path);
+              }}
+              className="relative flex flex-col items-center gap-0.5 py-2 px-3 cursor-pointer"
             >
               {isCreate ? (
                 <div className="relative -top-3 bg-gradient-to-br from-primary to-emerald-600 rounded-2xl p-3 shadow-lg shadow-primary/30">
@@ -61,8 +77,8 @@ export default function BottomNav() {
                   </span>
                 </>
               )}
-            </Link>
-          );
+              </button>
+              );
         })}
       </div>
     </nav>

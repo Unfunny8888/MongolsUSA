@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import HomeHeader from "../components/home/HomeHeader";
 import FeaturedBanner from "../components/home/FeaturedBanner";
 import SectionHeader from "../components/home/SectionHeader";
@@ -18,6 +19,10 @@ export default function Home() {
   const [groups, setGroups] = useState(MOCK_GROUPS);
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [currentUser, setCurrentUser] = useState(null);
+  const [pullProgress, setPullProgress] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     async function loadData() {
@@ -48,7 +53,70 @@ export default function Home() {
 
   const { forYou, nearby, trending, fresh, featured, jobs, events } = buildFeedSections(listings, currentUser);
 
+  const handlePullToRefresh = async (e) => {
+    const scrollTop = containerRef.current?.scrollTop || 0;
+    if (scrollTop !== 0) return;
+
+    if (e.type === "touchstart") {
+      touchStartY.current = e.touches[0].clientY;
+      return;
+    }
+
+    if (e.type === "touchmove" && !isRefreshing) {
+      const touchCurrentY = e.touches[0].clientY;
+      const diff = touchCurrentY - touchStartY.current;
+      if (diff > 0) {
+        const progress = Math.min(diff / 80, 1);
+        setPullProgress(progress);
+      }
+      return;
+    }
+
+    if (e.type === "touchend") {
+      if (pullProgress > 0.7) {
+        setIsRefreshing(true);
+        setPullProgress(0);
+        setTimeout(async () => {
+          const [dbListings, dbGroups, dbBiz] = await Promise.allSettled([
+            base44.entities.Listing.list("-created_date", 60),
+            base44.entities.Group.list("-member_count", 10),
+            base44.entities.Business.list("-rating", 10),
+          ]);
+          if (dbListings.status === "fulfilled" && dbListings.value.length > 0) setListings(dbListings.value);
+          if (dbGroups.status === "fulfilled" && dbGroups.value.length > 0) setGroups(dbGroups.value);
+          if (dbBiz.status === "fulfilled" && dbBiz.value.length > 0) setBusinesses(dbBiz.value);
+          setIsRefreshing(false);
+        }, 800);
+      } else {
+        setPullProgress(0);
+      }
+    }
+  };
+
   return (
+    <div
+      ref={containerRef}
+      onTouchStart={handlePullToRefresh}
+      onTouchMove={handlePullToRefresh}
+      onTouchEnd={handlePullToRefresh}
+      className="min-h-dvh overflow-y-auto relative"
+    >
+      {pullProgress > 0 && (
+        <motion.div
+          className="fixed top-8 left-1/2 -translate-x-1/2 z-40"
+          animate={{ scale: pullProgress }}
+        >
+          <Loader2 className="w-5 h-5 text-primary animate-spin" />
+        </motion.div>
+      )}
+      {isRefreshing && (
+        <div className="sticky top-0 z-30 flex justify-center py-3 bg-emerald-100 dark:bg-emerald-950/30 border-b border-emerald-200 dark:border-emerald-900">
+          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            Refreshing feed...
+          </div>
+        </div>
+      )}
     <div className="min-h-dvh">
       <HomeHeader />
       <FeaturedBanner />
@@ -180,6 +248,7 @@ export default function Home() {
           <GroupCard key={g.id} group={g} index={i} />
         ))}
       </div>
+    </div>
     </div>
   );
 }
