@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
+import AIListingHelper from "../components/common/AIListingHelper";
 import { motion, AnimatePresence } from "framer-motion";
 
 const CATS = [
@@ -86,6 +87,9 @@ export default function CreateListing() {
   const [category, setCategory] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [images, setImages] = useState([]);
+  const [aiTags, setAiTags] = useState([]);
+  const [aiHashtags, setAiHashtags] = useState([]);
+  const [aiSeoKeywords, setAiSeoKeywords] = useState([]);
   const [form, setForm] = useState({
     title: "", description: "", price: "", price_type: "fixed",
     location_city: "", location_state: "", contact_phone: "", contact_email: "",
@@ -104,6 +108,19 @@ export default function CreateListing() {
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
+  }
+
+  function handleAIApply(s) {
+    if (s.title) update("title", s.title);
+    if (s.description) update("description", s.description);
+    if (s.suggested_price > 0 && !form.price) update("price", String(s.suggested_price));
+    if (s.detected_details?.make) update("car_make", s.detected_details.make);
+    if (s.detected_details?.model) update("car_model", s.detected_details.model);
+    if (s.detected_details?.year) update("car_year", String(s.detected_details.year));
+    if (s.detected_details?.condition) update("car_condition", s.detected_details.condition);
+    if (s.tags?.length) setAiTags(s.tags);
+    if (s.hashtags?.length) setAiHashtags(s.hashtags);
+    if (s.seo_keywords?.length) setAiSeoKeywords(s.seo_keywords);
   }
 
   async function handleImageUpload(e) {
@@ -166,6 +183,11 @@ export default function CreateListing() {
       </div>
 
       <div className="px-4 py-5 space-y-1">
+
+        {/* AI Assistant */}
+        <FormField>
+          <AIListingHelper category={category} images={images} onApply={handleAIApply} />
+        </FormField>
 
         {/* Photo Upload */}
         <FormField>
@@ -394,11 +416,34 @@ export default function CreateListing() {
           </div>
         </FormField>
 
+        {/* AI-generated tags / hashtags / SEO */}
+        {(aiTags.length > 0 || aiHashtags.length > 0 || aiSeoKeywords.length > 0) && (
+          <FormField>
+            <SectionLabel>AI-generated Tags</SectionLabel>
+            <div className="space-y-2">
+              {aiTags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {aiTags.map(t => <span key={t} className="px-2.5 py-1 rounded-lg bg-secondary text-foreground text-xs font-medium">{t}</span>)}
+                </div>
+              )}
+              {aiHashtags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {aiHashtags.map(h => <span key={h} className="px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-medium">#{h}</span>)}
+                </div>
+              )}
+              {aiSeoKeywords.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {aiSeoKeywords.map(k => <span key={k} className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium">{k}</span>)}
+                </div>
+              )}
+            </div>
+          </FormField>
+        )}
+
         {/* Description */}
         <FormField>
           <div className="flex items-center justify-between mb-2">
             <SectionLabel>Тайлбар</SectionLabel>
-            <span className="text-[10px] text-primary font-medium">AI тусална</span>
           </div>
           <Textarea
             value={form.description}
