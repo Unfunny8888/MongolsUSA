@@ -1,6 +1,6 @@
+import { forwardRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell } from 'lucide-react';
-import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 const ROOT_ROUTES = ['/', '/search', '/groups', '/create', '/profile'];
 
@@ -8,7 +8,7 @@ const ROOT_ROUTES = ['/', '/search', '/groups', '/create', '/profile'];
  * MobileHeader - Unified header for all screens
  * Shows logo on root screens, back button + title on child screens
  */
-export default function MobileHeader() {
+const MobileHeader = forwardRef(function MobileHeader(_, ref) {
   const location = useLocation();
   const navigate = useNavigate();
   const isRoot = ROOT_ROUTES.includes(location.pathname);
@@ -34,15 +34,14 @@ export default function MobileHeader() {
     return '';
   };
 
-  const isVisible = useScrollDirection();
-
   return (
     <div
+      ref={ref}
       data-header
       className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 shadow-sm"
       style={{
-        transform: isVisible ? 'translateY(0)' : 'translateY(-110%)',
-        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        transform: 'translateY(0)',
+        transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
         willChange: 'transform',
       }}
     >
@@ -74,4 +73,6 @@ export default function MobileHeader() {
       </div>
     </div>
   );
-}
+});
+
+export default MobileHeader;
