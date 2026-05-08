@@ -111,9 +111,10 @@ function MetaRow({ listing, dist }) {
 }
 
 function ListingCard({ listing, index = 0 }) {
-  const hasImage = listing.images?.length > 0;
-  const price = formatPrice(listing);
-  const dist = useDistance(listing.location_city);
+   const [imageLoading, setImageLoading] = useState(true);
+   const hasImage = listing.images?.length > 0;
+   const price = formatPrice(listing);
+   const dist = useDistance(listing.location_city);
 
   return (
     <motion.div
@@ -125,15 +126,19 @@ function ListingCard({ listing, index = 0 }) {
     >
       <Link to={`/listing/${listing.id}`} className="block group">
         {hasImage ? (
-          <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-smooth">
-            <div className="relative aspect-[16/10] overflow-hidden bg-secondary/50 w-full will-change-transform">
+           <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-smooth">
+             <div className="relative aspect-[16/10] overflow-hidden bg-secondary/50" style={{ contain: 'layout style' }}>
+              {imageLoading && (
+                <div className="absolute inset-0 bg-secondary/50 animate-pulse" />
+              )}
               <img
                 src={listing.images[0]}
                 alt={listing.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
                 decoding="async"
-                style={{ contentVisibility: 'auto', contain: 'layout style paint' }}
+                style={{ contentVisibility: 'auto' }}
+                onLoad={() => setImageLoading(false)}
               />
               {/* Top badges */}
               <div className="absolute top-3 left-3 flex gap-2">

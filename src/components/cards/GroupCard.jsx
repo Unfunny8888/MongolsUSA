@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
 import { Users, Shield } from "lucide-react";
 import { motion } from "framer-motion";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
 function GroupCard({ group, index = 0 }) {
-  return (
+   const [imageLoading, setImageLoading] = useState(true);
+   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -13,12 +14,16 @@ function GroupCard({ group, index = 0 }) {
     >
       <Link to={`/group/${group.id}`} className="block group">
         <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-lg transition-smooth">
-          <div className="relative h-28 overflow-hidden">
+          <div className="relative h-28 overflow-hidden bg-secondary/50">
+            {imageLoading && (
+              <div className="absolute inset-0 bg-secondary/50 animate-pulse" />
+            )}
             <img
               src={group.cover_image}
               alt={group.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
+              onLoad={() => setImageLoading(false)}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-3 left-3 right-3">
