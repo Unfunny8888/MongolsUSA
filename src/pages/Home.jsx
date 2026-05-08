@@ -125,11 +125,17 @@ export default function Home() {
         <SectionHeader title="Categories" subtitle="Browse by type" />
         <div className="px-4 pb-4">
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
+            <CategoryChip
+              category={{ id: "all", label: "All", labelMn: "Бүгд", icon: "globe" }}
+              index={0}
+              onClick={() => setSelectedCategory(null)}
+              isSelected={selectedCategory === null}
+            />
             {CATEGORIES.map((cat, i) => (
               <CategoryChip
                 key={cat.id}
                 category={cat}
-                index={i}
+                index={i + 1}
                 onClick={setSelectedCategory}
                 isSelected={selectedCategory?.id === cat.id}
               />
