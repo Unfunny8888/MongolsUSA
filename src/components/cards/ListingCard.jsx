@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Share2, MapPin, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useCallback } from "react";
 import { useTapGesture } from "@/hooks/useTapGesture";
+import LocationLabel from "../common/LocationLabel";
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
@@ -28,7 +29,7 @@ function formatPrice(listing) {
   return `${p}${suffix}`;
 }
 
-export default function ListingCard({ listing, index = 0 }) {
+export default function ListingCard({ listing, index = 0, locationRelevance, userCity }) {
   const navigate = useNavigate();
   const handleTap = useCallback(() => navigate(`/listing/${listing.id}`), [navigate, listing.id]);
   const { onTouchStart, onTouchMove, onTouchEnd } = useTapGesture(handleTap);
@@ -61,6 +62,12 @@ export default function ListingCard({ listing, index = 0 }) {
               className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
               loading="lazy"
             />
+            {/* Location badge - top left */}
+            {locationRelevance && (
+              <div className="absolute top-3 left-3">
+                <LocationLabel relevance={locationRelevance} />
+              </div>
+            )}
             {/* Price badge - top right */}
             {price && (
               <div className="absolute top-3 right-3 glass rounded-lg px-3 py-1.5 backdrop-blur font-bold text-base text-foreground shadow-lg">
@@ -72,7 +79,7 @@ export default function ListingCard({ listing, index = 0 }) {
 
         {/* Content section */}
         <div className="p-4 space-y-3">
-          {/* Seller info */}
+          {/* Seller info & location */}
           <div className="flex items-center gap-3">
             <img
               src={listing.poster_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop"}
@@ -81,9 +88,11 @@ export default function ListingCard({ listing, index = 0 }) {
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{listing.poster_name || "Seller"}</p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" />{timeAgo(listing.created_date)}
-              </p>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Clock className="w-3 h-3" />
+                <span>{timeAgo(listing.created_date)}</span>
+                {locationRelevance === 'same_city' && <span>• 📍 {listing.location_city}</span>}
+              </div>
             </div>
           </div>
 

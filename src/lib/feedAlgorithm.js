@@ -1,14 +1,16 @@
 /**
- * NomadLink Smart Feed Algorithm
- * Scores listings using 7 signals:
- *  1. Premium boosts (featured / boosted)
+ * NomadLink Smart Feed Algorithm with Hyperlocal Ranking
+ * Priority: Distance > Freshness > Engagement > Social Relevance > Paid Boost
+ *
+ * Scoring signals:
+ *  1. Location tier (same city > nearby > national)
  *  2. Freshness (exponential decay over 7 days)
  *  3. Engagement (views + saves)
- *  4. Location proximity (city match or state match)
- *  5. User interests (category / tag affinity)
- *  6. Poster reputation (trust score)
- *  7. AI relevance bonus (pre-computed or tag match)
+ *  4. User interests (category / tag affinity)
+ *  5. Poster reputation (trust score)
+ *  6. Premium boosts (featured / boosted) - applies only within location tier
  */
+import { getLocationRelevance, getLocationTier } from './geolocationUtils';
 
 const CITY_COORDS = {
   "New York": [40.71, -74.0],
@@ -34,6 +36,16 @@ function haversineDist(lat1, lon1, lat2, lon2) {
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function locationTierScore(relevance) {
+  // Ensure nearby items outrank distant paid items
+  const tierScores = {
+    same_city: 100,
+    nearby: 80,
+    national: 20,
+  };
+  return tierScores[relevance] || 0;
 }
 
 function proximityScore(listing, userCity) {
@@ -81,21 +93,25 @@ function interestScore(listing, userInterests = []) {
 }
 
 function premiumBoostScore(listing) {
-  return (listing.is_featured ? 80 : 0) + (listing.is_boosted ? 40 : 0);
+  // Paid boosts apply only within location tier; nearby items outrank distant paid
+  return (listing.is_featured ? 30 : 0) + (listing.is_boosted ? 15 : 0);
 }
 
 /**
- * Score a single listing given context.
- * Returns a numeric score (higher = more relevant).
+ * Score a single listing with location-first ranking.
+ * Nearby items always outrank distant paid posts.
  */
 export function scoreListing(listing, { userCity, userInterests, userMap } = {}) {
+  const relevance = getLocationRelevance(userCity, listing.location_city);
+  const locationScore = locationTierScore(relevance);
+
   return (
-    premiumBoostScore(listing) +
+    locationScore +
     freshnessScore(listing.created_date) +
     engagementScore(listing) +
-    proximityScore(listing, userCity) +
     interestScore(listing, userInterests) +
-    reputationScore(listing, userMap)
+    reputationScore(listing, userMap) +
+    premiumBoostScore(listing)
   );
 }
 
@@ -107,7 +123,7 @@ export function rankListings(listings, context = {}) {
 }
 
 /**
- * Build personalized sections from a ranked feed.
+ * Build personalized sections with hyperlocal-first ranking.
  */
 export function buildFeedSections(listings, user) {
   const userCity = user?.city || user?.location || "";
@@ -115,24 +131,41 @@ export function buildFeedSections(listings, user) {
 
   const ranked = rankListings(listings, { userCity, userInterests });
 
+  // Split by location relevance for section building
+  const sameCity = ranked.filter(l =>
+    (l.location_city || "").toLowerCase() === userCity.toLowerCase()
+  );
+  const nearby = ranked.filter(l => {
+    const relevance = getLocationRelevance(userCity, l.location_city);
+    return relevance === 'nearby';
+  });
+  const national = ranked.filter(l => {
+    const relevance = getLocationRelevance(userCity, l.location_city);
+    return relevance === 'national';
+  });
+
   return {
-    forYou: ranked.filter(l =>
+    forYou: sameCity.filter(l =>
       userInterests.length > 0 &&
       (userInterests.some(i => i.toLowerCase() === l.category?.toLowerCase()) || (l.tags || []).some(t => userInterests.some(i => t.toLowerCase().includes(i.toLowerCase()))))
     ).slice(0, 8),
-    nearby: ranked.filter(l => {
-      if (!userCity) return false;
-      return (l.location_city || "").toLowerCase() === userCity.toLowerCase();
-    }).slice(0, 8),
-    trending: [...listings]
+    nearby: [...sameCity, ...nearby].slice(0, 8),
+    trending: sameCity
       .sort((a, b) => engagementScore(b) - engagementScore(a))
       .slice(0, 6),
-    fresh: [...listings]
+    fresh: sameCity
       .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))
       .slice(0, 6),
-    featured: ranked.filter(l => l.is_featured),
-    jobs: ranked.filter(l => l.category === "jobs").slice(0, 6),
-    events: ranked.filter(l => l.category === "events").slice(0, 6),
+    featured: sameCity.filter(l => l.is_featured),
+    jobs: [...sameCity, ...nearby].filter(l => l.category === "jobs").slice(0, 6),
+    events: [...sameCity, ...nearby].filter(l => l.category === "events").slice(0, 6),
     allRanked: ranked,
   };
+}
+
+/**
+ * Get location relevance tag for a listing.
+ */
+export function getListingLocationRelevance(userCity, itemCity) {
+  return getLocationRelevance(userCity, itemCity);
 }

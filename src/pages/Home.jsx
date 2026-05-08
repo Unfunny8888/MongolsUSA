@@ -10,7 +10,8 @@ import GroupCard from "../components/cards/GroupCard";
 import BusinessCard from "../components/cards/BusinessCard";
 import FeedSkeleton from "../components/common/FeedSkeleton";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/mockData";
-import { buildFeedSections } from "../lib/feedAlgorithm";
+import { buildFeedSections, getListingLocationRelevance } from "../lib/feedAlgorithm";
+import { getUserCityFromIP } from "../lib/geolocationUtils";
 import { base44 } from "@/api/base44Client";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
   const [groups, setGroups] = useState([]);
   const [businesses, setBusinesses] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [ipLocation, setIpLocation] = useState(null);
   const [pullProgress, setPullProgress] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,10 +34,15 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
+      
+      const geoData = await getUserCityFromIP();
+      setIpLocation(geoData);
+
       const authed = await base44.auth.isAuthenticated();
       if (authed) {
         const me = await base44.auth.me();
-        setCurrentUser(me);
+        const userWithLocation = { ...me, city: me.city || geoData?.city };
+        setCurrentUser(userWithLocation);
         if (!me.onboarded) navigate("/onboarding");
       }
       setListings(MOCK_LISTINGS);
