@@ -5,19 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
 import AIListingHelper from "../components/common/AIListingHelper";
-import { motion, AnimatePresence } from "framer-motion";
 
 const CATS = [
-  { id: "jobs",      icon: Briefcase, label: "Ажил",       sub: "Хүн авах, ажил санал болгох" },
-  { id: "housing",   icon: Home,      label: "Орон сууц",  sub: "Орон сууц, түрээс, худалдаа" },
-  { id: "cars",      icon: Car,       label: "Машин",      sub: "Машин зарах, худалдан авах" },
-  { id: "services",  icon: Wrench,    label: "Үйлчилгээ",  sub: "Үйлчилгээ санал болгох" },
-  { id: "electronics", icon: ShoppingBag, label: "Худалдаа", sub: "Эд зүйл худалдах" },
-  { id: "community", icon: Users,     label: "Нийгэмлэг", sub: "Нийгэмлэгийн пост" },
-  { id: "events",    icon: Calendar,  label: "Үйл явдал",  sub: "Үйл явдал зохион байгуулах" },
+  { id: "jobs",        icon: Briefcase,   label: "Ажил",       sub: "Хүн авах, ажил санал болгох" },
+  { id: "housing",     icon: Home,        label: "Орон сууц",  sub: "Орон сууц, түрээс, худалдаа" },
+  { id: "cars",        icon: Car,         label: "Машин",      sub: "Машин зарах, худалдан авах" },
+  { id: "services",    icon: Wrench,      label: "Үйлчилгээ",  sub: "Үйлчилгээ санал болгох" },
+  { id: "electronics", icon: ShoppingBag, label: "Худалдаа",   sub: "Эд зүйл худалдах" },
+  { id: "community",   icon: Users,       label: "Нийгэмлэг",  sub: "Нийгэмлэгийн пост" },
+  { id: "events",      icon: Calendar,    label: "Үйл явдал",  sub: "Үйл явдал зохион байгуулах" },
 ];
 
 function CategoryPicker({ onSelect }) {
@@ -27,14 +25,11 @@ function CategoryPicker({ onSelect }) {
         <h1 className="text-base font-bold">Шинэ зар</h1>
       </div>
       <div className="px-4 py-4 grid grid-cols-2 gap-3">
-        {CATS.map((cat, i) => {
+        {CATS.map((cat) => {
           const Icon = cat.icon;
           return (
-            <motion.button
+            <button
               key={cat.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
               onClick={() => onSelect(cat.id)}
               className="p-4 rounded-2xl bg-card border border-border/50 text-left hover:border-primary/50 hover:shadow-md transition-smooth active:scale-95"
             >
@@ -43,7 +38,7 @@ function CategoryPicker({ onSelect }) {
               </div>
               <p className="text-sm font-bold text-foreground">{cat.label}</p>
               <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{cat.sub}</p>
-            </motion.button>
+            </button>
           );
         })}
       </div>
@@ -135,13 +130,11 @@ export default function CreateListing() {
     if (!form.title || !category) return;
     setSubmitting(true);
     const data = { ...form, category };
-    // Price: only set if actually entered
     if (form.price && form.price !== "") {
       data.price = Number(form.price);
     } else {
       delete data.price;
     }
-    // Remove empty strings
     Object.keys(data).forEach((k) => { if (data[k] === "") delete data[k]; });
     if (images.length > 0) data.images = images;
     await base44.entities.Listing.create(data);
@@ -165,7 +158,6 @@ export default function CreateListing() {
     </div>
   );
 
-  // Step 1: category picker
   if (!category) return <CategoryPicker onSelect={setCategory} />;
 
   const cat = CATS.find((c) => c.id === category);
@@ -173,7 +165,6 @@ export default function CreateListing() {
 
   return (
     <div className="min-h-dvh pb-32">
-      {/* Header */}
       <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
         <button onClick={() => setCategory("")} className="p-1">
           <ArrowLeft className="w-5 h-5" />
@@ -183,13 +174,10 @@ export default function CreateListing() {
       </div>
 
       <div className="px-4 py-5 space-y-1">
-
-        {/* AI Assistant */}
         <FormField>
           <AIListingHelper category={category} images={images} onApply={handleAIApply} />
         </FormField>
 
-        {/* Photo Upload */}
         <FormField>
           <div className="flex items-center justify-between mb-2">
             <SectionLabel>Зураг</SectionLabel>
@@ -215,7 +203,6 @@ export default function CreateListing() {
           </div>
         </FormField>
 
-        {/* Main Info */}
         <FormField>
           <SectionLabel>Үндсэн мэдээлэл</SectionLabel>
           <Input
@@ -231,7 +218,6 @@ export default function CreateListing() {
           />
         </FormField>
 
-        {/* JOBS specific */}
         {category === "jobs" && (
           <>
             <FormField>
@@ -241,9 +227,7 @@ export default function CreateListing() {
             </FormField>
             <FormField>
               <SectionLabel>Ажлын төрөл</SectionLabel>
-              <ChipSelect
-                value={form.job_type}
-                onChange={(v) => update("job_type", v)}
+              <ChipSelect value={form.job_type} onChange={(v) => update("job_type", v)}
                 options={[
                   { value: "full-time", label: "Бүтэн цаг" },
                   { value: "part-time", label: "Хагас цаг" },
@@ -255,9 +239,7 @@ export default function CreateListing() {
             </FormField>
             <FormField>
               <SectionLabel>Туршлагын түвшин</SectionLabel>
-              <ChipSelect
-                value={form.job_schedule}
-                onChange={(v) => update("job_schedule", v)}
+              <ChipSelect value={form.job_schedule} onChange={(v) => update("job_schedule", v)}
                 options={[
                   { value: "entry", label: "Шинэхэн" },
                   { value: "mid", label: "Дунд" },
@@ -296,7 +278,6 @@ export default function CreateListing() {
           </>
         )}
 
-        {/* CARS specific */}
         {category === "cars" && (
           <>
             <FormField>
@@ -334,7 +315,6 @@ export default function CreateListing() {
           </>
         )}
 
-        {/* HOUSING specific */}
         {category === "housing" && (
           <>
             <FormField>
@@ -373,7 +353,6 @@ export default function CreateListing() {
           </>
         )}
 
-        {/* EVENTS specific */}
         {category === "events" && (
           <>
             <FormField>
@@ -395,7 +374,6 @@ export default function CreateListing() {
           </>
         )}
 
-        {/* Generic price for services/electronics/community */}
         {["services", "electronics", "community"].includes(category) && (
           <FormField>
             <SectionLabel>Үнэ ($)</SectionLabel>
@@ -407,7 +385,6 @@ export default function CreateListing() {
           </FormField>
         )}
 
-        {/* Location */}
         <FormField>
           <SectionLabel>Байршил</SectionLabel>
           <div className="grid grid-cols-2 gap-3">
@@ -416,7 +393,6 @@ export default function CreateListing() {
           </div>
         </FormField>
 
-        {/* AI-generated tags / hashtags / SEO */}
         {(aiTags.length > 0 || aiHashtags.length > 0 || aiSeoKeywords.length > 0) && (
           <FormField>
             <SectionLabel>AI-generated Tags</SectionLabel>
@@ -428,23 +404,20 @@ export default function CreateListing() {
               )}
               {aiHashtags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {aiHashtags.map(h => <span key={h} className="px-2.5 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-medium">#{h}</span>)}
+                  {aiHashtags.map(h => <span key={h} className="px-2.5 py-1 rounded-lg bg-secondary text-foreground text-xs font-medium">#{h}</span>)}
                 </div>
               )}
               {aiSeoKeywords.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
-                  {aiSeoKeywords.map(k => <span key={k} className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium">{k}</span>)}
+                  {aiSeoKeywords.map(k => <span key={k} className="px-2.5 py-1 rounded-lg bg-secondary text-foreground text-xs font-medium">{k}</span>)}
                 </div>
               )}
             </div>
           </FormField>
         )}
 
-        {/* Description */}
         <FormField>
-          <div className="flex items-center justify-between mb-2">
-            <SectionLabel>Тайлбар</SectionLabel>
-          </div>
+          <SectionLabel>Тайлбар</SectionLabel>
           <Textarea
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
@@ -453,7 +426,6 @@ export default function CreateListing() {
           />
         </FormField>
 
-        {/* Contact */}
         <FormField>
           <SectionLabel>Холбоо барих</SectionLabel>
           <div className="grid grid-cols-2 gap-3">
@@ -463,7 +435,6 @@ export default function CreateListing() {
         </FormField>
       </div>
 
-      {/* Submit */}
       <div className="fixed bottom-0 left-0 right-0 glass border-t border-border/30 px-4 py-3 pb-[env(safe-area-inset-bottom)]">
         <Button
           onClick={handleSubmit}

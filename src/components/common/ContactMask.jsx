@@ -54,11 +54,11 @@ export default function ContactMask({ phone, email, telegram, whatsapp, address,
   if (isLoggedIn) {
     return (
       <div className="space-y-2.5">
-        {phone && <ContactRow icon={Phone} label="Phone" value={phone} href={`tel:${phone}`} iconClass="text-green-600" color="bg-green-50" />}
-        {email && <ContactRow icon={Mail} label="Email" value={email} href={`mailto:${email}`} iconClass="text-blue-600" color="bg-blue-50" />}
-        {telegram && <ContactRow icon={Send} label="Telegram" value={`@${telegram.replace(/^@/, "")}`} href={`https://t.me/${telegram.replace(/^@/, "")}`} iconClass="text-sky-600" color="bg-sky-50" />}
-        {whatsapp && <ContactRow icon={MessageCircle} label="WhatsApp" value={whatsapp} href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`} iconClass="text-emerald-600" color="bg-emerald-50" />}
-        {address && <ContactRow icon={Lock} label="Address" value={address} iconClass="text-orange-600" color="bg-orange-50" />}
+        {phone && <ContactRow icon={Phone} label="Phone" value={phone} href={`tel:${phone}`} iconClass="text-green-600" color="bg-secondary/60" />}
+        {email && <ContactRow icon={Mail} label="Email" value={email} href={`mailto:${email}`} iconClass="text-blue-500" color="bg-secondary/60" />}
+        {telegram && <ContactRow icon={Send} label="Telegram" value={`@${telegram.replace(/^@/, "")}`} href={`https://t.me/${telegram.replace(/^@/, "")}`} iconClass="text-sky-500" color="bg-secondary/60" />}
+        {whatsapp && <ContactRow icon={MessageCircle} label="WhatsApp" value={whatsapp} href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`} iconClass="text-emerald-600" color="bg-secondary/60" />}
+        {address && <ContactRow icon={Lock} label="Address" value={address} iconClass="text-orange-500" color="bg-secondary/60" />}
       </div>
     );
   }
