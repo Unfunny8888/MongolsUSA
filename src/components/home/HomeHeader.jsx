@@ -8,6 +8,7 @@ export default function HomeHeader() {
   const navigate = useNavigate();
   const [city, setCity] = useState("Maryville, TN");
   const [user, setUser] = useState(null);
+  const [greeting, setGreeting] = useState("👋");
 
   useEffect(() => {
     async function load() {
@@ -17,6 +18,15 @@ export default function HomeHeader() {
         setUser(me);
         if (me.preferred_city) setCity(me.preferred_city);
       }
+
+      // Generate AI greeting based on time and location
+      const hour = new Date().getHours();
+      const timeOfDay = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
+      
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Generate a SHORT, warm, single-line greeting in Mongolian for ${timeOfDay}. Include a relevant emoji. Format: "[Greeting] [emoji]" Keep it under 15 words. Be natural and friendly.`,
+      });
+      setGreeting(response);
     }
     load();
   }, []);
@@ -26,7 +36,7 @@ export default function HomeHeader() {
       {/* Greeting & Weather */}
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-muted-foreground mb-1">Өглөөний мөндөө 👋</p>
+          <p className="text-sm text-muted-foreground mb-1">{greeting}</p>
           <h1 className="text-4xl font-black text-foreground leading-tight">
             {user?.full_name || "NomadLink"}
           </h1>
