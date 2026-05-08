@@ -1,4 +1,8 @@
 import { useState, useEffect } from "react";
+
+// Module-level cache — persists across remounts
+let _userCache = null;
+let _repCache = null;
 import { useNavigate } from "react-router-dom";
 import { Settings, LogOut, ChevronRight, Crown, Heart, Eye, Bell, MessageSquare, Shield } from "lucide-react";
 import { motion } from "framer-motion";
@@ -21,11 +25,17 @@ export default function Profile() {
       const authed = await base44.auth.isAuthenticated();
       setIsLoggedIn(authed);
       if (authed) {
+        if (_userCache) {
+          setUser(_userCache);
+          if (_repCache) setRepBreakdown(_repCache);
+          setLoading(false);
+        }
+        // Always refresh in background
         const me = await base44.auth.me();
+        _userCache = me;
         setUser(me);
-        // Refresh reputation score in background
         base44.functions.invoke('calculateReputation', {}).then(res => {
-          if (res?.data?.breakdown) setRepBreakdown(res.data.breakdown);
+          if (res?.data?.breakdown) { _repCache = res.data.breakdown; setRepBreakdown(res.data.breakdown); }
           if (res?.data?.trust_score !== undefined) setUser(u => ({ ...u, trust_score: res.data.trust_score, reputation_rank: res.data.rank, reputation_score: res.data.trust_score }));
         }).catch(() => {});
       }

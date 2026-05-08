@@ -1,4 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+// Module-level cache — persists across remounts
+let _groupsCache = null;
 import { ArrowLeft, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -12,9 +15,16 @@ export default function Groups() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    if (_groupsCache) {
+      setGroups(_groupsCache);
+      return;
+    }
     async function load() {
       const dbGroups = await base44.entities.Group.list("-member_count", 20);
-      if (dbGroups.length > 0) setGroups(dbGroups);
+      if (dbGroups.length > 0) {
+        _groupsCache = dbGroups;
+        setGroups(dbGroups);
+      }
     }
     load();
   }, []);
