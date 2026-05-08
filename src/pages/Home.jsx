@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import SectionHeader from "../components/home/SectionHeader";
+import CitySelector from "../components/home/CitySelector"
 import CategoryChip from "../components/cards/CategoryChip";
 import ListingCard from "../components/cards/ListingCard";
 import GroupCard from "../components/cards/GroupCard";
@@ -20,6 +21,7 @@ export default function Home() {
   const [pullProgress, setPullProgress] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
 
@@ -43,7 +45,9 @@ export default function Home() {
     loadData();
   }, [navigate]);
 
-  const filteredListings = selectedCategory ? listings.filter(l => l.category === selectedCategory.id) : listings;
+  const filteredListings = listings
+    .filter(l => !selectedCategory || l.category === selectedCategory.id)
+    .filter(l => !selectedCity || l.location_city === selectedCity);
   const { forYou, nearby, trending, fresh, featured, jobs, events } = buildFeedSections(filteredListings, currentUser);
 
   const handlePullToRefresh = async (e) => {
@@ -112,7 +116,13 @@ export default function Home() {
       )}
       <div className="min-h-dvh">
         {/* Categories */}
-         <SectionHeader title="Categories" subtitle="Browse by type" />
+        <div className="flex items-center justify-between px-4 pt-4 pb-1">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Categories</h2>
+            <p className="text-xs text-muted-foreground">Browse by type</p>
+          </div>
+          <CitySelector city={selectedCity} onCityChange={setSelectedCity} />
+        </div>
          <div className="px-4 pb-4">
            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1" data-scrollable="true">
             <CategoryChip
