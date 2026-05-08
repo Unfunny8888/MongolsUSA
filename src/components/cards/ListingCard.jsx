@@ -127,7 +127,6 @@ export default function ListingCard({ listing, index = 0 }) {
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      style={{ touchAction: 'pan-y', WebkitUserSelect: 'none', userSelect: 'none' }}
     >
       <div className="block group cursor-pointer">
         {hasImage ? (
