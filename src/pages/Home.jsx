@@ -238,7 +238,7 @@ export default function Home() {
 
             {/* Trending — engagement score */}
             <SectionHeader title="🔥 Trending" subtitle="Most viewed this week" linkTo="/explore" />
-            <div className="px-4 space-y-3 pb-2">
+            <div className="px-4 space-y-3.5 pb-4">
               {isLoading ? (
               <FeedSkeleton count={2} />
             ) : (
@@ -250,28 +250,20 @@ export default function Home() {
 
             {/* Just Listed — freshness */}
             <SectionHeader title="🆕 Just Listed" subtitle="Posted recently" linkTo="/explore" />
-            <div className="px-4 pb-2">
-              <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                {fresh.map((l, i) => (
-                  <div key={l.id} className="min-w-[280px] max-w-[300px]">
-                    <ListingCard listing={l} index={i} />
-                  </div>
-                ))}
-              </div>
+            <div className="px-4 space-y-3.5 pb-4">
+              {fresh.map((l, i) => (
+                <ListingCard key={l.id} listing={l} index={i} />
+              ))}
             </div>
 
             {/* Jobs Section */}
             {jobs.length > 0 && (
               <>
                 <SectionHeader title="💼 Jobs" subtitle="Latest opportunities" linkTo="/explore?category=jobs" />
-                <div className="px-4 pb-2">
-                  <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                    {jobs.map((l, i) => (
-                      <div key={l.id} className="min-w-[280px] max-w-[300px]">
-                        <ListingCard listing={l} index={i} />
-                      </div>
-                    ))}
-                  </div>
+                <div className="px-4 space-y-3.5 pb-4">
+                  {jobs.map((l, i) => (
+                    <ListingCard key={l.id} listing={l} index={i} />
+                  ))}
                 </div>
               </>
             )}
@@ -280,14 +272,10 @@ export default function Home() {
             {events.length > 0 && (
               <>
                 <SectionHeader title="🎉 Events" subtitle="Upcoming gatherings" linkTo="/explore?category=events" />
-                <div className="px-4 pb-2">
-                  <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                    {events.map((l, i) => (
-                      <div key={l.id} className="min-w-[280px] max-w-[300px]">
-                        <ListingCard listing={l} index={i} />
-                      </div>
-                    ))}
-                  </div>
+                <div className="px-4 space-y-3.5 pb-4">
+                  {events.map((l, i) => (
+                    <ListingCard key={l.id} listing={l} index={i} />
+                  ))}
                 </div>
               </>
             )}
