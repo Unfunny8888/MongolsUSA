@@ -10,7 +10,14 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { language, city, interests } = body;
+    let { language, city, interests } = body;
+
+    // Fallback to user's profile data if not provided
+    if (!city) city = user.city || 'Ulaanbaatar';
+    if (!language) language = user.language || 'en';
+    if (!interests || !Array.isArray(interests) || interests.length === 0) {
+      interests = user.interests || ['cars', 'jobs', 'housing', 'services', 'events'];
+    }
 
     // Fetch relevant listings based on interests and location
     const listings = await base44.entities.Listing.filter(
@@ -43,7 +50,7 @@ Deno.serve(async (req) => {
     );
 
     // Generate AI recommendations using the invoked LLM
-    const interestLabels = interests.join(', ');
+    const interestLabels = Array.isArray(interests) ? interests.join(', ') : 'general items';
     const listingSummaries = listings.slice(0, 10).map(l =>
       `- ${l.title} (${l.category}) - $${l.price || 'Contact'}`
     ).join('\n');
