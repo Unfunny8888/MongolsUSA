@@ -55,8 +55,10 @@ Deno.serve(async (req) => {
       `- ${l.title} (${l.category}) - $${l.price || 'Contact'}`
     ).join('\n');
 
-    const aiRecommendations = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a personalization engine for NomadLink, a Mongolian community marketplace.
+    let aiRecommendations = { welcome_message: 'Welcome to NomadLink!', featured_categories: interests };
+    try {
+      aiRecommendations = await base44.integrations.Core.InvokeLLM({
+        prompt: `You are a personalization engine for NomadLink, a Mongolian community marketplace.
 
 User Profile:
 - Language: ${language}
@@ -67,26 +69,33 @@ Top Listings:
 ${listingSummaries}
 
 Generate a brief, welcoming personalization message (1-2 sentences) for this user's feed based on their interests and location. Be warm and encouraging.`,
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          welcome_message: { type: 'string' },
-          featured_categories: { type: 'array', items: { type: 'string' } },
+        response_json_schema: {
+          type: 'object',
+          properties: {
+            welcome_message: { type: 'string' },
+            featured_categories: { type: 'array', items: { type: 'string' } },
+          },
         },
-      },
-    });
+      });
+    } catch (llmError) {
+      console.warn('LLM generation failed, using default message:', llmError.message);
+    }
 
     // Store personalization data on user
-    await base44.auth.updateMe({
-      personalized_feed_generated: true,
-      feed_recommendations: {
-        listings: listings.map(l => l.id),
-        groups: groups.map(g => g.id),
-        businesses: businesses.map(b => b.id),
-        welcome_message: aiRecommendations.welcome_message,
-        featured_categories: aiRecommendations.featured_categories,
-      },
-    });
+    try {
+      await base44.auth.updateMe({
+        personalized_feed_generated: true,
+        feed_recommendations: {
+          listings: listings.map(l => l.id),
+          groups: groups.map(g => g.id),
+          businesses: businesses.map(b => b.id),
+          welcome_message: aiRecommendations.welcome_message,
+          featured_categories: aiRecommendations.featured_categories,
+        },
+      });
+    } catch (updateError) {
+      console.warn('Failed to update user profile:', updateError.message);
+    }
 
     return Response.json({
       success: true,
