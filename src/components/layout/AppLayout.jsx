@@ -36,7 +36,8 @@ export default function AppLayout() {
     }
   }, [currentIdx, navigate]);
 
-  const swipeRef = useSwipeGesture(onSwipeLeft, onSwipeRight, { threshold: 80 });
+  // Swipe navigation disabled by default — users must use BottomNav to prevent accidental page swipes
+  const swipeRef = useSwipeGesture(onSwipeLeft, onSwipeRight, { threshold: 120, enableSwipe: false });
 
   return (
     <div ref={swipeRef} className="app-container bg-background">
