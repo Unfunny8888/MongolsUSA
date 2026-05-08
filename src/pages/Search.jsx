@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowLeft, Search as SearchIcon, X, TrendingUp, Clock, Sparkles, Loader2, AlertCircle, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, Search as SearchIcon, X, TrendingUp, Clock, Sparkles, Loader2, AlertCircle, SlidersHorizontal, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ListingCard from "../components/cards/ListingCard";
@@ -82,6 +82,7 @@ export default function Search() {
   const [errorType, setErrorType] = useState(null);
   const [searchedQuery, setSearchedQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(null);
   const [recentSearches, setRecentSearches] = useState(() => {
     try { return JSON.parse(localStorage.getItem("nomadlink_recent") || "[]"); } catch { return []; }
   });
@@ -247,14 +248,46 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
     }
   }, [selectedCategory]);
 
-  const filteredResults = selectedCategory
-    ? results.filter(r => r.category === selectedCategory)
-    : results;
+  const filteredResults = results.filter(r => {
+    const categoryMatch = !selectedCategory || r.category === selectedCategory;
+    const cityMatch = !selectedCity || r.location_city === selectedCity;
+    return categoryMatch && cityMatch;
+  });
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* City Select */}
+      <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-border/30 px-4 py-2 shadow-sm" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))' }}>
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
+          <button
+            onClick={() => setSelectedCity(null)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-smooth ${
+              !selectedCity
+                ? "bg-primary text-white"
+                : "bg-secondary/70 text-foreground hover:bg-secondary"
+            }`}
+          >
+            All Cities
+          </button>
+          {[...new Set(allListingsRef.current.map(l => l.location_city).filter(Boolean))].slice(0, 8).map(city => (
+            <button
+              key={city}
+              onClick={() => setSelectedCity(selectedCity === city ? null : city)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-smooth ${
+                selectedCity === city
+                  ? "bg-primary text-white"
+                  : "bg-secondary/70 text-foreground hover:bg-secondary"
+              }`}
+            >
+              {city}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Search Header */}
-      <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))', paddingBottom: '12px' }}>
+      <div className="glass fixed top-10 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingBottom: '12px' }}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1 shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -315,7 +348,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
       {/* Body */}
       <div
-        className="flex-1 px-4 py-4 overflow-y-auto mt-28"
+        className="flex-1 px-4 py-4 overflow-y-auto mt-44"
         onScroll={() => dismissKeyboard(inputRef)}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
