@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bell } from 'lucide-react';
+import { ArrowLeft, Bell, Search } from 'lucide-react';
 
 const ROOT_ROUTES = ['/', '/search', '/groups', '/create', '/profile'];
 
@@ -40,38 +40,57 @@ const MobileHeader = forwardRef(function MobileHeader(_, ref) {
     <div
       ref={ref}
       data-header
-      className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 shadow-sm"
+      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/20"
       style={{
         transform: 'translateY(0)',
         transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
         willChange: 'transform',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.08)',
       }}
     >
-      <div className="px-4 pt-4 pb-3 space-y-3 max-w-lg mx-auto" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
-      {isRoot ? (
-        // Root screen header with logo
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-black">
-            <span className="text-primary">Nomad</span><span className="text-foreground">Link</span>
-          </h1>
-          <button className="p-3 rounded-full bg-secondary hover:bg-secondary/80 transition-smooth">
-            <Bell className="w-5 h-5 text-foreground" />
-          </button>
-        </div>
-      ) : (
-        // Child screen header with back button
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-lg hover:bg-secondary transition-smooth"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <h2 className="text-lg font-semibold text-foreground">
-            {getTitleFromPath(location.pathname)}
-          </h2>
-        </div>
-      )}
+      <div className="px-4 max-w-lg mx-auto" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>
+        {isRoot ? (
+          // Root: Logo + Notifications + Search indicators
+          <div className="flex items-center justify-between h-16">
+            <div className="flex-1">
+              <h1 className="text-2xl font-black tracking-tight">
+                <span className="text-primary">nomad</span><span className="text-foreground">link</span>
+              </h1>
+              <p className="text-[10px] text-muted-foreground font-medium tracking-wide mt-0.5">MARKETPLACE</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => navigate('/search')}
+                className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary/80 transition-all duration-200 flex items-center justify-center active:scale-95"
+                title="Search"
+              >
+                <Search className="w-5 h-5 text-foreground" />
+              </button>
+              <button 
+                onClick={() => navigate('/notifications')}
+                className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary/80 transition-all duration-200 flex items-center justify-center active:scale-95 relative"
+                title="Notifications"
+              >
+                <Bell className="w-5 h-5 text-foreground" />
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          // Child: Back button + Title + Action button
+          <div className="flex items-center justify-between h-14">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-secondary/40 hover:bg-secondary/60 transition-all duration-200 flex items-center justify-center active:scale-95 flex-shrink-0"
+              title="Back"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h2 className="text-base font-semibold text-foreground flex-1 ml-3 truncate">
+              {getTitleFromPath(location.pathname)}
+            </h2>
+          </div>
+        )}
       </div>
     </div>
   );

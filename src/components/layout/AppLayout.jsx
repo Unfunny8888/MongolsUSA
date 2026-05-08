@@ -51,7 +51,7 @@ export default function AppLayout() {
   return (
     <div className="app-container bg-background">
       <MobileHeader ref={headerRef} />
-      <main ref={mainRef} className={`pb-24 max-w-lg mx-auto overflow-y-auto h-dvh ${location.pathname === '/search' ? '' : 'pt-[calc(4rem+1rem)]'}`} data-scrollable="true">
+      <main ref={mainRef} className={`pb-24 max-w-lg mx-auto overflow-y-auto h-dvh ${location.pathname === '/search' ? '' : 'pt-[calc(3.75rem+0.5rem)]'}`} data-scrollable="true">
         <PageTransition key={location.pathname}>
           <Outlet />
         </PageTransition>
