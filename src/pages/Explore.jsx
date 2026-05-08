@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react";
 import { ArrowLeft, SlidersHorizontal, X, Map, LayoutGrid, Loader2, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,7 +10,7 @@ import { useQueryCache } from "../hooks/useQueryCache";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-const MapView = lazy(() => import("../components/explore/MapView"));
+const MapView = Suspense(() => import("../components/explore/MapView"));
 
 export default function Explore() {
   const navigate = useNavigate();
@@ -23,8 +23,8 @@ export default function Explore() {
   const [showFilters, setShowFilters] = useState(false);
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-  const [dateFilter, setDateFilter] = useState(""); // today | week | month
-  const [viewMode, setViewMode] = useState("grid"); // grid | map
+  const [dateFilter, setDateFilter] = useState("");
+  const [viewMode, setViewMode] = useState("grid");
   const [allListings, setAllListings] = useState(MOCK_LISTINGS);
   const [pullProgress, setPullProgress] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -62,6 +62,25 @@ export default function Explore() {
   const { visible, sentinelRef, hasMore } = useInfiniteScroll(filtered, 15);
   const activeFilters = [category, city, priceMin || priceMax, dateFilter].filter(Boolean).length;
 
+  // Top-level callbacks
+  const handleCategoryAll = useCallback(() => setCategory(""), []);
+  const handleCategorySelect = useCallback((catId) => setCategory(c => c === catId ? "" : catId), []);
+  const handleClearFilters = useCallback(() => { 
+    setCategory(""); 
+    setCity(""); 
+    setPriceMin(""); 
+    setPriceMax(""); 
+    setDateFilter(""); 
+  }, []);
+  const handleCityAll = useCallback(() => {
+    setCity("");
+    setShowCityDrawer(false);
+  }, []);
+  const handleCitySelect = useCallback((cityName) => {
+    setCity(cityName);
+    setShowCityDrawer(false);
+  }, []);
+
   const handlePullToRefresh = useCallback(async (e) => {
     const scrollTop = containerRef.current?.scrollTop || 0;
     if (scrollTop !== 0) return;
@@ -98,19 +117,6 @@ export default function Explore() {
       }
     }
   }, [pullProgress, isRefreshing, cache]);
-
-  const handleClearCategory = useCallback(() => setCategory(""), []);
-  const handleClearAllFilters = useCallback(() => {
-    setCategory("");
-    setCity("");
-    setPriceMin("");
-    setPriceMax("");
-    setDateFilter("");
-  }, []);
-  const handleClearCity = useCallback(() => {
-    setCity("");
-    setShowCityDrawer(false);
-  }, []);
 
   return (
     <div
@@ -169,7 +175,7 @@ export default function Explore() {
         <div className="px-4 pb-3">
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             <button
-              onClick={handleClearCategory}
+              onClick={handleCategoryAll}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-smooth ${
                 !category ? "bg-primary text-white" : "bg-secondary text-foreground"
               }`}
@@ -179,7 +185,7 @@ export default function Explore() {
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setCategory(category === cat.id ? "" : cat.id)}
+                onClick={() => handleCategorySelect(cat.id)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-smooth ${
                   category === cat.id ? "bg-primary text-white" : "bg-secondary text-foreground"
                 }`}
@@ -250,7 +256,7 @@ export default function Explore() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleClearAllFilters}
+                    onClick={handleClearFilters}
                     className="mt-3 text-xs text-destructive"
                   >
                     <X className="w-3 h-3 mr-1" /> Clear filters
@@ -311,7 +317,7 @@ export default function Explore() {
             </div>
             <div className="space-y-1">
               <button
-                onClick={handleClearCity}
+                onClick={handleCityAll}
                 className={`w-full text-left px-4 py-3 rounded-xl transition-smooth ${
                   !city
                     ? "bg-primary text-white font-semibold"
@@ -323,10 +329,7 @@ export default function Explore() {
               {CITIES.map(c => (
                 <button
                   key={c.name}
-                  onClick={() => {
-                    setCity(c.name);
-                    setShowCityDrawer(false);
-                  }}
+                  onClick={() => handleCitySelect(c.name)}
                   className={`w-full text-left px-4 py-3 rounded-xl transition-smooth ${
                     city === c.name
                       ? "bg-primary text-white font-semibold"
