@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { Heart, MessageCircle, Share2, MapPin, Clock } from "lucide-react";
 import { motion } from "framer-motion";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTapGesture } from "@/hooks/useTapGesture";
 import LocationLabel from "../common/LocationLabel";
+import ReputationBadge from "../common/ReputationBadge";
+import { base44 } from "@/api/base44Client";
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
@@ -36,6 +38,17 @@ export default function ListingCard({ listing, index = 0, locationRelevance, use
   const hasImage = listing.images?.length > 0;
   const price = formatPrice(listing);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [posterReputation, setPosterReputation] = useState(null);
+
+  useEffect(() => {
+    async function loadReputation() {
+      if (listing.author_email) {
+        const rep = await base44.entities.UserReputation.filter({ user_email: listing.author_email });
+        if (rep.length > 0) setPosterReputation(rep[0]);
+      }
+    }
+    loadReputation();
+  }, [listing.author_email]);
 
   return (
     <motion.div
@@ -87,7 +100,10 @@ export default function ListingCard({ listing, index = 0, locationRelevance, use
               className="w-10 h-10 rounded-full object-cover border border-border/40"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">{listing.poster_name || "Seller"}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-foreground truncate">{listing.poster_name || "Seller"}</p>
+                {posterReputation && <ReputationBadge reputation={posterReputation} size="xs" />}
+              </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="w-3 h-3" />
                 <span>{timeAgo(listing.created_date)}</span>
