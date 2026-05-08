@@ -26,18 +26,19 @@ function haversineDistance([lat1, lon1], [lat2, lon2]) {
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 }
 
-// Cache user position at module level
+// Cache user position at module level (IP-based)
 let cachedPosition = null;
-function getUserPosition() {
-  if (cachedPosition) return Promise.resolve(cachedPosition);
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) { resolve(null); return; }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => { cachedPosition = [pos.coords.latitude, pos.coords.longitude]; resolve(cachedPosition); },
-      () => resolve(null),
-      { timeout: 5000 }
-    );
-  });
+async function getUserPosition() {
+  if (cachedPosition) return cachedPosition;
+  try {
+    const res = await fetch("https://ip-api.com/json/?fields=lat,lon");
+    const data = await res.json();
+    if (data.lat && data.lon) {
+      cachedPosition = [data.lat, data.lon];
+      return cachedPosition;
+    }
+  } catch {}
+  return null;
 }
 
 function formatPrice(listing) {
