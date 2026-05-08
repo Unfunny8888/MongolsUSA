@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20, scale: 0.98 },
@@ -15,11 +14,8 @@ const pageTransition = {
 };
 
 export default function PageTransition({ children }) {
-  const location = useLocation();
-
   return (
     <motion.div
-      key={location.pathname}
       variants={pageVariants}
       initial="initial"
       animate="animate"
