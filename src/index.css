@@ -90,8 +90,8 @@
   }
   html {
     height: 100%;
-    /* Prevent Safari from resizing viewport on keyboard open */
     overflow: hidden;
+    overflow-x: hidden;
     overscroll-behavior: none;
     overflow-anchor: none;
   }
@@ -101,9 +101,13 @@
     -moz-osx-font-smoothing: grayscale;
     height: 100%;
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior-y: none;
-    /* Use dvh so layout doesn't recalculate when keyboard opens */
     min-height: 100dvh;
+  }
+  #root {
+    height: 100%;
+    overflow-x: hidden;
   }
 }
 
@@ -154,9 +158,21 @@ nav,
   background: rgba(15, 23, 20, 0.7);
 }
 
-/* Smooth transitions */
+/* Smooth transitions — transform-only to avoid height/position repaints */
 .transition-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Keyboard-safe app container */
+.app-container {
+  min-height: 100dvh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Bottom nav safe area */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Hide scrollbar for mobile */
