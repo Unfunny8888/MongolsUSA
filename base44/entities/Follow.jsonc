@@ -1,0 +1,28 @@
+{
+  "name": "Follow",
+  "type": "object",
+  "properties": {
+    "follower_email": {
+      "type": "string",
+      "description": "Email of user who is following"
+    },
+    "follower_name": {
+      "type": "string"
+    },
+    "following_email": {
+      "type": "string",
+      "description": "Email of user being followed"
+    },
+    "following_name": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "follower_email",
+    "following_email"
+  ]
+}

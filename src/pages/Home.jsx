@@ -9,6 +9,10 @@ import ListingCard from "../components/cards/ListingCard";
 import GroupCard from "../components/cards/GroupCard";
 import BusinessCard from "../components/cards/BusinessCard";
 import FeedSkeleton from "../components/common/FeedSkeleton";
+import SuggestedUsers from "../components/discovery/SuggestedUsers";
+import SuggestedGroups from "../components/discovery/SuggestedGroups";
+import TrendingPosts from "../components/discovery/TrendingPosts";
+import ActiveNow from "../components/discovery/ActiveNow";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/mockData";
 import { buildFeedSections, getListingLocationRelevance } from "../lib/feedAlgorithm";
 import { getUserCityFromIP } from "../lib/geolocationUtils";
@@ -297,6 +301,18 @@ export default function Home() {
                 ))}
               </div>
             </div>
+
+            {/* Active Now */}
+            <ActiveNow />
+
+            {/* Trending Posts */}
+            <TrendingPosts />
+
+            {/* Suggested Users */}
+            <SuggestedUsers />
+
+            {/* Suggested Groups */}
+            <SuggestedGroups />
 
             {/* Groups */}
             <SectionHeader title="👥 Communities" subtitle="Join your local group" linkTo="/groups" />
