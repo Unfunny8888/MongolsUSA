@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, memo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import ChildPageLayout from "../components/layout/ChildPageLayout";
 import ContactMask from "../components/common/ContactMask";
 import TranslateButton from "../components/common/TranslateButton";
 import BoostModal from "../components/common/BoostModal";
@@ -135,9 +136,7 @@ const EventDetails = memo(function EventDetails({ listing }) {
 
 export default function ListingDetail() {
   const { listingId } = useParams();
-  const navigate = useNavigate();
   const [listing, setListing] = useState(null);
-  const [saved, setSaved] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
   const [translatedDesc, setTranslatedDesc] = useState(null);
@@ -174,14 +173,14 @@ export default function ListingDetail() {
 
   if (!listing) {
     return (
-      <div className="flex items-center justify-center min-h-dvh">
+      <ChildPageLayout className="flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
+      </ChildPageLayout>
     );
   }
 
   return (
-    <div className="min-h-dvh pb-24">
+    <ChildPageLayout>
       <div className="relative">
         <img
           src={listing.images?.[0] || "https://images.unsplash.com/photo-1557683316-973673baf926?w=800"}
@@ -189,14 +188,9 @@ export default function ListingDetail() {
           className="w-full aspect-[4/3] object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl glass flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <div className="flex gap-2">
-            <ShareButton title={listing.title} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
-            <SaveButton listing={listing} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
-          </div>
+        <div className="absolute top-4 right-4 flex gap-2">
+          <ShareButton title={listing.title} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
+          <SaveButton listing={listing} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
         </div>
       </div>
 
@@ -272,10 +266,6 @@ export default function ListingDetail() {
 
           {isLoggedIn && listing.created_by && listing.created_by !== user?.email && (
             <button
-              onClick={() => {
-                const convId = [user.email, listing.created_by].sort().join("_") + "_" + listing.id;
-                navigate(`/conversation/${convId}?other=${listing.poster_name || "Seller"}&listing=${encodeURIComponent(listing.title)}`);
-              }}
               className="mt-4 w-full py-3 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-smooth"
             >
               💬 Message Seller
@@ -306,6 +296,6 @@ export default function ListingDetail() {
           onClose={() => setShowBoost(false)}
         />
       )}
-    </div>
+    </ChildPageLayout>
   );
 }

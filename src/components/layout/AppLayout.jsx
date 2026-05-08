@@ -1,7 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import BottomNav from "./BottomNav";
-import MobileHeader from "./MobileHeader";
+import PageHeader from "./PageHeader";
+import { useNavigationStack } from "@/lib/useNavigationStack";
 import PageTransition from "./PageTransition";
 
 
@@ -19,6 +20,7 @@ export default function AppLayout() {
   const location = useLocation();
   const headerRef = useRef(null);
   const mainRef = useRef(null);
+  const { pageInfo, isRoot, handleBack } = useNavigationStack();
 
   useEffect(() => { registerSW(); }, []);
 
@@ -48,10 +50,20 @@ export default function AppLayout() {
     return () => main.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Hide header on search page
+  const hideHeader = location.pathname === '/search';
+
   return (
     <div className="app-container bg-background">
-      <MobileHeader ref={headerRef} />
-      <main ref={mainRef} className={`pb-24 max-w-lg mx-auto overflow-y-auto h-dvh ${location.pathname === '/search' ? '' : 'pt-[calc(3.75rem+0.5rem)]'}`} data-scrollable="true">
+      {!hideHeader && (
+        <PageHeader
+          ref={headerRef}
+          title={pageInfo?.label}
+          onBack={handleBack}
+          isRoot={isRoot}
+        />
+      )}
+      <main ref={mainRef} className={`max-w-lg mx-auto overflow-y-auto h-dvh ${hideHeader ? '' : 'pt-14'} pb-24`} data-scrollable="true">
         <PageTransition key={location.pathname}>
           <Outlet />
         </PageTransition>

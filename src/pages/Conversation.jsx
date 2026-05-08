@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback, memo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, Image, Check, CheckCheck, Loader2 } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Send, Image, Check, CheckCheck, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import ChildPageLayout from "../components/layout/ChildPageLayout";
 import TranslateButton from "../components/common/TranslateButton";
 import { base44 } from "@/api/base44Client";
 
@@ -33,7 +34,6 @@ const MsgBubble = memo(function MsgBubble({ msg, isMe }) {
 
 export default function Conversation() {
   const { conversationId } = useParams();
-  const navigate = useNavigate();
   const urlParams = new URLSearchParams(window.location.search);
   const otherName = urlParams.get("other") || "User";
   const listingTitle = urlParams.get("listing") || "";
@@ -122,15 +122,7 @@ export default function Conversation() {
   }, [user, conversationId, otherName, listingTitle, getOtherUser]);
 
   return (
-    <div className="flex flex-col" style={{ height: '100dvh' }}>
-      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
-        <div className="flex-1">
-          <p className="text-sm font-bold">{otherName}</p>
-          {listingTitle && <p className="text-[10px] text-primary">Re: {listingTitle}</p>}
-        </div>
-      </div>
-
+    <ChildPageLayout className="!pt-0 flex flex-col">
       <div className="flex-1 px-4 py-4 space-y-3 pb-4 overflow-y-auto overscroll-contain">
         {messages.map((msg, i) => {
           const isMe = msg.from_user === user?.email;
@@ -169,7 +161,7 @@ export default function Conversation() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadingImage}
-          className="w-10 h-10 rounded-xl bg-secondary text-foreground flex items-center justify-center shrink-0"
+          className="w-10 h-10 rounded-xl bg-secondary text-foreground flex items-center justify-center shrink-0 min-h-[44px] min-w-[44px]"
         >
           {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Image className="w-4 h-4" />}
         </button>
@@ -183,11 +175,11 @@ export default function Conversation() {
         <button
           onClick={send}
           disabled={!text.trim() || sending}
-          className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center disabled:opacity-40 shrink-0"
+          className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center disabled:opacity-40 shrink-0 min-h-[44px] min-w-[44px]"
         >
           <Send className="w-4 h-4" />
         </button>
       </div>
-    </div>
+    </ChildPageLayout>
   );
 }

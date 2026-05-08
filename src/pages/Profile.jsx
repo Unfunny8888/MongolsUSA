@@ -1,141 +1,102 @@
-import { useState, useEffect } from "react";
-
-// Module-level cache — persists across remounts
-let _userCache = null;
-let _repCache = null;
-import { useNavigate } from "react-router-dom";
-import { Settings, LogOut, ChevronRight, Crown, Heart, Eye, Bell, MessageSquare, Shield } from "lucide-react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import PremiumProfileHeader from "../components/profile/PremiumProfileHeader";
-import TrustCard from "../components/common/TrustCard";
-import ReputationBreakdown from "../components/common/ReputationBreakdown";
-import { base44 } from "@/api/base44Client";
+import { useNavigate } from 'react-router-dom';
+import { Edit, LogOut, Settings, Heart, FileText, BarChart3, ShoppingBag, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import ChildPageLayout from '../components/layout/ChildPageLayout';
+import { base44 } from '@/api/base44Client';
 
 export default function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [repBreakdown, setRepBreakdown] = useState(null);
+  const [listing, setListing] = useState(null);
 
   useEffect(() => {
     async function load() {
-      const authed = await base44.auth.isAuthenticated();
-      setIsLoggedIn(authed);
-      if (authed) {
-        if (_userCache) {
-          setUser(_userCache);
-          if (_repCache) setRepBreakdown(_repCache);
-          setLoading(false);
-        }
-        // Always refresh in background
-        const me = await base44.auth.me();
-        _userCache = me;
-        setUser(me);
-        base44.functions.invoke('calculateReputation', {}).then(res => {
-          if (res?.data?.breakdown) { _repCache = res.data.breakdown; setRepBreakdown(res.data.breakdown); }
-          if (res?.data?.trust_score !== undefined) setUser(u => ({ ...u, trust_score: res.data.trust_score, reputation_rank: res.data.rank, reputation_score: res.data.trust_score }));
-        }).catch(() => {});
-      }
-      setLoading(false);
+      const me = await base44.auth.me();
+      setUser(me);
+      const res = await base44.entities.Listing.filter({ created_by: me.email }, '-created_date', 1);
+      setListing(res[0]);
     }
     load();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center mb-6 shadow-xl shadow-primary/20"
-        >
-          <span className="text-4xl">🐎</span>
-        </motion.div>
-        <h1 className="text-2xl font-extrabold mb-2">Welcome to NomadLink</h1>
-        <p className="text-sm text-muted-foreground mb-8 max-w-xs leading-relaxed">
-          Join the largest Mongolian community marketplace in the USA.
-        </p>
-        <Button
-          onClick={() => base44.auth.redirectToLogin()}
-          className="rounded-xl bg-primary text-white px-10 py-6 text-base font-bold hover:bg-primary/90 shadow-lg shadow-primary/20"
-        >
-          Get Started
-        </Button>
-        <p className="text-xs text-muted-foreground mt-4">Free to join • Browse as guest</p>
-      </div>
-    );
-  }
-
   const menuItems = [
-    { icon: Heart, label: "Saved Listings", link: "/saved" },
-    { icon: Eye, label: "My Listings", link: "/my-listings" },
-    { icon: MessageSquare, label: "Messages", link: "/inbox" },
-    { icon: Bell, label: "Notifications", link: "/notifications" },
-    { icon: Crown, label: "Upgrade to VIP", highlight: true, link: "/vip" },
-    ...(user?.role === "admin" ? [{ icon: Shield, label: "Admin Dashboard", link: "/admin" }] : []),
-    ...(user?.role === "business_owner" || user?.verified_business ? [{ icon: Eye, label: "Business Dashboard", link: "/business-dashboard" }] : []),
-    { icon: Settings, label: "Edit Profile", link: "/edit-profile" },
+    { icon: Edit, label: 'Edit Profile', action: () => navigate('/edit-profile') },
+    { icon: ShoppingBag, label: 'My Listings', action: () => navigate('/my-listings') },
+    { icon: Heart, label: 'Saved Listings', action: () => navigate('/saved') },
+    { icon: FileText, label: 'Saved Searches', action: () => navigate('/saved-searches') },
+    { icon: BarChart3, label: 'Business Dashboard', action: () => navigate('/business-dashboard') },
+    { icon: Settings, label: 'Settings', action: () => {} },
+    { icon: LogOut, label: 'Logout', action: async () => {
+      await base44.auth.logout();
+    }},
   ];
 
+  if (!user) {
+    return (
+      <ChildPageLayout className="flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </ChildPageLayout>
+    );
+  }
+
   return (
-    <div className="min-h-dvh pb-24">
-      <PremiumProfileHeader user={user} />
-
-      <div className="px-4 mt-0 mb-5 space-y-2.5">
-        <ReputationBreakdown user={user} breakdown={repBreakdown} />
-        <TrustCard user={user} />
-      </div>
-
-      <div className="px-4 mt-5 space-y-1">
-        {menuItems.map((item, i) => (
-          <motion.button
-            key={item.label}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.05 }}
-            onClick={() => item.link && navigate(item.link)}
-            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-smooth ${
-              item.highlight
-                ? "bg-gradient-to-r from-amber-100/50 to-orange-100/50 border border-amber-200/70 hover:from-amber-100/70 hover:to-orange-100/70 shadow-sm"
-                : "bg-secondary/35 border border-border/40 hover:bg-secondary/55"
-            }`}
-          >
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-              item.highlight ? "bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm" : "bg-secondary/60"
-            }`}>
-              <item.icon className={`w-4 h-4 ${item.highlight ? "text-white" : "text-foreground"}`} />
+    <ChildPageLayout>
+      <div className="px-4 pb-6">
+        {/* Profile Header */}
+        <div className="bg-gradient-to-br from-primary/20 to-accent/10 rounded-3xl p-6 mb-6 border border-border/40">
+          <div className="flex items-center gap-4">
+            <img
+              src={`https://i.pravatar.cc/120?u=${user.email}`}
+              alt={user.full_name}
+              className="w-20 h-20 rounded-2xl object-cover border-2 border-border"
+            />
+            <div className="flex-1">
+              <h1 className="text-xl font-bold text-foreground">{user.full_name}</h1>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <p className="text-xs text-primary font-semibold mt-1">
+                {user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'Member'}
+              </p>
             </div>
-            <span className={`text-sm font-medium flex-1 text-left ${item.highlight ? "text-amber-800" : ""}`}>
-              {item.label}
-            </span>
-            {item.count !== undefined && (
-              <Badge variant="secondary" className="text-[10px]">{item.count}</Badge>
-            )}
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </motion.button>
-        ))}
-      </div>
+          </div>
+        </div>
 
-      <div className="px-4 mt-8 mb-4" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
-        <Button
-          variant="ghost"
-          onClick={() => base44.auth.logout()}
-          className="w-full rounded-xl text-destructive hover:bg-destructive/10 gap-2 text-sm"
-        >
-          <LogOut className="w-4 h-4" /> Sign Out
-        </Button>
+        {/* Quick Stats */}
+        {listing && (
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="bg-card rounded-2xl p-4 border border-border/40 text-center">
+              <p className="text-2xl font-bold text-primary">1</p>
+              <p className="text-xs text-muted-foreground mt-1">Active Listing</p>
+            </div>
+            <div className="bg-card rounded-2xl p-4 border border-border/40 text-center">
+              <p className="text-2xl font-bold text-primary">0</p>
+              <p className="text-xs text-muted-foreground mt-1">Messages</p>
+            </div>
+          </div>
+        )}
+
+        {/* Menu Items */}
+        <div className="space-y-2">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.label}
+                onClick={item.action}
+                className="w-full flex items-center gap-3 p-4 rounded-xl bg-card border border-border/40 hover:bg-secondary/50 transition-all active:scale-95"
+              >
+                <Icon className="w-5 h-5 text-primary flex-shrink-0" />
+                <span className="text-sm font-medium text-foreground flex-1 text-left">{item.label}</span>
+                <span className="text-xs text-muted-foreground">›</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="mt-8 pt-6 border-t border-border/30 text-center text-xs text-muted-foreground">
+          <p>v1.0.0 • Made with ❤️ for diaspora</p>
+        </div>
       </div>
-    </div>
+    </ChildPageLayout>
   );
 }

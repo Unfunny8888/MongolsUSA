@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { createContext } from 'react';
 import { useSystemTheme } from '@/hooks/useSystemTheme';
 import { useEffect } from 'react';
 import { initializeGestureHandler } from '@/lib/gestureHandler';
@@ -117,5 +118,7 @@ function App() {
     </QueryClientProvider>
   )
 }
+
+export const NavigationContext = createContext(null);
 
 export default App

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Shield, MessageSquare, TrendingUp } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Users, Shield, MessageSquare, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import ChildPageLayout from "../components/layout/ChildPageLayout";
 import TranslateButton from "../components/common/TranslateButton";
 import LikeButton from "../components/common/LikeButton";
 import PostReactions from "../components/community/PostReactions";
@@ -46,7 +47,6 @@ function PostCard({ post, userEmail, onUpdate }) {
 
 export default function GroupDetail() {
   const { groupId } = useParams();
-  const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [joined, setJoined] = useState(false);
   const [posts, setPosts] = useState([]);
@@ -72,23 +72,17 @@ export default function GroupDetail() {
 
   if (!group) {
     return (
-      <div className="flex items-center justify-center min-h-dvh">
+      <ChildPageLayout className="flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
+      </ChildPageLayout>
     );
   }
 
   return (
-    <div className="min-h-dvh pb-24">
+    <ChildPageLayout>
       <div className="relative">
         <img src={group.cover_image} alt={group.name} className="w-full h-48 object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-xl glass flex items-center justify-center"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
       </div>
 
       <div className="px-4 -mt-8 relative z-10">
@@ -133,9 +127,7 @@ export default function GroupDetail() {
             {joined ? "Joined ✓" : "Join Community"}
           </Button>
 
-          {/* Posts */}
           <div className="mt-6 pt-5 border-t border-border space-y-4">
-            {/* Trending indicator */}
             {posts.filter(p => (p.like_count || 0) + (p.repost_count || 0) > 3).length > 0 && (
               <div className="flex items-center gap-1.5 text-xs text-orange-500 font-semibold">
                 <TrendingUp className="w-3.5 h-3.5" /> Trending discussions
@@ -167,7 +159,6 @@ export default function GroupDetail() {
               />
             )}
 
-            {/* Pinned announcements first */}
             {posts.filter(p => p.is_pinned).map(post => (
               <PostCard key={post.id} post={post} userEmail={user?.email} onUpdate={updated => setPosts(prev => prev.map(p => p.id === updated.id ? updated : p))} />
             ))}
@@ -191,6 +182,6 @@ export default function GroupDetail() {
           </div>
         </motion.div>
       </div>
-    </div>
+    </ChildPageLayout>
   );
 }
