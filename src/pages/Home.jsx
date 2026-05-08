@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search, Mic, Sun, Cloud, CloudRain } from "lucide-react";
 import HomeHeader from "../components/home/HomeHeader";
-import FeaturedBanner from "../components/home/FeaturedBanner";
 import SectionHeader from "../components/home/SectionHeader";
 import CategoryChip from "../components/cards/CategoryChip";
 import ListingCard from "../components/cards/ListingCard";
@@ -119,7 +118,6 @@ export default function Home() {
       )}
     <div className="min-h-dvh">
       <HomeHeader />
-      <FeaturedBanner />
 
       {/* Categories */}
       <SectionHeader title="Categories" subtitle="Browse by type" />
