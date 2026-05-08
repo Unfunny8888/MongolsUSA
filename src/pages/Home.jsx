@@ -27,23 +27,27 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       const authed = await base44.auth.isAuthenticated();
+      let me = null;
       if (authed) {
-        const me = await base44.auth.me();
+        me = await base44.auth.me();
         setCurrentUser(me);
         if (!me.onboarded) navigate("/onboarding");
+        // Load personalized feed for authenticated user
+        const feedResult = await base44.functions.invoke('generatePersonalizedFeed', { user_email: me.email });
+        if (feedResult.data?.listings?.length > 0) {
+          setListings(feedResult.data.listings);
+        }
       }
 
-      const [dbListings, dbGroups, dbBiz] = await Promise.allSettled([
-        base44.entities.Listing.list("-created_date", 60),
+      const [dbGroups, dbBiz] = await Promise.allSettled([
         base44.entities.Group.list("-member_count", 10),
         base44.entities.Business.list("-rating", 10),
       ]);
-      setListings(dbListings.status === "fulfilled" && dbListings.value.length > 0 ? dbListings.value : MOCK_LISTINGS);
       setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
       setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
     }
     loadData();
-  }, []);
+  }, [navigate]);
 
   const filteredListings = selectedCategory ? listings.filter(l => l.category === selectedCategory.id) : listings;
   const { forYou, nearby, trending, fresh, featured, jobs, events } = buildFeedSections(filteredListings, currentUser);
@@ -72,12 +76,17 @@ export default function Home() {
         setIsRefreshing(true);
         setPullProgress(0);
         setTimeout(async () => {
-          const [dbListings, dbGroups, dbBiz] = await Promise.allSettled([
-            base44.entities.Listing.list("-created_date", 60),
+          const authed = await base44.auth.isAuthenticated();
+          if (authed && currentUser) {
+            const feedResult = await base44.functions.invoke('generatePersonalizedFeed', { user_email: currentUser.email });
+            if (feedResult.data?.listings?.length > 0) {
+              setListings(feedResult.data.listings);
+            }
+          }
+          const [dbGroups, dbBiz] = await Promise.allSettled([
             base44.entities.Group.list("-member_count", 10),
             base44.entities.Business.list("-rating", 10),
           ]);
-          setListings(dbListings.status === "fulfilled" && dbListings.value.length > 0 ? dbListings.value : MOCK_LISTINGS);
           setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
           setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
           setIsRefreshing(false);
