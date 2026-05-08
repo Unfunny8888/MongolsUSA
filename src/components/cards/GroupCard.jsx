@@ -22,7 +22,11 @@ export default function GroupCard({ group, index = 0 }) {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-3 left-3 right-3">
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{group.avatar}</span>
+                <img
+                  src={group.avatar}
+                  alt={group.name}
+                  className="w-10 h-10 rounded-lg object-cover border border-white/20"
+                />
                 <div>
                   <div className="flex items-center gap-1.5">
                     <h3 className="font-bold text-white text-sm">{group.name}</h3>
@@ -36,17 +40,6 @@ export default function GroupCard({ group, index = 0 }) {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div className="p-3">
-            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-              {group.description}
-            </p>
-            <div className="flex items-center justify-between mt-2.5">
-              <Badge variant="secondary" className="text-[10px]">{group.category}</Badge>
-              {group.city && (
-                <span className="text-[10px] text-muted-foreground">{group.city}</span>
-              )}
             </div>
           </div>
         </div>
