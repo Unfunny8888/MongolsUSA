@@ -70,16 +70,19 @@ export default function Home() {
       if (pullProgress > 0.7) {
         setIsRefreshing(true);
         setPullProgress(0);
-        setTimeout(async () => {
-          setListings(MOCK_LISTINGS);
-          const [dbGroups, dbBiz] = await Promise.allSettled([
-            base44.entities.Group.list("-member_count", 10),
-            base44.entities.Business.list("-rating", 10),
-          ]);
-          setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
-          setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
-          setIsRefreshing(false);
-        }, 800);
+        await new Promise((resolve) => {
+          setTimeout(async () => {
+            setListings(MOCK_LISTINGS);
+            const [dbGroups, dbBiz] = await Promise.allSettled([
+              base44.entities.Group.list("-member_count", 10),
+              base44.entities.Business.list("-rating", 10),
+            ]);
+            setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
+            setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
+            setIsRefreshing(false);
+            resolve();
+          }, 800);
+        });
       } else {
         setPullProgress(0);
       }
@@ -93,11 +96,13 @@ export default function Home() {
       onTouchMove={handlePullToRefresh}
       onTouchEnd={handlePullToRefresh}
       className="min-h-dvh overflow-y-auto relative"
+      style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
     >
       {pullProgress > 0 && (
         <motion.div
           className="fixed top-8 left-1/2 -translate-x-1/2 z-40"
           animate={{ scale: pullProgress }}
+          style={{ willChange: 'transform' }}
         >
           <Loader2 className="w-5 h-5 text-primary animate-spin" />
         </motion.div>
@@ -110,7 +115,7 @@ export default function Home() {
           </div>
         </div>
       )}
-      <div className="min-h-dvh">
+      <div className="min-h-dvh" style={{ contain: 'layout style paint' }}>
         <HomeHeader />
 
         {/* Categories */}

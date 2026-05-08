@@ -20,13 +20,26 @@ export function useInfiniteScroll(items, pageSize = 12) {
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el || !hasMore) return;
+    // Batch multiple intersection events to prevent excessive re-renders
+    let pendingUpdate = false;
     const observer = new IntersectionObserver(
-      (entries) => { if (entries[0].isIntersecting) setPage(p => p + 1); },
+      (entries) => {
+        if (entries[0].isIntersecting && !pendingUpdate) {
+          pendingUpdate = true;
+          requestAnimationFrame(() => {
+            setPage(p => p + 1);
+            pendingUpdate = false;
+          });
+        }
+      },
       { rootMargin: "200px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, [hasMore, sentinelRef.current]);
 
-  return { visible, sentinelRef, hasMore, reset };
+  // Memoize visible slice to prevent unnecessary re-renders
+  const visibleMemo = items.slice(0, page * pageSize);
+
+  return { visible: visibleMemo, sentinelRef, hasMore, reset };
 }

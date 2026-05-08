@@ -120,16 +120,20 @@ export default function ListingCard({ listing, index = 0 }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.25 }}
+      className="will-change-transform"
+      style={{ contain: "layout style paint" }}
     >
       <Link to={`/listing/${listing.id}`} className="block group">
         {hasImage ? (
           <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-smooth">
-            <div className="relative aspect-[16/10] overflow-hidden">
+            <div className="relative aspect-[16/10] overflow-hidden bg-secondary/50">
               <img
                 src={listing.images[0]}
                 alt={listing.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
+                decoding="async"
+                style={{ contentVisibility: 'auto' }}
               />
               {/* Top badges */}
               <div className="absolute top-3 left-3 flex gap-2">
@@ -158,8 +162,8 @@ export default function ListingCard({ listing, index = 0 }) {
                 </div>
               )}
             </div>
-            <div className="p-3.5">
-              <h3 className="font-semibold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors mb-2">
+            <div className="p-3.5" style={{ contain: 'layout style' }}>
+             <h3 className="font-semibold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors mb-2">
                 {listing.title}
               </h3>
               <MetaRow listing={listing} dist={dist} />
@@ -176,7 +180,7 @@ export default function ListingCard({ listing, index = 0 }) {
           </div>
         ) : (
           /* Text-only card */
-          <div className="bg-card rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-smooth p-4">
+          <div className="bg-card rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-smooth p-4" style={{ contain: 'layout style' }}>
             <div className="flex items-center justify-between mb-2">
               <Badge variant="secondary" className={`text-[10px] font-medium ${getCategoryColor(listing.category)}`}>
                 {listing.category}
