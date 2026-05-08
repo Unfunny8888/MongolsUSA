@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, MessageSquare, Eye, Heart, Users, Star, CheckCheck, Search, Sparkles, MapPin, Bookmark, Zap } from "lucide-react";
 import { motion } from "framer-motion";
@@ -69,13 +69,13 @@ export default function Notifications() {
     await Notification.requestPermission();
   }
 
-  async function markAllRead() {
+  const markAllRead = useCallback(async () => {
     const unread = notifications.filter(n => !n.is_read);
     await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-  }
+  }, [notifications]);
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadCount = useMemo(() => notifications.filter(n => !n.is_read).length, [notifications]);
   const FILTERS = [
     { id: "all", label: "All" },
     { id: "message", label: "Messages" },
@@ -83,7 +83,7 @@ export default function Notifications() {
     { id: "nearby_event", label: "Events" },
     { id: "ai_recommendation", label: "AI" },
   ];
-  const filtered = filter === "all" ? notifications : notifications.filter(n => n.type === filter);
+  const filtered = useMemo(() => filter === "all" ? notifications : notifications.filter(n => n.type === filter), [filter, notifications]);
 
   if (!user && !loading) {
     return (

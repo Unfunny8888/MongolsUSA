@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense, useRef } from "react";
+import { useState, useEffect, lazy, Suspense, useRef, useCallback, useMemo } from "react";
 import { ArrowLeft, SlidersHorizontal, X, Map, LayoutGrid, Loader2, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,7 +42,7 @@ export default function Explore() {
     });
   }, []);
 
-  const filtered = allListings.filter((l) => {
+  const filtered = useMemo(() => allListings.filter((l) => {
     if (category && l.category !== category) return false;
     if (city && l.location_city !== city) return false;
     if (initFeatured && !l.is_featured) return false;
@@ -57,12 +57,12 @@ export default function Explore() {
       if (dateFilter === "month" && diff > 2592000000) return false;
     }
     return true;
-  });
+  }), [allListings, category, city, initFeatured, priceMin, priceMax, dateFilter]);
 
   const { visible, sentinelRef, hasMore } = useInfiniteScroll(filtered, 15);
   const activeFilters = [category, city, priceMin || priceMax, dateFilter].filter(Boolean).length;
 
-  const handlePullToRefresh = async (e) => {
+  const handlePullToRefresh = useCallback(async (e) => {
     const scrollTop = containerRef.current?.scrollTop || 0;
     if (scrollTop !== 0) return;
 
@@ -97,7 +97,7 @@ export default function Explore() {
         setPullProgress(0);
       }
     }
-  };
+  }, [isRefreshing, pullProgress, cache]);
 
   return (
     <div

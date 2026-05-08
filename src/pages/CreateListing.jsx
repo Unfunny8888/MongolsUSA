@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ArrowLeft, Upload, X, Plus, Briefcase, Home, Car, Wrench, ShoppingBag, Users, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -106,11 +106,11 @@ export default function CreateListing() {
     base44.auth.isAuthenticated().then((a) => { setIsLoggedIn(a); setLoading(false); });
   }, []);
 
-  function update(field, value) {
+  const update = useCallback((field, value) => {
     setForm((f) => ({ ...f, [field]: value }));
-  }
+  }, []);
 
-  function handleAIApply(s) {
+  const handleAIApply = useCallback((s) => {
     if (s.title) update("title", s.title);
     if (s.description) update("description", s.description);
     if (s.suggested_price > 0 && !form.price) update("price", String(s.suggested_price));
@@ -121,17 +121,17 @@ export default function CreateListing() {
     if (s.tags?.length) setAiTags(s.tags);
     if (s.hashtags?.length) setAiHashtags(s.hashtags);
     if (s.seo_keywords?.length) setAiSeoKeywords(s.seo_keywords);
-  }
+  }, [form.price]);
 
-  async function handleImageUpload(e) {
+  const handleImageUpload = useCallback(async (e) => {
     const files = Array.from(e.target.files);
     for (const file of files) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       setImages((prev) => [...prev, file_url]);
     }
-  }
+  }, []);
 
-  async function handleSubmit() {
+  const handleSubmit = useCallback(async () => {
     if (!form.title || !category) return;
     setSubmitting(true);
     const data = { ...form, category };
@@ -146,7 +146,7 @@ export default function CreateListing() {
     if (images.length > 0) data.images = images;
     await base44.entities.Listing.create(data);
     navigate("/");
-  }
+  }, [form, category, images, navigate]);
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen">

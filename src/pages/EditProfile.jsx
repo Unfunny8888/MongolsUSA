@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Camera, Loader2, Check, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
@@ -33,9 +33,9 @@ export default function EditProfile() {
     });
   }, []);
 
-  function update(field, value) {
+  const update = useCallback((field, value) => {
     setForm(f => ({ ...f, [field]: value }));
-  }
+  }, []);
 
   async function handleAvatarUpload(e) {
     const file = e.target.files?.[0];
@@ -46,13 +46,13 @@ export default function EditProfile() {
     setUploading(false);
   }
 
-  async function save() {
+  const save = useCallback(async () => {
     setSaving(true);
     await base44.auth.updateMe(form);
     setSaved(true);
     setSaving(false);
     setTimeout(() => setSaved(false), 2000);
-  }
+  }, [form]);
 
   if (!user) {
     return <div className="flex justify-center items-center min-h-screen"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>;

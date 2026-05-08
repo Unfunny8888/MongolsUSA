@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { ArrowLeft, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BusinessCard from "../components/cards/BusinessCard";
@@ -18,10 +18,10 @@ export default function Businesses() {
     load();
   }, []);
 
-  const filtered = businesses.filter((b) =>
+  const filtered = useMemo(() => businesses.filter((b) =>
     b.name.toLowerCase().includes(search.toLowerCase()) ||
     b.category.toLowerCase().includes(search.toLowerCase())
-  );
+  ), [businesses, search]);
 
   return (
     <div className="min-h-screen">

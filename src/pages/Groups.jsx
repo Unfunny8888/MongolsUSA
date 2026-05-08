@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 // Module-level cache — persists across remounts
 let _groupsCache = null;
@@ -29,10 +29,10 @@ export default function Groups() {
     load();
   }, []);
 
-  const filtered = groups.filter((g) =>
+  const filtered = useMemo(() => groups.filter((g) =>
     g.name.toLowerCase().includes(search.toLowerCase()) ||
     g.description?.toLowerCase().includes(search.toLowerCase())
-  );
+  ), [groups, search]);
 
   return (
     <div className="min-h-screen">

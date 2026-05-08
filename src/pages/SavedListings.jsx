@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Heart, Trash2, MapPin } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,10 +28,10 @@ export default function SavedListings() {
     load();
   }, []);
 
-  async function unsave(id) {
+  const unsave = useCallback(async (id) => {
     await base44.entities.SavedListing.delete(id);
     setSaved(prev => prev.filter(s => s.id !== id));
-  }
+  }, []);
 
   if (!user && !loading) {
     return (

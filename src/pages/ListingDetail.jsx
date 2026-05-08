@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home } from "lucide-react";
 import { motion } from "framer-motion";
@@ -21,7 +21,7 @@ function timeAgo(dateStr) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function CarDetails({ listing }) {
+const CarDetails = memo(function CarDetails({ listing }) {
   const details = [
     { icon: Calendar, label: "Year", value: listing.car_year },
     { icon: Gauge, label: "Mileage", value: listing.car_mileage ? `${listing.car_mileage.toLocaleString()} mi` : null },
@@ -42,9 +42,9 @@ function CarDetails({ listing }) {
       ))}
     </div>
   );
-}
+});
 
-function JobDetails({ listing }) {
+const JobDetails = memo(function JobDetails({ listing }) {
   const details = [
     { icon: Building2, label: "Company", value: listing.job_company },
     { icon: DollarSign, label: "Salary", value: listing.job_salary_min && listing.job_salary_max ? `$${listing.job_salary_min.toLocaleString()} - $${listing.job_salary_max.toLocaleString()}` : null },
@@ -70,9 +70,9 @@ function JobDetails({ listing }) {
       )}
     </div>
   );
-}
+});
 
-function HousingDetails({ listing }) {
+const HousingDetails = memo(function HousingDetails({ listing }) {
   const details = [
     { icon: Bed, label: "Bedrooms", value: listing.housing_bedrooms },
     { icon: Bath, label: "Bathrooms", value: listing.housing_bathrooms },
@@ -97,9 +97,9 @@ function HousingDetails({ listing }) {
       )}
     </div>
   );
-}
+});
 
-function EventDetails({ listing }) {
+const EventDetails = memo(function EventDetails({ listing }) {
   return (
     <div className="space-y-2.5">
       {listing.event_date && (
@@ -131,7 +131,7 @@ function EventDetails({ listing }) {
       )}
     </div>
   );
-}
+});
 
 export default function ListingDetail() {
   const { listingId } = useParams();
@@ -161,15 +161,8 @@ export default function ListingDetail() {
     load();
   }, [listingId]);
 
-  if (!listing) {
-    return (
-      <div className="flex items-center justify-center min-h-dvh">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  const formatPrice = () => {
+  function formatPrice() {
+    if (!listing) return "";
     if (listing.price_type === "free") return "Free";
     if (!listing.price) return "Contact for price";
     const p = `$${listing.price.toLocaleString()}`;
@@ -177,7 +170,15 @@ export default function ListingDetail() {
     if (listing.price_type === "monthly") return `${p}/mo`;
     if (listing.price_type === "weekly") return `${p}/wk`;
     return p;
-  };
+  }
+
+  if (!listing) {
+    return (
+      <div className="flex items-center justify-center min-h-dvh">
+        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh pb-24">

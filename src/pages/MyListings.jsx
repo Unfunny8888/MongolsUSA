@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Eye, Heart, Zap, Star, BarChart2, Pencil, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -36,16 +36,16 @@ export default function MyListings() {
     load();
   }, []);
 
-  async function deleteListing(id) {
+  const deleteListing = useCallback(async (id) => {
     await base44.entities.Listing.delete(id);
     setListings(prev => prev.filter(l => l.id !== id));
-  }
+  }, []);
 
-  async function toggleStatus(listing) {
+  const toggleStatus = useCallback(async (listing) => {
     const newStatus = listing.status === "active" ? "sold" : "active";
     await base44.entities.Listing.update(listing.id, { status: newStatus });
     setListings(prev => prev.map(l => l.id === listing.id ? { ...l, status: newStatus } : l));
-  }
+  }, []);
 
   return (
     <div className="min-h-screen pb-24">

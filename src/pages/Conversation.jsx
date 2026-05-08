@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Send, Image, Check, CheckCheck, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import TranslateButton from "../components/common/TranslateButton";
 import { base44 } from "@/api/base44Client";
 
-function MsgBubble({ msg, isMe }) {
+const MsgBubble = memo(function MsgBubble({ msg, isMe }) {
   const [translated, setTranslated] = useState(null);
   return (
     <div className={`max-w-[75%] rounded-2xl overflow-hidden text-sm leading-relaxed ${
@@ -29,7 +29,7 @@ function MsgBubble({ msg, isMe }) {
       </div>
     </div>
   );
-}
+});
 
 export default function Conversation() {
   const { conversationId } = useParams();
@@ -85,7 +85,7 @@ export default function Conversation() {
            messages.find(m => m.to_user !== user?.email)?.to_user || "";
   }, [messages, user]);
 
-  async function send() {
+  const send = useCallback(async () => {
     if (!text.trim() || !user) return;
     setSending(true);
     const newMsg = await base44.entities.Message.create({
@@ -101,9 +101,9 @@ export default function Conversation() {
     setMessages(prev => [...prev, newMsg]);
     setText("");
     setSending(false);
-  }
+  }, [text, user, conversationId, otherName, listingTitle, getOtherUser]);
 
-  async function sendImage(file) {
+  const sendImage = useCallback(async (file) => {
     if (!file || !user) return;
     setUploadingImage(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -119,7 +119,7 @@ export default function Conversation() {
       is_read: false,
     });
     setUploadingImage(false);
-  }
+  }, [user, conversationId, otherName, listingTitle, getOtherUser]);
 
   return (
     <div className="flex flex-col" style={{ height: '100dvh' }}>
