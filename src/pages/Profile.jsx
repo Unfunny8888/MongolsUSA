@@ -60,13 +60,13 @@ export default function Profile() {
   }
 
   const menuItems = [
-    { icon: Heart, label: "Saved Listings", count: 12 },
-    { icon: Eye, label: "My Listings", count: 3, link: "/explore" },
+    { icon: Heart, label: "Saved Listings", link: "/saved" },
+    { icon: Eye, label: "My Listings", link: "/my-listings" },
     { icon: MessageSquare, label: "Messages", link: "/inbox" },
     { icon: Bell, label: "Notifications", link: "/notifications" },
-    { icon: Crown, label: "Upgrade to VIP", highlight: true },
-    ...(user?.role === "admin" ? [{ icon: Settings, label: "Admin Dashboard", link: "/admin" }] : []),
-    { icon: Settings, label: "Settings" },
+    { icon: Crown, label: "Upgrade to VIP", highlight: true, link: "/vip" },
+    ...(user?.role === "admin" ? [{ icon: Shield, label: "Admin Dashboard", link: "/admin" }] : []),
+    { icon: Settings, label: "Edit Profile", link: "/edit-profile" },
   ];
 
   return (

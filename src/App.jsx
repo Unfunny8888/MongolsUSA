@@ -21,6 +21,10 @@ import Conversation from './pages/Conversation';
 import Notifications from './pages/Notifications';
 import Admin from './pages/Admin';
 import Onboarding from './pages/Onboarding';
+import VIPMembership from './pages/VIPMembership';
+import SavedListings from './pages/SavedListings';
+import EditProfile from './pages/EditProfile';
+import MyListings from './pages/MyListings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -64,6 +68,10 @@ const AuthenticatedApp = () => {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/admin" element={<Admin />} />
         <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/vip" element={<VIPMembership />} />
+        <Route path="/saved" element={<SavedListings />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/my-listings" element={<MyListings />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

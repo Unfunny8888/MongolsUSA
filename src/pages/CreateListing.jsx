@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { base44 } from "@/api/base44Client";
 import { CATEGORIES } from "../lib/mockData";
+import AIListingHelper from "../components/common/AIListingHelper";
 
 export default function CreateListing() {
   const navigate = useNavigate();
@@ -107,6 +108,12 @@ export default function CreateListing() {
             ))}
           </div>
         </div>
+
+        {/* AI Helper */}
+        <AIListingHelper
+          category={category}
+          onApply={(s) => setForm(f => ({ ...f, title: s.title || f.title, description: s.description || f.description, price: s.suggested_price || f.price }))}
+        />
 
         {/* Common Fields */}
         <div className="space-y-4">

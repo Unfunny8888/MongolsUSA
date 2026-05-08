@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Share2, MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home } from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import ContactMask from "../components/common/ContactMask";
 import TranslateButton from "../components/common/TranslateButton";
 import BoostModal from "../components/common/BoostModal";
+import SaveButton from "../components/common/SaveButton";
+import ShareButton from "../components/common/ShareButton";
+import EventRSVPButton from "../components/common/EventRSVPButton";
 import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 
@@ -189,12 +192,8 @@ export default function ListingDetail() {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div className="flex gap-2">
-            <button className="w-10 h-10 rounded-xl glass flex items-center justify-center">
-              <Share2 className="w-5 h-5 text-foreground" />
-            </button>
-            <button onClick={() => setSaved(!saved)} className="w-10 h-10 rounded-xl glass flex items-center justify-center">
-              <Heart className={`w-5 h-5 ${saved ? "fill-red-500 text-red-500" : "text-foreground"}`} />
-            </button>
+            <ShareButton title={listing.title} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
+            <SaveButton listing={listing} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
           </div>
         </div>
       </div>
@@ -236,6 +235,7 @@ export default function ListingDetail() {
           {listing.category === "jobs" && <JobDetails listing={listing} />}
           {listing.category === "housing" && <HousingDetails listing={listing} />}
           {listing.category === "events" && <EventDetails listing={listing} />}
+          {listing.category === "events" && <EventRSVPButton eventId={listing.id} eventTitle={listing.title} />}
 
           <div className="mt-5">
             <div className="flex items-center justify-between mb-2">
