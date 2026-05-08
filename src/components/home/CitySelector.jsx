@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MapPin, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, ChevronDown, Locate } from "lucide-react";
 
 // Centralized city list for the entire app
 export const AVAILABLE_CITIES = [
@@ -39,14 +39,34 @@ export const AVAILABLE_CITIES = [
  */
 export default function CitySelector({ city, onCityChange }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [detectedCity, setDetectedCity] = useState(null);
+  const [detecting, setDetecting] = useState(false);
+
+  // Auto-detect city from IP on first mount
+  useEffect(() => {
+    if (city !== undefined) return; // parent already has a value
+    setDetecting(true);
+    fetch('https://ip-api.com/json/?fields=city')
+      .then(r => r.json())
+      .then(data => {
+        if (data.city) {
+          setDetectedCity(data.city);
+          // Find closest match in our city list
+          const match = AVAILABLE_CITIES.find(c => c.toLowerCase() === data.city.toLowerCase());
+          onCityChange(match || null);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setDetecting(false));
+  }, []);
 
   const handleSelectCity = (selectedCity) => {
     onCityChange(selectedCity);
     setIsOpen(false);
   };
 
-  const displayCity = city || "All Cities";
-  const isAllCities = !city || city === "All Cities";
+  const displayCity = city || (detecting ? 'Detecting...' : 'All Cities');
+  const isAllCities = !city || city === 'All Cities';
 
   return (
     <div className="relative">
@@ -61,7 +81,23 @@ export default function CitySelector({ city, onCityChange }) {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 left-0 right-0 bg-card border border-border/50 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
+        <div className="absolute top-full mt-2 right-0 bg-card border border-border/50 rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto min-w-[160px]">
+          {/* Current Location option */}
+          <button
+            onClick={() => {
+              if (detectedCity) {
+                const match = AVAILABLE_CITIES.find(c => c.toLowerCase() === detectedCity.toLowerCase());
+                onCityChange(match || null);
+              } else {
+                onCityChange(null);
+              }
+              setIsOpen(false);
+            }}
+            className="w-full text-left px-4 py-3 text-sm flex items-center gap-2 text-primary font-semibold border-b border-border/40 hover:bg-secondary/50"
+          >
+            <Locate className="w-3.5 h-3.5" />
+            {detecting ? 'Detecting...' : detectedCity ? `Near Me (${detectedCity})` : 'Current Location'}
+          </button>
           {AVAILABLE_CITIES.map((cityName) => {
             const isSelected = isAllCities ? cityName === "All Cities" : city === cityName;
             return (

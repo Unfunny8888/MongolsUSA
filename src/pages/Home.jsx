@@ -21,7 +21,7 @@ export default function Home() {
   const [pullProgress, setPullProgress] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedCity, setSelectedCity] = useState(null);
+  const [selectedCity, setSelectedCity] = useState(undefined);
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
 
