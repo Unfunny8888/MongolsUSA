@@ -8,6 +8,8 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AppLayout from './components/layout/AppLayout';
 import Home from './pages/Home';
 import Search from './pages/Search';
+import Auth from './pages/Auth';
+import OnboardingProfile from './pages/OnboardingProfile';
 import Explore from './pages/Explore';
 import ListingDetail from './pages/ListingDetail';
 import Groups from './pages/Groups';
@@ -56,6 +58,8 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/onboarding" element={<OnboardingProfile />} />
       <Route element={<AppLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
