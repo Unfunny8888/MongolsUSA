@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import HomeHeader from "../components/home/HomeHeader";
 import SectionHeader from "../components/home/SectionHeader";
 import CategoryChip from "../components/cards/CategoryChip";
 import ListingCard from "../components/cards/ListingCard";
@@ -112,8 +111,6 @@ export default function Home() {
         </div>
       )}
       <div className="min-h-dvh">
-        <HomeHeader />
-
         {/* Categories */}
          <SectionHeader title="Categories" subtitle="Browse by type" />
          <div className="px-4 pb-4">
