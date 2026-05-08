@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ReputationBadge from "../components/common/ReputationBadge";
+import TrustCard from "../components/common/TrustCard";
 import { base44 } from "@/api/base44Client";
 
 export default function Profile() {
@@ -116,6 +117,10 @@ export default function Profile() {
             </div>
           ))}
         </motion.div>
+      </div>
+
+      <div className="px-4 mb-4">
+        <TrustCard user={user} />
       </div>
 
       <div className="px-4 space-y-1">

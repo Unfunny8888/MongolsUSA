@@ -32,6 +32,12 @@
     "whatsapp": {
       "type": "string"
     },
+    "profession": {
+      "type": "string"
+    },
+    "preferred_city": {
+      "type": "string"
+    },
     "reputation_score": {
       "type": "number",
       "default": 0
@@ -71,6 +77,53 @@
       "items": {
         "type": "string"
       }
+    },
+    "phone_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "email_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "trusted_seller": {
+      "type": "boolean",
+      "default": false
+    },
+    "verified_business": {
+      "type": "boolean",
+      "default": false
+    },
+    "recruiter_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "trust_score": {
+      "type": "number",
+      "default": 0
+    },
+    "response_rate": {
+      "type": "number",
+      "default": 0
+    },
+    "messages_replied": {
+      "type": "number",
+      "default": 0
+    },
+    "messages_received": {
+      "type": "number",
+      "default": 0
     }
-  }
+  },
+  "required": [
+    "role",
+    "avatar",
+    "bio",
+    "city",
+    "state",
+    "phone",
+    "telegram",
+    "whatsapp",
+    "joined_groups"
+  ]
 }

@@ -1,9 +1,46 @@
-import { ShieldCheck, Phone, Mail, BadgeCheck } from "lucide-react";
+import { Phone, Mail, BadgeCheck, Building2, Briefcase } from "lucide-react";
 
 const LEVELS = [
-  { key: "phone_verified", icon: Phone, label: "Phone", color: "text-blue-500" },
-  { key: "email_verified", icon: Mail, label: "Email", color: "text-emerald-500" },
-  { key: "id_verified", icon: ShieldCheck, label: "ID", color: "text-amber-500" },
+  {
+    key: "email_verified",
+    icon: Mail,
+    label: "Email Verified",
+    shortLabel: "Email",
+    color: "text-emerald-600",
+    bg: "bg-emerald-50 border-emerald-200",
+  },
+  {
+    key: "phone_verified",
+    icon: Phone,
+    label: "Phone Verified",
+    shortLabel: "Phone",
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+  },
+  {
+    key: "trusted_seller",
+    icon: BadgeCheck,
+    label: "Trusted Seller",
+    shortLabel: "Trusted",
+    color: "text-amber-700",
+    bg: "bg-amber-50 border-amber-200",
+  },
+  {
+    key: "verified_business",
+    icon: Building2,
+    label: "Verified Business",
+    shortLabel: "Business",
+    color: "text-indigo-600",
+    bg: "bg-indigo-50 border-indigo-200",
+  },
+  {
+    key: "recruiter_verified",
+    icon: Briefcase,
+    label: "Recruiter Verified",
+    shortLabel: "Recruiter",
+    color: "text-rose-600",
+    bg: "bg-rose-50 border-rose-200",
+  },
 ];
 
 export default function VerificationBadge({ user, compact = false }) {
@@ -15,7 +52,7 @@ export default function VerificationBadge({ user, compact = false }) {
     return (
       <span className="inline-flex items-center gap-0.5">
         {active.map((l) => (
-          <l.icon key={l.key} className={`w-3 h-3 ${l.color}`} />
+          <l.icon key={l.key} className={`w-3 h-3 ${l.color}`} title={l.label} />
         ))}
       </span>
     );
@@ -26,17 +63,12 @@ export default function VerificationBadge({ user, compact = false }) {
       {active.map((l) => (
         <span
           key={l.key}
-          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-secondary border border-border/50 ${l.color}`}
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${l.bg} ${l.color}`}
         >
           <l.icon className="w-3 h-3" />
-          {l.label} Verified
+          {l.label}
         </span>
       ))}
-      {user.trusted_seller && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 border border-amber-200 text-amber-700">
-          <BadgeCheck className="w-3 h-3" /> Trusted Seller
-        </span>
-      )}
     </div>
   );
 }
