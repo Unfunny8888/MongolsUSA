@@ -9,6 +9,7 @@ import { initializeGestureHandler } from '@/lib/gestureHandler';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { TabNavigationProvider } from '@/lib/TabNavigationContext';
 import AppLayout from './components/layout/AppLayout';
 import Home from './pages/Home';
 import Search from './pages/Search';
@@ -110,10 +111,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
+        <TabNavigationProvider>
+          <Router>
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </TabNavigationProvider>
       </AuthProvider>
     </QueryClientProvider>
   )

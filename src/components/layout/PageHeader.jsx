@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { ArrowLeft, Bell, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTabNavigation } from '@/hooks/useTabNavigation';
 
 /**
  * PageHeader - Unified header component for all pages
@@ -18,16 +19,22 @@ import { useNavigate } from 'react-router-dom';
  * - isRoot: boolean (shows branding instead of back button)
  */
 const PageHeader = forwardRef(function PageHeader(
-  { title, onBack, rightAction, isRoot = false },
+  { title, onBack, rightAction },
   ref
 ) {
   const navigate = useNavigate();
+  const { state, goBack } = useTabNavigation();
+  const stack = state.stacks[state.activeTab];
+  const isRoot = stack.length <= 1;
 
   const handleBack = () => {
     if (onBack) {
       onBack();
     } else {
-      navigate(-1);
+      const prevRoute = goBack();
+      if (prevRoute) {
+        navigate(prevRoute.path);
+      }
     }
   };
 

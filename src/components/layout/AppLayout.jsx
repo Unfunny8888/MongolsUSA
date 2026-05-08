@@ -1,13 +1,17 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import BottomNav from "./BottomNav";
 import PageHeader from "./PageHeader";
-import { useNavigationStack } from "@/lib/useNavigationStack";
 import PageTransition from "./PageTransition";
-import { motion } from "framer-motion";
+import { useTabNavigation } from "@/hooks/useTabNavigation";
 
-
-
+const TAB_ROUTES = {
+  '/': 'home',
+  '/explore': 'marketplace',
+  '/groups': 'community',
+  '/notifications': 'notifications',
+  '/profile': 'profile',
+};
 
 function registerSW() {
   if ("serviceWorker" in navigator) {
@@ -19,20 +23,60 @@ function registerSW() {
 
 export default function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const headerRef = useRef(null);
   const mainRef = useRef(null);
-  const { pageInfo, isRoot, handleBack, scrollRef: navigationScrollRef } = useNavigationStack();
+  const { state, getCurrentRoute, switchTab, saveScrollPosition, getScrollPosition } = useTabNavigation();
 
-  // Connect AppLayout's main ref to navigation stack's scroll tracking
-  useEffect(() => {
-    if (navigationScrollRef.current !== mainRef.current) {
-      navigationScrollRef.current = mainRef.current;
+  // Determine which tab the current path belongs to
+  const getTabFromPath = (pathname) => {
+    for (const [path, tab] of Object.entries(TAB_ROUTES)) {
+      if (pathname.startsWith(path) && pathname === path) {
+        return tab;
+      }
     }
-  }, [navigationScrollRef]);
+    // Check root pages by direct match
+    if (TAB_ROUTES[pathname]) return TAB_ROUTES[pathname];
+    
+    // For child pages, determine parent tab
+    if (pathname.startsWith('/listing') || pathname.startsWith('/business')) return 'marketplace';
+    if (pathname.startsWith('/group')) return 'community';
+    if (pathname.startsWith('/conversation') || pathname.startsWith('/inbox')) return 'profile';
+    if (pathname.startsWith('/edit-profile') || pathname.startsWith('/my-listings') || 
+        pathname.startsWith('/saved') || pathname.startsWith('/saved-searches') ||
+        pathname.startsWith('/ai-assistant') || pathname.startsWith('/vip') ||
+        pathname.startsWith('/business-dashboard') || pathname.startsWith('/recruiter')) return 'profile';
+    
+    return 'home';
+  };
 
-  useEffect(() => { registerSW(); }, []);
+  // Sync route changes to tab navigation
+  useEffect(() => {
+    const currentTab = getTabFromPath(location.pathname);
+    
+    if (currentTab !== state.activeTab) {
+      switchTab(currentTab);
+    }
+  }, [location.pathname, state.activeTab, switchTab, getTabFromPath]);
 
-  // Smooth header hide/show on scroll with better performance
+  // Restore scroll position when route changes
+  useEffect(() => {
+    const scrollPos = getScrollPosition();
+    if (mainRef.current && scrollPos > 0) {
+      mainRef.current.scrollTop = scrollPos;
+    }
+  }, [location.pathname, getScrollPosition]);
+
+  // Save scroll position before leaving
+  useEffect(() => {
+    return () => {
+      if (mainRef.current) {
+        saveScrollPosition(mainRef.current.scrollTop);
+      }
+    };
+  }, [location.pathname, saveScrollPosition]);
+
+  // Header hide/show on scroll
   useEffect(() => {
     const main = mainRef.current;
     const header = headerRef.current;
@@ -47,13 +91,10 @@ export default function AppLayout() {
       const y = main.scrollTop;
       const diff = y - lastY;
 
-      // Show header immediately on scroll up
       if (diff < -8 && isHidden) {
         header.style.transform = 'translateY(0)';
         isHidden = false;
-      }
-      // Hide header after scrolling down
-      else if (diff > 8 && y > 80 && !isHidden) {
+      } else if (diff > 8 && y > 80 && !isHidden) {
         scrollTimeout = setTimeout(() => {
           if (main.scrollTop > 80) {
             header.style.transform = 'translateY(-100%)';
@@ -71,20 +112,25 @@ export default function AppLayout() {
     };
   }, []);
 
-  // Hide header on search page
-  const hideHeader = location.pathname === '/search';
+  useEffect(() => { registerSW(); }, []);
+
+  const currentRoute = getCurrentRoute();
+  const hideHeader = location.pathname === '/search' || location.pathname === '/auth' || location.pathname === '/onboarding';
 
   return (
-    <div className="app-container bg-background">
+    <div className="app-container bg-background min-h-dvh flex flex-col">
       {!hideHeader && (
         <PageHeader
           ref={headerRef}
-          title={pageInfo?.label}
-          onBack={handleBack}
-          isRoot={isRoot}
+          title={currentRoute?.label}
         />
       )}
-      <main ref={mainRef} className="max-w-lg mx-auto overflow-y-auto h-dvh pb-24" data-scrollable="true" style={hideHeader ? {} : { paddingTop: 'calc(3.5rem + env(safe-area-inset-top))' }}>
+      <main 
+        ref={mainRef} 
+        className="flex-1 overflow-y-auto max-w-lg mx-auto w-full pb-24"
+        data-scrollable="true"
+        style={hideHeader ? {} : { paddingTop: 'calc(3.5rem + env(safe-area-inset-top))' }}
+      >
         <PageTransition key={location.pathname}>
           <Outlet />
         </PageTransition>
