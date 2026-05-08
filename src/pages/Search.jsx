@@ -376,39 +376,64 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
               )}
 
               {/* Loading skeletons — shown while AI works but local results may already be visible */}
-              {loading && results.length === 0 ? (
-                <SkeletonList count={4} />
-              ) : results.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  {errorType === 'timeout' ? (
-                    <>
-                      <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4 text-3xl">⏱️</div>
-                      <p className="text-sm font-semibold text-foreground">Search timed out</p>
-                      <p className="text-xs text-muted-foreground mt-1">Your network is slow. Try again or use simpler keywords.</p>
-                    </>
-                  ) : errorType === 'network' ? (
-                    <>
-                      <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4 text-3xl">📡</div>
-                      <p className="text-sm font-semibold text-foreground">Network error</p>
-                      <p className="text-xs text-muted-foreground mt-1">Check your connection and try again.</p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4 text-3xl">🔍</div>
-                      <p className="text-sm font-semibold text-foreground">No matching results found</p>
-                      <p className="text-xs text-muted-foreground mt-1">Try different keywords or browse by category</p>
-                    </>
-                  )}
-                  <button
-                    onClick={clearSearch}
-                    className="mt-4 px-4 py-2 rounded-xl bg-primary text-white text-xs font-semibold"
+              <AnimatePresence mode="wait">
+                {loading && results.length === 0 ? (
+                  <motion.div
+                    key="loading"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    {errorType ? 'Try again' : 'Clear search'}
-                  </button>
-                </div>
-              ) : (
-                <InfiniteResults results={results} />
-              )}
+                    <SkeletonList count={4} />
+                  </motion.div>
+                ) : results.length === 0 ? (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="flex flex-col items-center justify-center py-20 text-center"
+                  >
+                    {errorType === 'timeout' ? (
+                      <>
+                        <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4 text-3xl">⏱️</div>
+                        <p className="text-sm font-semibold text-foreground">Search timed out</p>
+                        <p className="text-xs text-muted-foreground mt-1">Your network is slow. Try again or use simpler keywords.</p>
+                      </>
+                    ) : errorType === 'network' ? (
+                      <>
+                        <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4 text-3xl">📡</div>
+                        <p className="text-sm font-semibold text-foreground">Network error</p>
+                        <p className="text-xs text-muted-foreground mt-1">Check your connection and try again.</p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4 text-3xl">🔍</div>
+                        <p className="text-sm font-semibold text-foreground">No matching results found</p>
+                        <p className="text-xs text-muted-foreground mt-1">Try different keywords or browse by category</p>
+                      </>
+                    )}
+                    <button
+                      onClick={clearSearch}
+                      className="mt-4 px-4 py-2 rounded-xl bg-primary text-white text-xs font-semibold"
+                    >
+                      {errorType ? 'Try again' : 'Clear search'}
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="results"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <InfiniteResults results={results} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
