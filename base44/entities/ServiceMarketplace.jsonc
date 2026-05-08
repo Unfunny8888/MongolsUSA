@@ -1,0 +1,92 @@
+{
+  "name": "ServiceMarketplace",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Service title"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "cleaning",
+        "tutoring",
+        "handyman",
+        "moving",
+        "translation",
+        "photography",
+        "catering",
+        "beauty",
+        "repair",
+        "consulting",
+        "other"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in USD"
+    },
+    "price_type": {
+      "type": "string",
+      "enum": [
+        "fixed",
+        "hourly",
+        "negotiable"
+      ]
+    },
+    "provider_email": {
+      "type": "string"
+    },
+    "provider_name": {
+      "type": "string"
+    },
+    "provider_avatar": {
+      "type": "string"
+    },
+    "location_city": {
+      "type": "string"
+    },
+    "location_state": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "experience_years": {
+      "type": "number"
+    },
+    "rating": {
+      "type": "number"
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "available",
+        "busy",
+        "unavailable"
+      ],
+      "default": "available"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "provider_email"
+  ]
+}

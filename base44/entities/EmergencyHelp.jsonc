@@ -1,0 +1,78 @@
+{
+  "name": "EmergencyHelp",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Emergency request title"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "medical",
+        "legal",
+        "shelter",
+        "food",
+        "transportation",
+        "childcare",
+        "other"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of need"
+    },
+    "location_city": {
+      "type": "string"
+    },
+    "location_state": {
+      "type": "string"
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "immediate",
+        "urgent",
+        "moderate"
+      ],
+      "default": "moderate"
+    },
+    "requester_email": {
+      "type": "string"
+    },
+    "requester_name": {
+      "type": "string"
+    },
+    "requester_phone": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "resolved",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "helpers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of user emails offering to help"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "requester_email"
+  ]
+}

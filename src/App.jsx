@@ -34,6 +34,9 @@ import AIAssistant from './pages/AIAssistant';
 import SavedSearches from './pages/SavedSearches';
 import BusinessDashboard from './pages/BusinessDashboard';
 import RecruiterDashboard from './pages/RecruiterDashboard';
+import Services from './pages/Services';
+import Emergency from './pages/Emergency';
+import Recommendations from './pages/Recommendations';
 
 const AuthenticatedApp = () => {
   useSystemTheme();
@@ -92,6 +95,9 @@ const AuthenticatedApp = () => {
       <Route path="/saved-searches" element={<SavedSearches />} />
       <Route path="/business-dashboard" element={<BusinessDashboard />} />
       <Route path="/recruiter" element={<RecruiterDashboard />} />
+      <Route path="/services" element={<Services />} />
+      <Route path="/emergency" element={<Emergency />} />
+      <Route path="/recommendations" element={<Recommendations />} />
       <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

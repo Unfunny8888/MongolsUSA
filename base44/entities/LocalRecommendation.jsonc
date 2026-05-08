@@ -1,0 +1,69 @@
+{
+  "name": "LocalRecommendation",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Recommendation title"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "restaurant",
+        "doctor",
+        "lawyer",
+        "school",
+        "mechanic",
+        "realtor",
+        "accountant",
+        "entertainment",
+        "other"
+      ]
+    },
+    "business_name": {
+      "type": "string",
+      "description": "Name of recommended business/person"
+    },
+    "description": {
+      "type": "string"
+    },
+    "location_city": {
+      "type": "string"
+    },
+    "location_state": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "recommender_email": {
+      "type": "string"
+    },
+    "recommender_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "helpful_count": {
+      "type": "number",
+      "default": 0
+    },
+    "image_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "recommender_email"
+  ]
+}
