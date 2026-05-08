@@ -6,18 +6,7 @@ import CitySelector from "./CitySelector";
 
 export default function HomeHeader() {
   const navigate = useNavigate();
-  const [city, setCity] = useState("Chicago");
-
-  useEffect(() => {
-    async function load() {
-      const authed = await base44.auth.isAuthenticated();
-      if (authed) {
-        const me = await base44.auth.me();
-        if (me.preferred_city) setCity(me.preferred_city);
-      }
-    }
-    load();
-  }, []);
+  const [city, setCity] = useState(null);
 
   return (
     <div className="px-4 pt-4 pb-4 space-y-4">
