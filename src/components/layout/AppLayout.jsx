@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 import BottomNav from "./BottomNav";
-import AIAssistantBubble from "../common/AIAssistantBubble";
+
 
 export default function AppLayout() {
   return (
@@ -8,7 +8,6 @@ export default function AppLayout() {
       <main className="pb-24 max-w-lg mx-auto">
         <Outlet />
       </main>
-      <AIAssistantBubble />
       <BottomNav />
     </div>
   );
