@@ -10,6 +10,7 @@ import SaveButton from "../components/common/SaveButton";
 import ShareButton from "../components/common/ShareButton";
 import EventRSVPButton from "../components/common/EventRSVPButton";
 import { MOCK_LISTINGS } from "../lib/mockData";
+import SpamFlagButton from "../components/common/SpamFlagButton";
 import { base44 } from "@/api/base44Client";
 
 function timeAgo(dateStr) {
@@ -280,12 +281,18 @@ export default function ListingDetail() {
             </button>
           )}
 
+          {isLoggedIn && (
+            <div className="mt-4 pt-4 border-t border-border/30">
+              <SpamFlagButton listingId={listing.id} />
+            </div>
+          )}
+
           {isLoggedIn && user?.email === listing.created_by && (
             <button
               onClick={() => setShowBoost(true)}
               className="mt-3 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold shadow-lg"
             >
-              ⚡ Boost This Listing
+              Boost This Listing
             </button>
           )}
         </motion.div>

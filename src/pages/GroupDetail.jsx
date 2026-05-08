@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, Shield, MessageSquare, Send } from "lucide-react";
+import AITranslateBlock from "../components/common/AITranslateBlock";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -155,7 +156,7 @@ export default function GroupDetail() {
                     <p className="text-[10px] text-muted-foreground">{new Date(post.created_date).toLocaleDateString()}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">{post.content}</p>
+                <AITranslateBlock text={post.content} />
               </div>
             ))}
           </div>

@@ -25,6 +25,7 @@ import VIPMembership from './pages/VIPMembership';
 import SavedListings from './pages/SavedListings';
 import EditProfile from './pages/EditProfile';
 import MyListings from './pages/MyListings';
+import AIAssistant from './pages/AIAssistant';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -72,6 +73,7 @@ const AuthenticatedApp = () => {
         <Route path="/saved" element={<SavedListings />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/my-listings" element={<MyListings />} />
+        <Route path="/ai-assistant" element={<AIAssistant />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
