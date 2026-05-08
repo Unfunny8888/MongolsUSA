@@ -74,6 +74,7 @@ export default function Profile() {
     { icon: Bell, label: "Notifications", link: "/notifications" },
     { icon: Crown, label: "Upgrade to VIP", highlight: true, link: "/vip" },
     ...(user?.role === "admin" ? [{ icon: Shield, label: "Admin Dashboard", link: "/admin" }] : []),
+    ...(user?.role === "business_owner" || user?.verified_business ? [{ icon: Eye, label: "Business Dashboard", link: "/business-dashboard" }] : []),
     { icon: Settings, label: "Edit Profile", link: "/edit-profile" },
   ];
 
