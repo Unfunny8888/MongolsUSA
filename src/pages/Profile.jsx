@@ -108,7 +108,7 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="px-4 -mt-6 mb-4">
+      <div className="px-4 mt-2 mb-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -127,12 +127,12 @@ export default function Profile() {
         </motion.div>
       </div>
 
-      <div className="px-4 mb-4 space-y-3">
+      <div className="px-4 mb-6 space-y-3">
         <ReputationBreakdown user={user} breakdown={repBreakdown} />
         <TrustCard user={user} />
       </div>
 
-      <div className="px-4 space-y-1">
+      <div className="px-4 mt-6 space-y-1">
         {menuItems.map((item, i) => (
           <motion.button
             key={item.label}
@@ -162,7 +162,7 @@ export default function Profile() {
         ))}
       </div>
 
-      <div className="px-4 mt-6">
+      <div className="px-4 mt-8">
         <Button
           variant="ghost"
           onClick={() => base44.auth.logout()}
