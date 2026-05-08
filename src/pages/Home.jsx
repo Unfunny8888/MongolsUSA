@@ -113,8 +113,9 @@ export default function Home() {
       onTouchStart={handlePullToRefresh}
       onTouchMove={handlePullToRefresh}
       onTouchEnd={handlePullToRefresh}
-      className="min-h-dvh overflow-y-auto relative"
+      className="min-h-dvh overflow-y-auto relative feed-container"
       data-scrollable="true"
+      style={{ WebkitOverflowScrolling: 'touch' }}
     >
       {pullProgress > 0 && (
         <motion.div

@@ -64,6 +64,33 @@ module.exports = {
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
+  		boxShadow: {
+  			'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+  			'sm': '0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+  			'base': '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+  			'md': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  			'lg': '0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.06)',
+  			'xl': '0 25px 50px -12px rgba(0, 0, 0, 0.15)',
+  			'premium': '0 20px 40px -10px rgba(0, 0, 0, 0.2), 0 0 1px rgba(0, 0, 0, 0.05)',
+  			'card': '0 4px 12px rgba(0, 0, 0, 0.06)',
+  			'card-hover': '0 12px 24px rgba(0, 0, 0, 0.12)'
+  		},
+  		transitionTimingFunction: {
+  			'smooth': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+  			'in': 'cubic-bezier(0.4, 0, 1, 1)',
+  			'out': 'cubic-bezier(0, 0, 0.2, 1)',
+  			'in-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
+  			'bounce': 'cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+  		},
+  		transitionDuration: {
+  			'150': '150ms',
+  			'200': '200ms',
+  			'250': '250ms',
+  			'300': '300ms',
+  			'350': '350ms',
+  			'400': '400ms',
+  			'500': '500ms'
+  		},
   		keyframes: {
   			'accordion-down': {
   				from: {
@@ -80,11 +107,21 @@ module.exports = {
   				to: {
   					height: '0'
   				}
+  			},
+  			'pulse-soft': {
+  				'0%, 100%': { opacity: '1' },
+  				'50%': { opacity: '0.6' }
+  			},
+  			'float-up': {
+  				'0%': { opacity: '0', transform: 'translateY(8px)' },
+  				'100%': { opacity: '1', transform: 'translateY(0)' }
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'pulse-soft': 'pulse-soft 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+  			'float-up': 'float-up 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards'
   		}
   	}
   },

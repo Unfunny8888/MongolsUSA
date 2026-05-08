@@ -45,9 +45,10 @@ export default function TrustCard({ user, reputation, verification, compact = fa
 
   return (
     <motion.div
-      className="bg-card border border-border/40 rounded-2xl p-4 space-y-3"
+      className="bg-card border border-border/40 rounded-2xl p-4 space-y-3 shadow-card hover:shadow-card-hover transition-all duration-300"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -74,7 +75,7 @@ export default function TrustCard({ user, reputation, verification, compact = fa
             }`}
             initial={{ width: 0 }}
             animate={{ width: `${scorePercentage}%` }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
           />
         </div>
       </div>

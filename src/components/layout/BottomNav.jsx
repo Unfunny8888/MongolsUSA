@@ -49,7 +49,7 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50">
+    <nav className="bottom-nav fixed bottom-0 left-0 right-0 z-50 glass border-t border-border/50 shadow-premium transition-all duration-300">
       <div className="max-w-lg mx-auto flex items-center justify-around px-2 py-1">
         {NAV_ITEMS.map((item) => {
           const isActive = location.pathname === item.path;

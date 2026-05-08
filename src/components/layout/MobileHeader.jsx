@@ -40,12 +40,11 @@ const MobileHeader = forwardRef(function MobileHeader(_, ref) {
     <div
       ref={ref}
       data-header
-      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/20"
+      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b border-border/20 shadow-sm"
       style={{
         transform: 'translateY(0)',
-        transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
+        transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease-out',
         willChange: 'transform',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.08)',
       }}
     >
       <div className="px-4 max-w-lg mx-auto" style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}>

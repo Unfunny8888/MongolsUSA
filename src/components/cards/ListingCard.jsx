@@ -61,19 +61,19 @@ export default function ListingCard({ listing, index = 0, locationRelevance, use
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        className="bg-card rounded-2xl border border-border/40 overflow-hidden shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer"
-        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
+        className="bg-card rounded-2xl border border-border/40 overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 cursor-pointer active:scale-[0.98]"
+        style={{ willChange: 'transform, box-shadow', transform: 'translateZ(0)' }}
       >
         {/* Image section */}
         {hasImage && (
           <div className="relative w-full bg-secondary/50" style={{ aspectRatio: '4/3' }}>
             {!imageLoaded && <div className="absolute inset-0 bg-secondary/50 animate-pulse" />}
             <img
-              src={listing.images[0]}
-              alt={listing.title}
-              onLoad={() => setImageLoaded(true)}
-              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-              loading="lazy"
+             src={listing.images[0]}
+             alt={listing.title}
+             onLoad={() => setImageLoaded(true)}
+             className="w-full h-full object-cover hover:scale-110 transition-transform duration-700"
+             loading="lazy"
             />
             {/* Location badge - top left */}
             {locationRelevance && (
@@ -139,15 +139,15 @@ export default function ListingCard({ listing, index = 0, locationRelevance, use
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 pt-3 border-t border-border/20">
-            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/60 hover:bg-secondary/80 transition-all duration-200 active:scale-95 text-sm font-medium">
+            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-all duration-250 active:scale-95 active:shadow-inner text-sm font-medium">
               <Heart className="w-4 h-4" />
               Save
             </button>
-            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/60 hover:bg-secondary/80 transition-all duration-200 active:scale-95 text-sm font-medium">
+            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-all duration-250 active:scale-95 active:shadow-inner text-sm font-medium">
               <MessageCircle className="w-4 h-4" />
               Message
             </button>
-            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/60 hover:bg-secondary/80 transition-all duration-200 active:scale-95 text-sm font-medium">
+            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-all duration-250 active:scale-95 active:shadow-inner text-sm font-medium">
               <Share2 className="w-4 h-4" />
               Share
             </button>
