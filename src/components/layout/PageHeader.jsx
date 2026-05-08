@@ -37,13 +37,13 @@ const PageHeader = forwardRef(function PageHeader(
       data-header
       className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b border-border/20 shadow-sm"
       style={{
-        height: 'calc(3.5rem + max(0.75rem, env(safe-area-inset-top)))',
-        paddingTop: 'max(0.75rem, env(safe-area-inset-top))',
+        height: 'calc(3.5rem + env(safe-area-inset-top))',
+        paddingTop: 'env(safe-area-inset-top)',
         transform: 'translateZ(0)',
         willChange: 'transform',
       }}
     >
-      <div className="px-3 max-w-lg mx-auto h-14 flex items-center">
+      <div className="px-3 max-w-lg mx-auto h-14 flex items-center justify-between">
         {isRoot ? (
           // Root: Logo + Action buttons (width-constrained)
           <>

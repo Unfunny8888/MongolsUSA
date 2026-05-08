@@ -63,7 +63,7 @@ export default function AppLayout() {
           isRoot={isRoot}
         />
       )}
-      <main ref={mainRef} className={`max-w-lg mx-auto overflow-y-auto h-dvh ${hideHeader ? '' : 'pt-14'} pb-24`} data-scrollable="true">
+      <main ref={mainRef} className="max-w-lg mx-auto overflow-y-auto h-dvh pb-24" data-scrollable="true" style={hideHeader ? {} : { paddingTop: 'calc(3.5rem + env(safe-area-inset-top))' }}>
         <PageTransition key={location.pathname}>
           <Outlet />
         </PageTransition>
