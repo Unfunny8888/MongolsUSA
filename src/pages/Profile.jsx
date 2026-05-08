@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, LogOut, ChevronRight, Crown, Shield, Heart, Eye, Bell, MessageSquare } from "lucide-react";
+import { Settings, LogOut, ChevronRight, Crown, Heart, Eye, Bell, MessageSquare, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import ReputationBadge from "../components/common/ReputationBadge";
+import PremiumProfileHeader from "../components/profile/PremiumProfileHeader";
 import TrustCard from "../components/common/TrustCard";
 import ReputationBreakdown from "../components/common/ReputationBreakdown";
 import { base44 } from "@/api/base44Client";
@@ -80,56 +80,9 @@ export default function Profile() {
 
   return (
     <div className="min-h-dvh pb-24">
-      <div className="bg-gradient-to-br from-primary/90 to-emerald-600/80 px-4 pt-4 pb-5 relative overflow-hidden" style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}>
-        <div className="absolute top-0 right-0 w-20 h-20 bg-white/3 rounded-full -translate-y-6 translate-x-6 blur-xl" />
-        <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/3 rounded-full translate-y-4 -translate-x-4 blur-xl" />
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-2xl shadow-lg overflow-hidden flex-shrink-0">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.full_name} className="w-full h-full object-cover" />
-              ) : "👤"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-base font-bold text-white truncate">{user.full_name || "Nomad User"}</h1>
-                {user.is_verified && <Shield className="w-3.5 h-3.5 text-blue-300 fill-blue-300 flex-shrink-0" />}
-              </div>
-              <p className="text-xs text-emerald-100 truncate">{user.email}</p>
-            </div>
-          </div>
-          <div className="mt-2">
-            <ReputationBadge
-              rank={user.reputation_rank || "bronze"}
-              tier={user.membership_tier || "free"}
-              score={user.reputation_score || 0}
-            />
-          </div>
-        </div>
-      </div>
+      <PremiumProfileHeader user={user} />
 
-      <div className="px-4 mt-3 mb-5">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-2xl p-4 border border-white/15 shadow-md backdrop-blur-xl"
-        >
-          <div className="grid grid-cols-3 gap-0 divide-x divide-white/10">
-            {[
-              { label: "Listings", value: user.listing_count || 0 },
-              { label: "Reputation", value: user.reputation_score || 0 },
-              { label: "Groups", value: user.joined_groups?.length || 0 },
-            ].map((stat) => (
-              <div key={stat.label} className="flex flex-col items-center justify-center py-3.5 px-2">
-                <p className="text-2xl font-extrabold text-primary leading-none">{stat.value}</p>
-                <p className="text-xs text-muted-foreground font-medium mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      <div className="px-4 mt-3 mb-5 space-y-2.5">
+      <div className="px-4 mt-0 mb-5 space-y-2.5">
         <ReputationBreakdown user={user} breakdown={repBreakdown} />
         <TrustCard user={user} />
       </div>
