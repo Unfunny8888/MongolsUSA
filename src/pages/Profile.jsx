@@ -129,7 +129,7 @@ export default function Profile() {
         </motion.div>
       </div>
 
-      <div className="px-4 mb-6 space-y-3">
+      <div className="px-4 mt-4 mb-6 space-y-3">
         <ReputationBreakdown user={user} breakdown={repBreakdown} />
         <TrustCard user={user} />
       </div>
