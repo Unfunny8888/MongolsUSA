@@ -33,12 +33,12 @@ function maskWhatsapp(num) {
 function ContactRow({ icon: Icon, label, value, href, color = "bg-secondary/50", iconClass = "text-muted-foreground", masked = false }) {
   const inner = (
     <div className={`flex items-center gap-3 p-3 rounded-xl ${color} ${href ? "hover:opacity-80 transition-smooth" : ""}`}>
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${masked ? "bg-gray-100" : "bg-white/60"}`}>
-        <Icon className={`w-5 h-5 ${masked ? "text-gray-400" : iconClass}`} />
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${masked ? "bg-muted" : "bg-white/60"}`}>
+        <Icon className={`w-5 h-5 ${masked ? "text-muted-foreground" : iconClass}`} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[10px] text-muted-foreground">{label}</p>
-        <p className={`text-sm font-medium truncate ${masked ? "text-muted-foreground tracking-widest" : "text-foreground"}`}>{value}</p>
+        <p className={`text-sm font-medium truncate ${masked ? "text-foreground/60 tracking-widest" : "text-foreground"}`}>{value}</p>
       </div>
       {masked && <Lock className="w-4 h-4 text-muted-foreground shrink-0" />}
     </div>
