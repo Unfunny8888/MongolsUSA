@@ -133,6 +133,11 @@ export default function ListingCard({ listing, index = 0 }) {
               />
               {/* Top badges */}
               <div className="absolute top-3 left-3 flex gap-2">
+                {dist !== null && (
+                  <Badge className="bg-white text-slate-900 border-0 shadow-lg text-[10px] font-semibold gap-1">
+                    <Navigation className="w-3 h-3" /> ~{dist} mi
+                  </Badge>
+                )}
                 {listing.is_featured && (
                   <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg text-[10px] font-semibold gap-1">
                     <Star className="w-3 h-3" /> Featured
