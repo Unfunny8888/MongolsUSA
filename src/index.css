@@ -225,6 +225,16 @@ article, [class*="card"], [class*="listing"], p:not([class*="button"]), span:not
   transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.22s ease;
 }
 
+/* Header smooth hide/show on scroll */
+[class*="MobileHeader"],
+[data-header] {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
 /* Hide scrollbar for mobile */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

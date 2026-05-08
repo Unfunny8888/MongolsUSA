@@ -23,7 +23,7 @@ export default function AppLayout() {
   return (
     <div className="app-container bg-background">
       <MobileHeader />
-      <main className="pb-24 max-w-lg mx-auto">
+      <main className="pb-24 max-w-lg mx-auto pt-[calc(4rem+1rem)]" data-scrollable="true">
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname}>
             <Outlet />
