@@ -63,9 +63,9 @@ const JobDetails = memo(function JobDetails({ listing }) {
         </div>
       ))}
       {listing.job_benefits && (
-        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
-          <p className="text-[10px] text-emerald-700 font-semibold mb-1">Benefits</p>
-          <p className="text-xs text-emerald-800">{listing.job_benefits}</p>
+        <div className="p-3 rounded-xl bg-secondary/50 border border-border/40">
+          <p className="text-[10px] text-primary font-semibold mb-1">Benefits</p>
+          <p className="text-xs text-foreground">{listing.job_benefits}</p>
         </div>
       )}
     </div>
@@ -91,8 +91,8 @@ const HousingDetails = memo(function HousingDetails({ listing }) {
         </div>
       ))}
       {listing.housing_utilities && (
-        <div className="col-span-2 p-3 rounded-xl bg-blue-50 border border-blue-100">
-          <p className="text-[10px] text-blue-700 font-semibold">Utilities: {listing.housing_utilities}</p>
+        <div className="col-span-2 p-3 rounded-xl bg-secondary/50 border border-border/40">
+          <p className="text-[10px] text-primary font-semibold">Utilities: {listing.housing_utilities}</p>
         </div>
       )}
     </div>
@@ -103,11 +103,11 @@ const EventDetails = memo(function EventDetails({ listing }) {
   return (
     <div className="space-y-2.5">
       {listing.event_date && (
-        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-pink-50 border border-pink-100">
+        <div className="flex items-center gap-2.5 p-3 rounded-xl bg-secondary/50 border border-border/40">
           <Calendar className="w-5 h-5 text-pink-600" />
           <div>
-            <p className="text-[10px] text-pink-600 font-semibold">Event Date</p>
-            <p className="text-sm font-bold text-pink-800">{new Date(listing.event_date).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}</p>
+            <p className="text-[10px] text-primary font-semibold">Event Date</p>
+            <p className="text-sm font-bold text-foreground">{new Date(listing.event_date).toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}</p>
           </div>
         </div>
       )}
