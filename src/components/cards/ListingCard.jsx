@@ -126,14 +126,14 @@ function ListingCard({ listing, index = 0 }) {
       <Link to={`/listing/${listing.id}`} className="block group">
         {hasImage ? (
           <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-smooth">
-            <div className="relative aspect-[16/10] overflow-hidden bg-secondary/50">
+            <div className="relative aspect-[16/10] overflow-hidden bg-secondary/50 w-full will-change-transform">
               <img
                 src={listing.images[0]}
                 alt={listing.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
                 decoding="async"
-                style={{ contentVisibility: 'auto' }}
+                style={{ contentVisibility: 'auto', contain: 'layout style paint' }}
               />
               {/* Top badges */}
               <div className="absolute top-3 left-3 flex gap-2">

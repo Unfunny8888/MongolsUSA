@@ -36,7 +36,7 @@ export function useInfiniteScroll(items, pageSize = 12) {
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, sentinelRef.current]);
+  }, [hasMore]);
 
   // Memoize visible slice to prevent unnecessary re-renders
   const visibleMemo = items.slice(0, page * pageSize);
