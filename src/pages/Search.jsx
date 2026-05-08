@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowLeft, Search as SearchIcon, X, TrendingUp, Clock, Sparkles, Loader2, AlertCircle, MapPin, ChevronDown } from "lucide-react";
+import { ArrowLeft, Search as SearchIcon, X, TrendingUp, Clock, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import CitySelector from "../components/home/CitySelector";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ListingCard from "../components/cards/ListingCard";
@@ -73,26 +74,7 @@ const CATEGORIES = [
   { id: "electronics", label: "Electronics", icon: "📱" },
 ];
 
-const ALL_CITIES = [
-  "All Cities",
-  "Chicago",
-  "New York",
-  "Los Angeles",
-  "Houston",
-  "Phoenix",
-  "Philadelphia",
-  "San Antonio",
-  "San Diego",
-  "Dallas",
-  "San Jose",
-  "Austin",
-  "Denver",
-  "Seattle",
-  "Boston",
-  "Miami",
-  "Portland",
-  "Atlanta",
-];
+
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -103,8 +85,7 @@ export default function Search() {
   const [errorType, setErrorType] = useState(null);
   const [searchedQuery, setSearchedQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedCity, setSelectedCity] = useState("All Cities");
-  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [selectedCity, setSelectedCity] = useState(null);
   const [recentSearches, setRecentSearches] = useState(() => {
     try { return JSON.parse(localStorage.getItem("nomadlink_recent") || "[]"); } catch { return []; }
   });
@@ -272,49 +253,17 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
   const filteredResults = results.filter(r => {
     const categoryMatch = !selectedCategory || r.category === selectedCategory;
-    const cityMatch = selectedCity === "All Cities" || r.location_city === selectedCity;
+    const cityMatch = !selectedCity || r.location_city === selectedCity;
     return categoryMatch && cityMatch;
   });
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Location Filter */}
-      <div className="glass fixed top-0 left-0 right-0 z-50 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))' }}>
-        <div className="relative">
-          <button
-            onClick={() => setCityDropdownOpen(!cityDropdownOpen)}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/50 hover:bg-secondary transition-smooth active:scale-95"
-          >
-            <MapPin className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-foreground">{selectedCity}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
-          </button>
-
-          {cityDropdownOpen && (
-            <div className="absolute top-full mt-2 left-0 bg-card border border-border/50 rounded-2xl shadow-lg z-50 max-h-80 overflow-y-auto w-72">
-              {ALL_CITIES.map((city) => (
-                <button
-                  key={city}
-                  onClick={() => {
-                    setSelectedCity(city);
-                    setCityDropdownOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-3 text-sm transition-smooth ${
-                    selectedCity === city
-                      ? "bg-emerald-50 text-emerald-700 font-semibold border-l-4 border-primary"
-                      : "text-foreground hover:bg-secondary/50"
-                  }`}
-                >
-                  {city}
-                </button>
-              ))}
-            </div>
-          )}
+      {/* Location and Search Header */}
+      <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))' }}>
+        <div className="mb-3">
+          <CitySelector city={selectedCity} onCityChange={setSelectedCity} />
         </div>
-      </div>
-
-      {/* Search Header */}
-      <div className="glass fixed top-14 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingBottom: '12px' }}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1 shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -355,7 +304,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
       {/* Body */}
       <div
-        className="flex-1 px-4 py-4 overflow-y-auto mt-32"
+        className="flex-1 px-4 py-4 overflow-y-auto mt-28"
         onScroll={() => dismissKeyboard(inputRef)}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
@@ -513,13 +462,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
         </AnimatePresence>
         </div>
 
-        {/* Close dropdown on scroll */}
-        {cityDropdownOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setCityDropdownOpen(false)}
-        />
-        )}
+
         </div>
         );
         }
