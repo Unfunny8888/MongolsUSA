@@ -284,6 +284,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
               inputMode="search"
               enterKeyHint="search"
               className="w-full bg-secondary/70 rounded-xl pl-10 pr-10 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-smooth"
+              disabled={false}
             />
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             {query ? (

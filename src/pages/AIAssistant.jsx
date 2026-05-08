@@ -279,13 +279,14 @@ Instructions:
       )}
 
       <div className="glass border-t border-border/30 px-4 py-3 flex gap-3 items-center pb-[env(safe-area-inset-bottom)] shrink-0">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ask in Mongolian or English..."
-          className="flex-1 bg-secondary/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-        />
+       <input
+         value={input}
+         onChange={(e) => setInput(e.target.value)}
+         onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+         placeholder="Ask in Mongolian or English..."
+         className="flex-1 bg-secondary/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+         autoComplete="off"
+       />
         <button
           onClick={() => sendMessage()}
           disabled={!input.trim() || loading}

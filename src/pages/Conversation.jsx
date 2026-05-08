@@ -164,7 +164,7 @@ export default function Conversation() {
         <div ref={bottomRef} />
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && sendImage(e.target.files[0])} />
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" tabIndex={-1} onChange={(e) => e.target.files?.[0] && sendImage(e.target.files[0])} />
       <div className="glass border-t border-border/30 px-4 py-3 flex gap-2 items-center pb-[env(safe-area-inset-bottom)] shrink-0">
         <button
           onClick={() => fileInputRef.current?.click()}
@@ -179,6 +179,7 @@ export default function Conversation() {
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
           placeholder="Type a message..."
           className="flex-1 bg-secondary/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+          autoComplete="off"
         />
         <button
           onClick={send}
