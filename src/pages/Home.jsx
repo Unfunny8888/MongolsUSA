@@ -8,6 +8,7 @@ import CategoryChip from "../components/cards/CategoryChip";
 import ListingCard from "../components/cards/ListingCard";
 import GroupCard from "../components/cards/GroupCard";
 import BusinessCard from "../components/cards/BusinessCard";
+import FeedSkeleton from "../components/common/FeedSkeleton";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/mockData";
 import { buildFeedSections } from "../lib/feedAlgorithm";
 import { base44 } from "@/api/base44Client";
@@ -20,13 +21,17 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   const [pullProgress, setPullProgress] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedCity, setSelectedCity] = useState(undefined);
   const touchStartY = useRef(0);
+  const scrolledDistance = useRef(0);
+  const scrollStartPos = useRef(0);
   const containerRef = useRef(null);
 
   useEffect(() => {
     async function loadData() {
+      setIsLoading(true);
       const authed = await base44.auth.isAuthenticated();
       if (authed) {
         const me = await base44.auth.me();
@@ -41,6 +46,7 @@ export default function Home() {
       ]);
       setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
       setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
+      setIsLoading(false);
     }
     loadData();
   }, [navigate]);
@@ -56,13 +62,18 @@ export default function Home() {
 
     if (e.type === "touchstart") {
       touchStartY.current = e.touches[0].clientY;
+      scrollStartPos.current = scrollTop;
+      scrolledDistance.current = 0;
       return;
     }
 
     if (e.type === "touchmove" && !isRefreshing) {
+      if (containerRef.current) {
+        scrolledDistance.current = Math.abs((containerRef.current.scrollTop || 0) - scrollStartPos.current);
+      }
       const touchCurrentY = e.touches[0].clientY;
       const diff = touchCurrentY - touchStartY.current;
-      if (diff > 0) {
+      if (diff > 0 && scrolledDistance.current < 5) {
         const progress = Math.min(diff / 80, 1);
         setPullProgress(progress);
       }
@@ -123,8 +134,8 @@ export default function Home() {
           </div>
           <CitySelector city={selectedCity} onCityChange={setSelectedCity} />
         </div>
-         <div className="px-4 pb-4">
-           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1" data-scrollable="true">
+        <div className="px-4 pb-4">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1" data-scrollable="true">
             <CategoryChip
               category={{ id: "all", label: "All", labelMn: "Бүгд", icon: "globe" }}
               index={0}
@@ -159,16 +170,18 @@ export default function Home() {
               </button>
             </div>
             <div className="px-4 space-y-3 pb-6">
-              {filteredListings.length > 0 ? (
-                filteredListings.map((l, i) => (
-                  <ListingCard key={l.id} listing={l} index={i} />
-                ))
-              ) : (
-                <div className="text-center py-16">
-                  <p className="text-4xl mb-3">🔍</p>
-                  <p className="text-sm font-medium text-foreground">No listings found</p>
-                </div>
-              )}
+             {isLoading ? (
+              <FeedSkeleton count={3} />
+            ) : filteredListings.length > 0 ? (
+              filteredListings.map((l, i) => (
+                <ListingCard key={l.id} listing={l} index={i} />
+              ))
+            ) : (
+              <div className="text-center py-16">
+                <p className="text-4xl mb-3">🔍</p>
+                <p className="text-sm font-medium text-foreground">No listings found</p>
+              </div>
+            )}
             </div>
           </>
         )}
@@ -226,9 +239,13 @@ export default function Home() {
             {/* Trending — engagement score */}
             <SectionHeader title="🔥 Trending" subtitle="Most viewed this week" linkTo="/explore" />
             <div className="px-4 space-y-3 pb-2">
-              {trending.map((l, i) => (
+              {isLoading ? (
+              <FeedSkeleton count={2} />
+            ) : (
+              trending.map((l, i) => (
                 <ListingCard key={l.id} listing={l} index={i} />
-              ))}
+              ))
+            )}
             </div>
 
             {/* Just Listed — freshness */}
@@ -288,9 +305,13 @@ export default function Home() {
             {/* Groups */}
             <SectionHeader title="👥 Communities" subtitle="Join your local group" linkTo="/groups" />
             <div className="px-4 space-y-3 pb-6">
-              {groups.slice(0, 3).map((g, i) => (
+              {isLoading ? (
+              <FeedSkeleton count={2} />
+            ) : (
+              groups.slice(0, 3).map((g, i) => (
                 <GroupCard key={g.id} group={g} index={i} />
-              ))}
+              ))
+            )}
             </div>
           </>
         )}

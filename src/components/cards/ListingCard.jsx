@@ -118,6 +118,7 @@ export default function ListingCard({ listing, index = 0 }) {
   const hasImage = listing.images?.length > 0;
   const price = formatPrice(listing);
   const dist = useDistance(listing.location_city);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   return (
     <motion.div
@@ -130,52 +131,56 @@ export default function ListingCard({ listing, index = 0 }) {
     >
       <div className="block group cursor-pointer">
         {hasImage ? (
-          <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm transition-smooth"
+          <div className="bg-card rounded-2xl overflow-hidden border border-border/40 shadow-md hover:shadow-lg transition-all duration-200"
             style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
-            <div className="relative aspect-[16/10] overflow-hidden">
+            {/* Image with skeleton */}
+            <div className="relative w-full bg-secondary/50" style={{ aspectRatio: '16/10' }}>
+              {!imageLoaded && <div className="absolute inset-0 bg-secondary/50 animate-pulse" />}
               <img
                 src={listing.images[0]}
                 alt={listing.title}
+                onLoad={() => setImageLoaded(true)}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
               {/* Top badges */}
-              <div className="absolute top-3 left-3 flex gap-2">
+              <div className="absolute top-4 left-4 flex gap-2 z-10">
                 {dist !== null && (
-                  <Badge className="bg-white text-slate-900 border-0 shadow-lg text-[10px] font-semibold gap-1">
+                  <Badge className="bg-white/95 backdrop-blur text-slate-900 border-0 shadow-md text-[10px] font-semibold gap-1">
                     <Navigation className="w-3 h-3" /> ~{dist} mi
                   </Badge>
                 )}
                 {listing.is_featured && (
-                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg text-[10px] font-semibold gap-1">
+                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-md text-[10px] font-semibold gap-1">
                     <Star className="w-3 h-3" /> Featured
                   </Badge>
                 )}
                 {listing.is_boosted && (
-                  <Badge className="bg-gradient-to-r from-primary to-emerald-600 text-white border-0 shadow-lg text-[10px] font-semibold gap-1">
+                  <Badge className="bg-gradient-to-r from-primary to-emerald-600 text-white border-0 shadow-md text-[10px] font-semibold gap-1">
                     <Zap className="w-3 h-3" /> Boosted
                   </Badge>
                 )}
               </div>
               {/* Price overlay */}
               {price && (
-                <div className="absolute bottom-3 right-3">
-                  <div className="glass rounded-xl px-3 py-1.5 font-bold text-sm text-foreground shadow-lg">
+                <div className="absolute bottom-4 right-4">
+                  <div className="glass rounded-xl px-3.5 py-2 font-bold text-sm text-foreground shadow-lg">
                     {price.text}
                   </div>
                 </div>
               )}
             </div>
-            <div className="p-3.5">
-              <h3 className="font-semibold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors mb-2">
+            {/* Content */}
+            <div className="p-4 space-y-3">
+              <h3 className="font-bold text-base leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors">
                 {listing.title}
               </h3>
               <MetaRow listing={listing} dist={dist} />
-              <div className="flex items-center justify-between mt-2.5">
-                <Badge variant="secondary" className={`text-[10px] font-medium ${getCategoryColor(listing.category)}`}>
+              <div className="flex items-center justify-between pt-2 border-t border-border/20">
+                <Badge variant="secondary" className={`text-[10px] font-semibold px-2.5 py-1 ${getCategoryColor(listing.category)}`}>
                   {listing.category}
                 </Badge>
-                <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
                   <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{listing.views || 0}</span>
                   <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{listing.saves || 0}</span>
                 </div>
@@ -183,25 +188,25 @@ export default function ListingCard({ listing, index = 0 }) {
             </div>
           </div>
         ) : (
-            <div className="bg-card rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-smooth p-4"
+            <div className="bg-card rounded-2xl border border-border/40 shadow-md hover:shadow-lg transition-all duration-200 p-4 space-y-3"
             style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
-            <div className="flex items-center justify-between mb-2">
-              <Badge variant="secondary" className={`text-[10px] font-medium ${getCategoryColor(listing.category)}`}>
+            <div className="flex items-center justify-between">
+              <Badge variant="secondary" className={`text-[10px] font-semibold px-2.5 py-1 ${getCategoryColor(listing.category)}`}>
                 {listing.category}
               </Badge>
-              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <span className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                 <Clock className="w-3 h-3" />{timeAgo(listing.created_date)}
               </span>
             </div>
-            <h3 className="font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors mb-1.5">
+            <h3 className="font-bold text-base leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors">
               {listing.title}
             </h3>
             {price && (
-              <p className={`font-bold text-sm mb-2 ${price.color}`}>{price.text}</p>
+              <p className={`font-bold text-lg ${price.color}`}>{price.text}</p>
             )}
             <MetaRow listing={listing} dist={dist} />
             {listing.description && (
-              <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2 mt-2 border-t border-border/30 pt-2">
+              <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 border-t border-border/20 pt-3">
                 {listing.description}
               </p>
             )}
