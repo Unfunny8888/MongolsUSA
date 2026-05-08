@@ -10,6 +10,7 @@ import ListingCard from "../components/cards/ListingCard";
 import GroupCard from "../components/cards/GroupCard";
 import BusinessCard from "../components/cards/BusinessCard";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/mockData";
+import { buildFeedSections } from "../lib/feedAlgorithm";
 import { base44 } from "@/api/base44Client";
 
 export default function Home() {
@@ -17,11 +18,19 @@ export default function Home() {
   const [listings, setListings] = useState(MOCK_LISTINGS);
   const [groups, setGroups] = useState(MOCK_GROUPS);
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     async function loadData() {
+      const authed = await base44.auth.isAuthenticated();
+      if (authed) {
+        const me = await base44.auth.me();
+        setCurrentUser(me);
+        if (!me.onboarded) navigate("/onboarding");
+      }
+
       const [dbListings, dbGroups, dbBiz] = await Promise.allSettled([
-        base44.entities.Listing.list("-created_date", 20),
+        base44.entities.Listing.list("-created_date", 60),
         base44.entities.Group.list("-member_count", 10),
         base44.entities.Business.list("-rating", 10),
       ]);
@@ -38,34 +47,7 @@ export default function Home() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    async function checkOnboarding() {
-      const authed = await base44.auth.isAuthenticated();
-      if (authed) {
-        const me = await base44.auth.me();
-        if (!me.onboarded) navigate("/onboarding");
-      }
-    }
-    checkOnboarding();
-  }, []);
-
-  // Smart feed ranking: featured > boosted > views > freshness
-  function scoreListings(items) {
-    const now = Date.now();
-    return [...items].sort((a, b) => {
-      const scoreA = (a.is_featured ? 100 : 0) + (a.is_boosted ? 50 : 0) + Math.min((a.views || 0) / 10, 20) +
-        Math.max(0, 10 - (now - new Date(a.created_date || 0).getTime()) / 86400000);
-      const scoreB = (b.is_featured ? 100 : 0) + (b.is_boosted ? 50 : 0) + Math.min((b.views || 0) / 10, 20) +
-        Math.max(0, 10 - (now - new Date(b.created_date || 0).getTime()) / 86400000);
-      return scoreB - scoreA;
-    });
-  }
-
-  const ranked = scoreListings(listings);
-  const featured = ranked.filter((l) => l.is_featured);
-  const jobs = ranked.filter((l) => l.category === "jobs");
-  const events = ranked.filter((l) => l.category === "events");
-  const recent = ranked.slice(0, 6);
+  const { forYou, nearby, trending, fresh, featured, jobs, events } = buildFeedSections(listings, currentUser);
 
   return (
     <div className="min-h-dvh">
@@ -83,7 +65,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Featured Listings */}
+      {/* Featured — premium boosted */}
       {featured.length > 0 && (
         <>
           <SectionHeader title="✨ Featured" subtitle="Promoted listings" linkTo="/explore?featured=true" />
@@ -99,12 +81,56 @@ export default function Home() {
         </>
       )}
 
-      {/* Recent Listings */}
+      {/* For You — interest + reputation + proximity ranked */}
+      {forYou.length > 0 && (
+        <>
+          <SectionHeader title="⭐ For You" subtitle="Based on your interests" linkTo="/explore" />
+          <div className="px-4 pb-2">
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+              {forYou.map((l, i) => (
+                <div key={l.id} className="min-w-[280px] max-w-[300px]">
+                  <ListingCard listing={l} index={i} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Nearby — location proximity */}
+      {nearby.length > 0 && (
+        <>
+          <SectionHeader title="📍 Near You" subtitle={currentUser?.city || "In your city"} linkTo="/explore" />
+          <div className="px-4 pb-2">
+            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+              {nearby.map((l, i) => (
+                <div key={l.id} className="min-w-[280px] max-w-[300px]">
+                  <ListingCard listing={l} index={i} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Trending — engagement score */}
       <SectionHeader title="🔥 Trending" subtitle="Most viewed this week" linkTo="/explore" />
       <div className="px-4 space-y-3 pb-2">
-        {recent.map((l, i) => (
+        {trending.map((l, i) => (
           <ListingCard key={l.id} listing={l} index={i} />
         ))}
+      </div>
+
+      {/* Just Listed — freshness */}
+      <SectionHeader title="🆕 Just Listed" subtitle="Posted recently" linkTo="/explore" />
+      <div className="px-4 pb-2">
+        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+          {fresh.map((l, i) => (
+            <div key={l.id} className="min-w-[280px] max-w-[300px]">
+              <ListingCard listing={l} index={i} />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Jobs Section */}
