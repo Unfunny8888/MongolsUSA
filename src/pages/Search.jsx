@@ -73,6 +73,11 @@ const CATEGORIES = [
   { id: "electronics", label: "Electronics", icon: "📱" },
 ];
 
+const CITIES = [
+  "Chicago", "New York", "Los Angeles", "Houston", "Phoenix",
+  "Philadelphia", "San Antonio", "San Diego", "Dallas", "San Jose"
+];
+
 export default function Search() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -270,7 +275,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
           >
             All Cities
           </button>
-          {[...new Set(allListingsRef.current.map(l => l.location_city).filter(Boolean))].slice(0, 8).map(city => (
+          {CITIES.map(city => (
             <button
               key={city}
               onClick={() => setSelectedCity(selectedCity === city ? null : city)}
