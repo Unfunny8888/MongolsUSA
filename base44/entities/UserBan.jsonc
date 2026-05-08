@@ -1,0 +1,43 @@
+{
+  "name": "UserBan",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "ban_type": {
+      "type": "string",
+      "enum": [
+        "full",
+        "shadow",
+        "temp"
+      ],
+      "default": "full"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "banned_by": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_email",
+    "ban_type",
+    "reason"
+  ]
+}
