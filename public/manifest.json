@@ -1,0 +1,20 @@
+{
+  "name": "NomadLink",
+  "short_name": "NomadLink",
+  "description": "The Mongolian-American Community Marketplace",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6faf8",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://base44.com/logo_v2.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "social", "lifestyle"],
+  "lang": "en"
+}

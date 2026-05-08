@@ -158,9 +158,9 @@ nav,
   background: rgba(15, 23, 20, 0.7);
 }
 
-/* Smooth transitions — transform-only to avoid height/position repaints */
+/* Smooth transitions — faster for native feel */
 .transition-smooth {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Keyboard-safe app container */
@@ -173,6 +173,32 @@ nav,
 /* Bottom nav safe area */
 .bottom-nav {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Touch target optimization */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Page slide transitions */
+.page-enter {
+  transform: translateX(100%);
+  opacity: 0;
+}
+.page-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.22s ease;
+}
+.page-exit {
+  transform: translateX(0);
+  opacity: 1;
+}
+.page-exit-active {
+  transform: translateX(-30%);
+  opacity: 0;
+  transition: transform 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.22s ease;
 }
 
 /* Hide scrollbar for mobile */
