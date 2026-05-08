@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import HomeHeader from "../components/home/HomeHeader";
 import WelcomeFeed from "../components/home/WelcomeFeed";
+import { useGuestDataMigration } from "../hooks/useGuestDataMigration";
 import FeaturedBanner from "../components/home/FeaturedBanner";
 import SectionHeader from "../components/home/SectionHeader";
 import CategoryChip from "../components/cards/CategoryChip";
@@ -20,10 +21,15 @@ export default function Home() {
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [currentUser, setCurrentUser] = useState(null);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Migrate guest data to user account on login
+  useGuestDataMigration(isLoggedIn);
 
   useEffect(() => {
     async function loadData() {
       const authed = await base44.auth.isAuthenticated();
+      setIsLoggedIn(authed);
       if (authed) {
         const me = await base44.auth.me();
         setCurrentUser(me);

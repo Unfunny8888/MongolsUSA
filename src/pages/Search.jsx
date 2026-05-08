@@ -6,6 +6,7 @@ import ListingCard from "../components/cards/ListingCard";
 import { MOCK_LISTINGS, TRENDING_SEARCHES } from "../lib/mockData";
 import { useQueryCache } from "../hooks/useQueryCache";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import { guestDataManager } from "../lib/guestDataManager";
 import { base44 } from "@/api/base44Client";
 
 // ── Skeleton shimmer card ──────────────────────────────────────────────
@@ -102,11 +103,13 @@ export default function Search() {
   }, []);
 
   const saveRecent = useCallback((q) => {
-    setRecentSearches(prev => {
-      const updated = [q, ...prev.filter(s => s !== q)].slice(0, 8);
-      localStorage.setItem("nomadlink_recent", JSON.stringify(updated));
-      return updated;
-    });
+   setRecentSearches(prev => {
+     const updated = [q, ...prev.filter(s => s !== q)].slice(0, 8);
+     localStorage.setItem("nomadlink_recent", JSON.stringify(updated));
+     // Track search history for guest
+     guestDataManager.addSearchHistory(q);
+     return updated;
+   });
   }, []);
 
   const executeSearch = useCallback(async (q) => {
@@ -133,6 +136,9 @@ export default function Search() {
     // Dismiss keyboard immediately
     dismissKeyboard(inputRef);
     saveRecent(trimmed);
+    
+    // Track search with filters for guest
+    guestDataManager.addSavedSearch(trimmed);
 
     // 1. Instant local results while AI loads
     const localMatches = localFilter(allListingsRef.current, trimmed);
@@ -234,6 +240,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
     setLoading(false);
     setResults([]);
     setError(null);
+    guestDataManager.addSearchHistory(""); // Clear last search indicator if needed
     setTimeout(() => inputRef.current?.focus(), 50);
   }, []);
 

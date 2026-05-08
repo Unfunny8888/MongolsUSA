@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home } from "lucide-react";
+import { guestDataManager } from "../lib/guestDataManager";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import ContactMask from "../components/common/ContactMask";
@@ -154,9 +155,17 @@ export default function ListingDetail() {
       if (!listingId.startsWith("mock-")) {
         const data = await base44.entities.Listing.get(listingId);
         setListing(data);
+        // Track viewed listing for guest
+        if (!authed) {
+          guestDataManager.addViewedListing(data.id, data);
+        }
         return;
       }
-      setListing(MOCK_LISTINGS.find((l) => l.id === listingId));
+      const mockListing = MOCK_LISTINGS.find((l) => l.id === listingId);
+      setListing(mockListing);
+      if (!authed && mockListing) {
+        guestDataManager.addViewedListing(mockListing.id, mockListing);
+      }
     }
     load();
   }, [listingId]);
