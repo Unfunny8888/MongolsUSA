@@ -262,17 +262,17 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
           <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
           <span className="text-xs font-semibold text-foreground">City</span>
         </div>
+        <button
+          onClick={() => setSelectedCity(null)}
+          className={`w-full px-3 py-2 rounded-lg text-xs font-medium transition-smooth mb-2 ${
+            !selectedCity
+              ? "bg-primary text-white"
+              : "bg-secondary/70 text-foreground hover:bg-secondary"
+          }`}
+        >
+          All Cities
+        </button>
         <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => setSelectedCity(null)}
-            className={`px-3 py-2 rounded-lg text-xs font-medium transition-smooth col-span-2 ${
-              !selectedCity
-                ? "bg-primary text-white"
-                : "bg-secondary/70 text-foreground hover:bg-secondary"
-            }`}
-          >
-            All Cities
-          </button>
           {[...new Set(allListingsRef.current.map(l => l.location_city).filter(Boolean))].slice(0, 10).map(city => (
             <button
               key={city}
