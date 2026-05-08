@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -12,6 +12,7 @@ import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/
 import { buildFeedSections } from "../lib/feedAlgorithm";
 import { base44 } from "@/api/base44Client";
 import { useScrollPreservation } from "../hooks/useScrollPreservation";
+import { useScrollLocking } from "../hooks/useScrollLocking";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function Home() {
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
   const { restoreScrollPosition } = useScrollPreservation(containerRef, "home_scroll");
+  const { lockScroll, unlockScroll } = useScrollLocking(containerRef);
 
   useEffect(() => {
     async function loadData() {
@@ -49,7 +51,7 @@ export default function Home() {
   const filteredListings = selectedCategory ? listings.filter(l => l.category === selectedCategory.id) : listings;
   const { forYou, nearby, trending, fresh, featured, jobs, events } = buildFeedSections(filteredListings, currentUser);
 
-  const handlePullToRefresh = async (e) => {
+  const handlePullToRefresh = useCallback(async (e) => {
     const scrollTop = containerRef.current?.scrollTop || 0;
     if (scrollTop !== 0) return;
 
@@ -70,6 +72,7 @@ export default function Home() {
 
     if (e.type === "touchend") {
       if (pullProgress > 0.7) {
+        lockScroll();
         setIsRefreshing(true);
         setPullProgress(0);
         await new Promise((resolve) => {
@@ -82,8 +85,7 @@ export default function Home() {
             setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
             setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
             setIsRefreshing(false);
-            // Preserve scroll position after refresh
-            restoreScrollPosition();
+            unlockScroll();
             resolve();
           }, 800);
         });
@@ -91,7 +93,7 @@ export default function Home() {
         setPullProgress(0);
       }
     }
-  };
+  }, [pullProgress, isRefreshing, lockScroll, unlockScroll]);
 
   return (
     <div
