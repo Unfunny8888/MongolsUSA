@@ -28,6 +28,7 @@ import MyListings from './pages/MyListings';
 import AIAssistant from './pages/AIAssistant';
 import SavedSearches from './pages/SavedSearches';
 import BusinessDashboard from './pages/BusinessDashboard';
+import RecruiterDashboard from './pages/RecruiterDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -78,6 +79,7 @@ const AuthenticatedApp = () => {
         <Route path="/ai-assistant" element={<AIAssistant />} />
         <Route path="/saved-searches" element={<SavedSearches />} />
         <Route path="/business-dashboard" element={<BusinessDashboard />} />
+        <Route path="/recruiter" element={<RecruiterDashboard />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

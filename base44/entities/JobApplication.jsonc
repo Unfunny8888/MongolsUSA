@@ -1,0 +1,52 @@
+{
+  "name": "JobApplication",
+  "type": "object",
+  "properties": {
+    "job_listing_id": {
+      "type": "string"
+    },
+    "job_title": {
+      "type": "string"
+    },
+    "resume_id": {
+      "type": "string"
+    },
+    "applicant_email": {
+      "type": "string"
+    },
+    "applicant_name": {
+      "type": "string"
+    },
+    "recruiter_email": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "applied",
+        "screening",
+        "interview",
+        "offer",
+        "hired",
+        "rejected"
+      ],
+      "default": "applied"
+    },
+    "match_score": {
+      "type": "number",
+      "description": "AI match score 0-100"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "interview_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "job_listing_id",
+    "applicant_email",
+    "recruiter_email"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "name": "Resume",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "description": "Current job title"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "experience_years": {
+      "type": "number"
+    },
+    "education": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "linkedin": {
+      "type": "string"
+    },
+    "resume_url": {
+      "type": "string",
+      "description": "Uploaded resume file URL"
+    },
+    "avatar": {
+      "type": "string"
+    },
+    "salary_expectation": {
+      "type": "number"
+    },
+    "availability": {
+      "type": "string",
+      "enum": [
+        "immediate",
+        "2_weeks",
+        "1_month",
+        "negotiable"
+      ],
+      "default": "negotiable"
+    },
+    "job_type_preference": {
+      "type": "string",
+      "enum": [
+        "full-time",
+        "part-time",
+        "contract",
+        "cash",
+        "temp"
+      ],
+      "default": "full-time"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "full_name",
+    "user_email"
+  ]
+}
