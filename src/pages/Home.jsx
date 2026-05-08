@@ -14,9 +14,9 @@ import { base44 } from "@/api/base44Client";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [listings, setListings] = useState(MOCK_LISTINGS);
-  const [groups, setGroups] = useState(MOCK_GROUPS);
-  const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
+  const [listings, setListings] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [businesses, setBusinesses] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [pullProgress, setPullProgress] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -38,15 +38,9 @@ export default function Home() {
         base44.entities.Group.list("-member_count", 10),
         base44.entities.Business.list("-rating", 10),
       ]);
-      if (dbListings.status === "fulfilled" && dbListings.value.length > 0) {
-        setListings(dbListings.value);
-      }
-      if (dbGroups.status === "fulfilled" && dbGroups.value.length > 0) {
-        setGroups(dbGroups.value);
-      }
-      if (dbBiz.status === "fulfilled" && dbBiz.value.length > 0) {
-        setBusinesses(dbBiz.value);
-      }
+      setListings(dbListings.status === "fulfilled" && dbListings.value.length > 0 ? dbListings.value : MOCK_LISTINGS);
+      setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
+      setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
     }
     loadData();
   }, []);
@@ -83,9 +77,9 @@ export default function Home() {
             base44.entities.Group.list("-member_count", 10),
             base44.entities.Business.list("-rating", 10),
           ]);
-          if (dbListings.status === "fulfilled" && dbListings.value.length > 0) setListings(dbListings.value);
-          if (dbGroups.status === "fulfilled" && dbGroups.value.length > 0) setGroups(dbGroups.value);
-          if (dbBiz.status === "fulfilled" && dbBiz.value.length > 0) setBusinesses(dbBiz.value);
+          setListings(dbListings.status === "fulfilled" && dbListings.value.length > 0 ? dbListings.value : MOCK_LISTINGS);
+          setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
+          setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
           setIsRefreshing(false);
         }, 800);
       } else {
