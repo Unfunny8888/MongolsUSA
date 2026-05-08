@@ -80,25 +80,25 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="bg-gradient-to-br from-primary via-emerald-700 to-teal-800 px-4 pt-6 pb-12 relative overflow-hidden" style={{ paddingTop: 'max(24px, env(safe-area-inset-top))' }}>
-        <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-12 translate-x-12" />
-        <div className="absolute bottom-0 left-0 w-36 h-36 bg-white/5 rounded-full translate-y-10 -translate-x-10" />
+      <div className="bg-gradient-to-br from-primary via-emerald-700 to-teal-800 px-4 pt-5 pb-8 relative overflow-hidden" style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-6 -translate-x-6" />
         <div className="relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shadow-lg overflow-hidden">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-2xl shadow-lg overflow-hidden flex-shrink-0">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.full_name} className="w-full h-full object-cover" />
               ) : "👤"}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-white">{user.full_name || "Nomad User"}</h1>
-                {user.is_verified && <Shield className="w-4 h-4 text-blue-300 fill-blue-300" />}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-base font-bold text-white truncate">{user.full_name || "Nomad User"}</h1>
+                {user.is_verified && <Shield className="w-3.5 h-3.5 text-blue-300 fill-blue-300 flex-shrink-0" />}
               </div>
-              <p className="text-sm text-emerald-200">{user.email}</p>
+              <p className="text-xs text-emerald-100 truncate">{user.email}</p>
             </div>
           </div>
-          <div className="mt-4">
+          <div className="mt-3">
             <ReputationBadge
               rank={user.reputation_rank || "bronze"}
               tier={user.membership_tier || "free"}
