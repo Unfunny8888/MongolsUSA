@@ -64,6 +64,15 @@ function localFilter(listings, q) {
   );
 }
 
+const CATEGORIES = [
+  { id: "housing", label: "Housing", icon: "🏠" },
+  { id: "jobs", label: "Jobs", icon: "💼" },
+  { id: "events", label: "Events", icon: "🎉" },
+  { id: "cars", label: "Cars", icon: "🚗" },
+  { id: "services", label: "Services", icon: "🔧" },
+  { id: "electronics", label: "Electronics", icon: "📱" },
+];
+
 export default function Search() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -72,6 +81,7 @@ export default function Search() {
   const [error, setError] = useState(null);
   const [errorType, setErrorType] = useState(null);
   const [searchedQuery, setSearchedQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [recentSearches, setRecentSearches] = useState(() => {
     try { return JSON.parse(localStorage.getItem("nomadlink_recent") || "[]"); } catch { return []; }
   });
@@ -80,8 +90,8 @@ export default function Search() {
   const navigate = useNavigate();
   const cache = useQueryCache(120000);
   const allListingsRef = useRef(MOCK_LISTINGS);
-  const abortRef = useRef(null);           // AbortController for inflight requests
-  const isSearchingRef = useRef(false);    // lock to prevent concurrent searches
+  const abortRef = useRef(null);
+  const isSearchingRef = useRef(false);
   const debounceRef = useRef(null);
 
   // Pre-load listings once
@@ -113,14 +123,11 @@ export default function Search() {
     const trimmed = q?.trim();
     if (!trimmed) return;
 
-    // LOCK — prevent duplicate concurrent searches
     if (isSearchingRef.current) {
-      // Cancel previous in-flight request
       abortRef.current?.abort();
     }
     isSearchingRef.current = true;
 
-    // New abort controller for this request
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -130,11 +137,9 @@ export default function Search() {
     setError(null);
     setResults([]);
 
-    // Dismiss keyboard immediately
     dismissKeyboard(inputRef);
     saveRecent(trimmed);
 
-    // 1. Instant local results while AI loads
     const localMatches = localFilter(allListingsRef.current, trimmed);
     if (localMatches.length > 0) setResults(localMatches.slice(0, 20));
 
@@ -146,7 +151,7 @@ export default function Search() {
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
       const response = await Promise.race([
         base44.integrations.Core.InvokeLLM({
-        prompt: `You are a search engine for a Mongolian community marketplace in the USA.
+          prompt: `You are a search engine for a Mongolian community marketplace in the USA.
 The user searched: "${trimmed}"
 
 Mongolian transliteration map: mashin=car, bair=apartment, ajil=job, zarna=for sale, hugatsaagui=flexible
@@ -155,17 +160,16 @@ Available listings:
 ${listingSummaries}
 
 Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            matching_ids: { type: "array", items: { type: "string" } }
+          response_json_schema: {
+            type: "object",
+            properties: {
+              matching_ids: { type: "array", items: { type: "string" } }
+            }
           }
-        }
-      }),
+        }),
         timeoutPromise
       ]);
 
-      // Check if this request was superseded
       if (controller.signal.aborted) return;
 
       const matchedIds = response.matching_ids || [];
@@ -180,13 +184,11 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
         setResults([]);
         setErrorType(null);
       }
-      // else keep local results shown
     } catch (err) {
-      if (controller.signal.aborted) return; // silently discard aborted request
+      if (controller.signal.aborted) return;
       const isTimeout = err.message === 'timeout';
       const isNetworkError = err.message?.includes('fetch') || err.message?.includes('network');
       setErrorType(isTimeout ? 'timeout' : isNetworkError ? 'network' : 'ai_failed');
-      // Fallback to local results on AI error
       if (localMatches.length === 0) {
         setError("Showing local results instead.");
         setResults(allListingsRef.current.slice(0, 10));
@@ -237,6 +239,18 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
     setTimeout(() => inputRef.current?.focus(), 50);
   }, []);
 
+  const filterByCategory = useCallback((categoryId) => {
+    if (selectedCategory === categoryId) {
+      setSelectedCategory(null);
+    } else {
+      setSelectedCategory(categoryId);
+    }
+  }, [selectedCategory]);
+
+  const filteredResults = selectedCategory
+    ? results.filter(r => r.category === selectedCategory)
+    : results;
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Search Header */}
@@ -277,11 +291,28 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
             }
           </button>
         </div>
+
+        {/* Category Filter Bar */}
+        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => filterByCategory(cat.id)}
+              className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-smooth ${
+                selectedCategory === cat.id
+                  ? "bg-primary text-white shadow-md"
+                  : "bg-secondary/70 text-foreground hover:bg-secondary"
+              }`}
+            >
+              {cat.icon} {cat.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Body */}
       <div
-        className="flex-1 px-4 py-4 overflow-y-auto mt-20"
+        className="flex-1 px-4 py-4 overflow-y-auto mt-28"
         onScroll={() => dismissKeyboard(inputRef)}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
@@ -360,7 +391,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
                 <p className="text-xs text-muted-foreground">
                   {loading
                     ? <span className="flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Searching with AI…</span>
-                    : `${results.length} results for "${searchedQuery}"`
+                    : `${filteredResults.length} results for "${searchedQuery}"`
                   }
                 </p>
               </div>
@@ -375,7 +406,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
                 </div>
               )}
 
-              {/* Loading skeletons — shown while AI works but local results may already be visible */}
+              {/* Loading skeletons */}
               <AnimatePresence mode="wait">
                 {loading && results.length === 0 ? (
                   <motion.div
@@ -387,7 +418,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
                   >
                     <SkeletonList count={4} />
                   </motion.div>
-                ) : results.length === 0 ? (
+                ) : filteredResults.length === 0 ? (
                   <motion.div
                     key="empty"
                     initial={{ opacity: 0, y: 12 }}
@@ -430,7 +461,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <InfiniteResults results={results} />
+                    <InfiniteResults results={filteredResults} />
                   </motion.div>
                 )}
               </AnimatePresence>
