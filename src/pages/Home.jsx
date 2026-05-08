@@ -33,10 +33,19 @@ export default function Home() {
         setCurrentUser(me);
         if (!me.onboarded) navigate("/onboarding");
         // Load personalized feed for authenticated user
-        const feedResult = await base44.functions.invoke('generatePersonalizedFeed', { user_email: me.email });
-        if (feedResult.data?.listings?.length > 0) {
-          setListings(feedResult.data.listings);
+        try {
+          const feedResult = await base44.functions.invoke('generatePersonalizedFeed', { user_email: me.email });
+          if (feedResult.data?.listings?.length > 0) {
+            setListings(feedResult.data.listings);
+          } else {
+            setListings(MOCK_LISTINGS);
+          }
+        } catch (err) {
+          console.error('Feed generation failed:', err);
+          setListings(MOCK_LISTINGS);
         }
+      } else {
+        setListings(MOCK_LISTINGS);
       }
 
       const [dbGroups, dbBiz] = await Promise.allSettled([
