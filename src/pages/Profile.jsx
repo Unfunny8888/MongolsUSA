@@ -112,18 +112,20 @@ export default function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-2xl p-4 border border-white/20 grid grid-cols-3 gap-4 shadow-sm"
+          className="glass rounded-2xl p-5 border border-white/20 shadow-sm"
         >
-          {[
-            { label: "Listings", value: user.listing_count || 0 },
-            { label: "Reputation", value: user.reputation_score || 0 },
-            { label: "Groups", value: user.joined_groups?.length || 0 },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <p className="text-xl font-extrabold text-primary">{stat.value}</p>
-              <p className="text-[10px] text-muted-foreground font-medium">{stat.label}</p>
-            </div>
-          ))}
+          <div className="grid grid-cols-3 gap-0 divide-x divide-white/10">
+            {[
+              { label: "Listings", value: user.listing_count || 0 },
+              { label: "Reputation", value: user.reputation_score || 0 },
+              { label: "Groups", value: user.joined_groups?.length || 0 },
+            ].map((stat) => (
+              <div key={stat.label} className="flex flex-col items-center justify-center py-4 px-2">
+                <p className="text-2xl font-extrabold text-primary leading-none">{stat.value}</p>
+                <p className="text-xs text-muted-foreground font-medium mt-1.5">{stat.label}</p>
+              </div>
+            ))}
+          </div>
         </motion.div>
       </div>
 
