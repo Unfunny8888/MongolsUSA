@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 
 function formatPrice(listing) {
   if (listing.price_type === "free") return "Free";
-  if (!listing.price && listing.price !== 0) return "Contact";
+  if (!listing.price) return null;
   const p = `$${listing.price.toLocaleString()}`;
   if (listing.price_type === "hourly") return `${p}/hr`;
   if (listing.price_type === "monthly") return `${p}/mo`;
@@ -69,11 +69,13 @@ export default function ListingCard({ listing, index = 0 }) {
               )}
             </div>
             {/* Price tag */}
-            <div className="absolute bottom-3 right-3">
-              <div className="glass rounded-xl px-3 py-1.5 font-bold text-sm text-foreground shadow-lg">
-                {formatPrice(listing)}
+            {formatPrice(listing) && (
+              <div className="absolute bottom-3 right-3">
+                <div className="glass rounded-xl px-3 py-1.5 font-bold text-sm text-foreground shadow-lg">
+                  {formatPrice(listing)}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Content */}

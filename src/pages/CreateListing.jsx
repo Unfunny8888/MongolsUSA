@@ -1,269 +1,431 @@
 import { useState, useEffect } from "react";
-import { ArrowLeft, Camera, X } from "lucide-react";
+import { ArrowLeft, Upload, X, Plus, Briefcase, Home, Car, Wrench, ShoppingBag, Users, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { base44 } from "@/api/base44Client";
-import { CATEGORIES } from "../lib/mockData";
-import AIListingHelper from "../components/common/AIListingHelper";
+import { motion, AnimatePresence } from "framer-motion";
+
+const CATS = [
+  { id: "jobs",      icon: Briefcase, label: "Ажил",       sub: "Хүн авах, ажил санал болгох" },
+  { id: "housing",   icon: Home,      label: "Орон сууц",  sub: "Орон сууц, түрээс, худалдаа" },
+  { id: "cars",      icon: Car,       label: "Машин",      sub: "Машин зарах, худалдан авах" },
+  { id: "services",  icon: Wrench,    label: "Үйлчилгээ",  sub: "Үйлчилгээ санал болгох" },
+  { id: "electronics", icon: ShoppingBag, label: "Худалдаа", sub: "Эд зүйл худалдах" },
+  { id: "community", icon: Users,     label: "Нийгэмлэг", sub: "Нийгэмлэгийн пост" },
+  { id: "events",    icon: Calendar,  label: "Үйл явдал",  sub: "Үйл явдал зохион байгуулах" },
+];
+
+function CategoryPicker({ onSelect }) {
+  return (
+    <div className="min-h-screen">
+      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3">
+        <h1 className="text-base font-bold">Шинэ зар</h1>
+      </div>
+      <div className="px-4 py-4 grid grid-cols-2 gap-3">
+        {CATS.map((cat, i) => {
+          const Icon = cat.icon;
+          return (
+            <motion.button
+              key={cat.id}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+              onClick={() => onSelect(cat.id)}
+              className="p-4 rounded-2xl bg-card border border-border/50 text-left hover:border-primary/50 hover:shadow-md transition-smooth active:scale-95"
+            >
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                <Icon className="w-5 h-5 text-primary" />
+              </div>
+              <p className="text-sm font-bold text-foreground">{cat.label}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{cat.sub}</p>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ChipSelect({ options, value, onChange }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(value === opt.value ? "" : opt.value)}
+          className={`px-4 py-2 rounded-full text-xs font-medium border transition-smooth ${
+            value === opt.value
+              ? "bg-primary text-white border-primary"
+              : "bg-card text-foreground border-border/60"
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return <p className="text-sm font-bold text-foreground mb-2">{children}</p>;
+}
+
+function FormField({ children }) {
+  return <div className="mb-5">{children}</div>;
+}
 
 export default function CreateListing() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [category, setCategory] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [images, setImages] = useState([]);
   const [form, setForm] = useState({
     title: "", description: "", price: "", price_type: "fixed",
     location_city: "", location_state: "", contact_phone: "", contact_email: "",
-    // Car
-    car_make: "", car_model: "", car_year: "", car_mileage: "", car_transmission: "", car_fuel: "", car_condition: "",
-    // Job
-    job_company: "", job_salary_min: "", job_salary_max: "", job_type: "", job_schedule: "", job_benefits: "",
-    // Housing
-    housing_bedrooms: "", housing_bathrooms: "", housing_type: "", housing_lease: "", housing_utilities: "", housing_furnished: false,
-    // Event
+    car_make: "", car_model: "", car_year: "", car_mileage: "",
+    car_transmission: "", car_fuel: "", car_condition: "",
+    job_company: "", job_salary_min: "", job_salary_max: "", job_type: "",
+    job_schedule: "", job_benefits: "",
+    housing_bedrooms: "", housing_bathrooms: "", housing_type: "",
+    housing_lease: "", housing_utilities: "", housing_furnished: false,
     event_date: "", event_venue: "", event_ticket_price: "", event_organizer: "",
   });
 
   useEffect(() => {
-    base44.auth.isAuthenticated().then((authed) => {
-      setIsLoggedIn(authed);
-      setLoading(false);
-    });
+    base44.auth.isAuthenticated().then((a) => { setIsLoggedIn(a); setLoading(false); });
   }, []);
 
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
+  async function handleImageUpload(e) {
+    const files = Array.from(e.target.files);
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setImages((prev) => [...prev, file_url]);
+    }
+  }
+
   async function handleSubmit() {
     if (!form.title || !category) return;
     setSubmitting(true);
-    const data = { ...form, category, price: form.price ? Number(form.price) : 0 };
+    const data = { ...form, category };
+    // Price: only set if actually entered
+    if (form.price && form.price !== "") {
+      data.price = Number(form.price);
+    } else {
+      delete data.price;
+    }
     // Remove empty strings
     Object.keys(data).forEach((k) => { if (data[k] === "") delete data[k]; });
+    if (images.length > 0) data.images = images;
     await base44.entities.Listing.create(data);
     navigate("/");
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+    </div>
+  );
 
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mb-6">
-          <Camera className="w-10 h-10 text-primary" />
-        </div>
-        <h1 className="text-xl font-bold mb-2">Sign in to post</h1>
-        <p className="text-sm text-muted-foreground mb-6">Create a free account to post listings, find jobs, and connect with the community.</p>
-        <Button
-          onClick={() => base44.auth.redirectToLogin()}
-          className="rounded-xl bg-primary text-white px-8"
-        >
-          Sign In
-        </Button>
+  if (!isLoggedIn) return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mb-6">
+        <Plus className="w-10 h-10 text-primary" />
       </div>
-    );
-  }
+      <h1 className="text-xl font-bold mb-2">Нэвтэрнэ үү</h1>
+      <p className="text-sm text-muted-foreground mb-6">Зар оруулахын тулд нэвтрэх шаардлагатай.</p>
+      <Button onClick={() => base44.auth.redirectToLogin()} className="rounded-xl px-8">Нэвтрэх</Button>
+    </div>
+  );
+
+  // Step 1: category picker
+  if (!category) return <CategoryPicker onSelect={setCategory} />;
+
+  const cat = CATS.find((c) => c.id === category);
+  const Icon = cat?.icon || Plus;
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen pb-32">
+      {/* Header */}
       <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1">
+        <button onClick={() => setCategory("")} className="p-1">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-base font-bold">Create Listing</h1>
+        <Icon className="w-4 h-4 text-primary" />
+        <h1 className="text-base font-bold">{cat?.label}</h1>
       </div>
 
-      <div className="px-4 py-4 space-y-5">
-        {/* Category Selection */}
-        <div>
-          <Label className="text-xs font-semibold mb-2 block">Category *</Label>
-          <div className="grid grid-cols-4 gap-2">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setCategory(cat.id)}
-                className={`p-3 rounded-xl text-center transition-smooth ${
-                  category === cat.id
-                    ? "bg-primary text-white shadow-lg shadow-primary/30"
-                    : "bg-secondary text-foreground"
-                }`}
-              >
-                <p className="text-lg mb-0.5">{cat.labelMn.slice(0, 2)}</p>
-                <p className="text-[10px] font-medium">{cat.label}</p>
-              </button>
+      <div className="px-4 py-5 space-y-1">
+
+        {/* Photo Upload */}
+        <FormField>
+          <div className="flex items-center justify-between mb-2">
+            <SectionLabel>Зураг</SectionLabel>
+            <span className="text-xs text-muted-foreground">{images.length}/10</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            <label className="w-24 h-24 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-smooth shrink-0 bg-secondary/30">
+              <Upload className="w-5 h-5 text-muted-foreground mb-1" />
+              <span className="text-[10px] text-muted-foreground">Нэмэх</span>
+              <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
+            </label>
+            {images.map((url, i) => (
+              <div key={i} className="relative shrink-0">
+                <img src={url} alt="" className="w-24 h-24 rounded-xl object-cover" />
+                <button
+                  onClick={() => setImages((p) => p.filter((_, idx) => idx !== i))}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
             ))}
           </div>
-        </div>
+        </FormField>
 
-        {/* AI Helper */}
-        <AIListingHelper
-          category={category}
-          onApply={(s) => setForm(f => ({ ...f, title: s.title || f.title, description: s.description || f.description, price: s.suggested_price || f.price }))}
-        />
+        {/* Main Info */}
+        <FormField>
+          <SectionLabel>Үндсэн мэдээлэл</SectionLabel>
+          <Input
+            value={form.title}
+            onChange={(e) => update("title", e.target.value)}
+            placeholder={
+              category === "jobs" ? "Жишээ: Жолооч хайж байна — $25/цаг" :
+              category === "cars" ? "Жишээ: 2019 Toyota Prius зарна" :
+              category === "housing" ? "Жишээ: 2 өрөө байр түрээслэнэ" :
+              "Зарынхаа гарчиг..."
+            }
+            className="rounded-xl bg-card border-border/60"
+          />
+        </FormField>
 
-        {/* Common Fields */}
-        <div className="space-y-4">
-          <div>
-            <Label className="text-xs font-semibold mb-1.5 block">Title *</Label>
-            <Input value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="What are you listing?" className="rounded-xl" />
-          </div>
-          <div>
-            <Label className="text-xs font-semibold mb-1.5 block">Description</Label>
-            <Textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Describe your listing in Mongolian or English..." className="rounded-xl min-h-[100px]" />
-          </div>
+        {/* JOBS specific */}
+        {category === "jobs" && (
+          <>
+            <FormField>
+              <SectionLabel>Компани</SectionLabel>
+              <Input value={form.job_company} onChange={(e) => update("job_company", e.target.value)}
+                placeholder="Компанийн нэр" className="rounded-xl bg-card border-border/60" />
+            </FormField>
+            <FormField>
+              <SectionLabel>Ажлын төрөл</SectionLabel>
+              <ChipSelect
+                value={form.job_type}
+                onChange={(v) => update("job_type", v)}
+                options={[
+                  { value: "full-time", label: "Бүтэн цаг" },
+                  { value: "part-time", label: "Хагас цаг" },
+                  { value: "contract", label: "Гэрээт" },
+                  { value: "temp", label: "Улирлын" },
+                  { value: "cash", label: "Дадлага" },
+                ]}
+              />
+            </FormField>
+            <FormField>
+              <SectionLabel>Туршлагын түвшин</SectionLabel>
+              <ChipSelect
+                value={form.job_schedule}
+                onChange={(v) => update("job_schedule", v)}
+                options={[
+                  { value: "entry", label: "Шинэхэн" },
+                  { value: "mid", label: "Дунд" },
+                  { value: "senior", label: "Ахлах" },
+                  { value: "any", label: "Аль ч" },
+                ]}
+              />
+            </FormField>
+            <FormField>
+              <SectionLabel>Нэмэлт</SectionLabel>
+              <div className="space-y-0 rounded-2xl border border-border/60 overflow-hidden bg-card">
+                {[
+                  { field: "housing_furnished", label: "🏡 Байр багтсан" },
+                  { field: "housing_utilities", label: "📋 Visa дэмжлэг" },
+                  { field: "car_condition", label: "🖥 Зайнаас (Remote)" },
+                  { field: "event_venue", label: "⚕ Эрүүл мэндийн даатгал" },
+                ].map(({ field, label }, i, arr) => (
+                  <div key={field} className={`flex items-center justify-between px-4 py-3.5 ${i < arr.length - 1 ? "border-b border-border/40" : ""}`}>
+                    <span className="text-sm text-foreground">{label}</span>
+                    <Switch />
+                  </div>
+                ))}
+              </div>
+            </FormField>
+            <FormField>
+              <SectionLabel>Цалин</SectionLabel>
+              <div className="flex items-center gap-2 bg-card border border-border/60 rounded-xl px-3 py-2.5">
+                <span className="text-muted-foreground font-bold">$</span>
+                <Input type="number" value={form.job_salary_min} onChange={(e) => update("job_salary_min", e.target.value)}
+                  placeholder="0" className="border-0 p-0 h-auto focus-visible:ring-0 bg-transparent" />
+                <span className="text-muted-foreground">–</span>
+                <Input type="number" value={form.job_salary_max} onChange={(e) => update("job_salary_max", e.target.value)}
+                  placeholder="0" className="border-0 p-0 h-auto focus-visible:ring-0 bg-transparent" />
+              </div>
+            </FormField>
+          </>
+        )}
+
+        {/* CARS specific */}
+        {category === "cars" && (
+          <>
+            <FormField>
+              <SectionLabel>Машины мэдээлэл</SectionLabel>
+              <div className="grid grid-cols-2 gap-3">
+                <Input placeholder="Марк (Toyota)" value={form.car_make} onChange={(e) => update("car_make", e.target.value)} className="rounded-xl bg-card border-border/60" />
+                <Input placeholder="Загвар (Prius)" value={form.car_model} onChange={(e) => update("car_model", e.target.value)} className="rounded-xl bg-card border-border/60" />
+                <Input type="number" placeholder="Он" value={form.car_year} onChange={(e) => update("car_year", e.target.value)} className="rounded-xl bg-card border-border/60" />
+                <Input type="number" placeholder="Гүйлт" value={form.car_mileage} onChange={(e) => update("car_mileage", e.target.value)} className="rounded-xl bg-card border-border/60" />
+              </div>
+            </FormField>
+            <FormField>
+              <SectionLabel>Хурдны хайрцаг</SectionLabel>
+              <ChipSelect value={form.car_transmission} onChange={(v) => update("car_transmission", v)}
+                options={[{ value: "automatic", label: "Автомат" }, { value: "manual", label: "Механик" }]} />
+            </FormField>
+            <FormField>
+              <SectionLabel>Төлөв</SectionLabel>
+              <ChipSelect value={form.car_condition} onChange={(v) => update("car_condition", v)}
+                options={[
+                  { value: "excellent", label: "Маш сайн" },
+                  { value: "good", label: "Сайн" },
+                  { value: "fair", label: "Дунд" },
+                  { value: "poor", label: "Муу" },
+                ]} />
+            </FormField>
+            <FormField>
+              <SectionLabel>Үнэ ($)</SectionLabel>
+              <div className="flex items-center gap-2 bg-card border border-border/60 rounded-xl px-3 py-2.5">
+                <span className="text-muted-foreground font-bold">$</span>
+                <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)}
+                  placeholder="Үнэ оруулна уу" className="border-0 p-0 h-auto focus-visible:ring-0 bg-transparent" />
+              </div>
+            </FormField>
+          </>
+        )}
+
+        {/* HOUSING specific */}
+        {category === "housing" && (
+          <>
+            <FormField>
+              <SectionLabel>Өрөөний тоо</SectionLabel>
+              <ChipSelect value={form.housing_bedrooms?.toString()} onChange={(v) => update("housing_bedrooms", Number(v))}
+                options={["1","2","3","4","5+"].map((n) => ({ value: n, label: `${n} өрөө` }))} />
+            </FormField>
+            <FormField>
+              <SectionLabel>Орон сууцны төрөл</SectionLabel>
+              <ChipSelect value={form.housing_type} onChange={(v) => update("housing_type", v)}
+                options={[
+                  { value: "apartment", label: "Апартмент" },
+                  { value: "house", label: "Байшин" },
+                  { value: "room", label: "Өрөө" },
+                  { value: "studio", label: "Студи" },
+                  { value: "condo", label: "Кондо" },
+                ]} />
+            </FormField>
+            <FormField>
+              <SectionLabel>Нэмэлт</SectionLabel>
+              <div className="rounded-2xl border border-border/60 overflow-hidden bg-card">
+                <div className="flex items-center justify-between px-4 py-3.5 border-b border-border/40">
+                  <span className="text-sm">🛋 Тавилгатай</span>
+                  <Switch checked={form.housing_furnished} onCheckedChange={(v) => update("housing_furnished", v)} />
+                </div>
+              </div>
+            </FormField>
+            <FormField>
+              <SectionLabel>Түрээсийн үнэ (сараар $)</SectionLabel>
+              <div className="flex items-center gap-2 bg-card border border-border/60 rounded-xl px-3 py-2.5">
+                <span className="text-muted-foreground font-bold">$</span>
+                <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)}
+                  placeholder="Сарын үнэ" className="border-0 p-0 h-auto focus-visible:ring-0 bg-transparent" />
+              </div>
+            </FormField>
+          </>
+        )}
+
+        {/* EVENTS specific */}
+        {category === "events" && (
+          <>
+            <FormField>
+              <SectionLabel>Огноо</SectionLabel>
+              <Input type="datetime-local" value={form.event_date} onChange={(e) => update("event_date", e.target.value)} className="rounded-xl bg-card border-border/60" />
+            </FormField>
+            <FormField>
+              <SectionLabel>Газар</SectionLabel>
+              <Input value={form.event_venue} onChange={(e) => update("event_venue", e.target.value)} placeholder="Хаана болох вэ?" className="rounded-xl bg-card border-border/60" />
+            </FormField>
+            <FormField>
+              <SectionLabel>Тасалбарын үнэ ($)</SectionLabel>
+              <div className="flex items-center gap-2 bg-card border border-border/60 rounded-xl px-3 py-2.5">
+                <span className="text-muted-foreground font-bold">$</span>
+                <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)}
+                  placeholder="Үнэгүй бол хоосон орхино" className="border-0 p-0 h-auto focus-visible:ring-0 bg-transparent" />
+              </div>
+            </FormField>
+          </>
+        )}
+
+        {/* Generic price for services/electronics/community */}
+        {["services", "electronics", "community"].includes(category) && (
+          <FormField>
+            <SectionLabel>Үнэ ($)</SectionLabel>
+            <div className="flex items-center gap-2 bg-card border border-border/60 rounded-xl px-3 py-2.5">
+              <span className="text-muted-foreground font-bold">$</span>
+              <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)}
+                placeholder="Хоосон орхивол нуугдана" className="border-0 p-0 h-auto focus-visible:ring-0 bg-transparent" />
+            </div>
+          </FormField>
+        )}
+
+        {/* Location */}
+        <FormField>
+          <SectionLabel>Байршил</SectionLabel>
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs font-semibold mb-1.5 block">Price</Label>
-              <Input type="number" value={form.price} onChange={(e) => update("price", e.target.value)} placeholder="0" className="rounded-xl" />
-            </div>
-            <div>
-              <Label className="text-xs font-semibold mb-1.5 block">Price Type</Label>
-              <Select value={form.price_type} onValueChange={(v) => update("price_type", v)}>
-                <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fixed">Fixed</SelectItem>
-                  <SelectItem value="negotiable">Negotiable</SelectItem>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="hourly">Per Hour</SelectItem>
-                  <SelectItem value="monthly">Per Month</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Input value={form.location_city} onChange={(e) => update("location_city", e.target.value)} placeholder="Хот" className="rounded-xl bg-card border-border/60" />
+            <Input value={form.location_state} onChange={(e) => update("location_state", e.target.value)} placeholder="IL" className="rounded-xl bg-card border-border/60" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs font-semibold mb-1.5 block">City</Label>
-              <Input value={form.location_city} onChange={(e) => update("location_city", e.target.value)} placeholder="Chicago" className="rounded-xl" />
-            </div>
-            <div>
-              <Label className="text-xs font-semibold mb-1.5 block">State</Label>
-              <Input value={form.location_state} onChange={(e) => update("location_state", e.target.value)} placeholder="IL" className="rounded-xl" />
-            </div>
+        </FormField>
+
+        {/* Description */}
+        <FormField>
+          <div className="flex items-center justify-between mb-2">
+            <SectionLabel>Тайлбар</SectionLabel>
+            <span className="text-[10px] text-primary font-medium">AI тусална</span>
           </div>
-        </div>
-
-        {/* Category-Specific Fields */}
-        <AnimatePresence mode="wait">
-          {category === "cars" && (
-            <motion.div key="cars" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4 p-4 rounded-2xl bg-blue-50 border border-blue-100">
-              <h3 className="text-sm font-bold text-blue-800">🚗 Car Details</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <Input placeholder="Make (e.g. Toyota)" value={form.car_make} onChange={(e) => update("car_make", e.target.value)} className="rounded-xl bg-white" />
-                <Input placeholder="Model (e.g. Prius)" value={form.car_model} onChange={(e) => update("car_model", e.target.value)} className="rounded-xl bg-white" />
-                <Input type="number" placeholder="Year" value={form.car_year} onChange={(e) => update("car_year", e.target.value)} className="rounded-xl bg-white" />
-                <Input type="number" placeholder="Mileage" value={form.car_mileage} onChange={(e) => update("car_mileage", e.target.value)} className="rounded-xl bg-white" />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Select value={form.car_transmission} onValueChange={(v) => update("car_transmission", v)}>
-                  <SelectTrigger className="rounded-xl bg-white"><SelectValue placeholder="Transmission" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="automatic">Automatic</SelectItem>
-                    <SelectItem value="manual">Manual</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select value={form.car_fuel} onValueChange={(v) => update("car_fuel", v)}>
-                  <SelectTrigger className="rounded-xl bg-white"><SelectValue placeholder="Fuel Type" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="gasoline">Gasoline</SelectItem>
-                    <SelectItem value="diesel">Diesel</SelectItem>
-                    <SelectItem value="electric">Electric</SelectItem>
-                    <SelectItem value="hybrid">Hybrid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </motion.div>
-          )}
-
-          {category === "jobs" && (
-            <motion.div key="jobs" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4 p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
-              <h3 className="text-sm font-bold text-emerald-800">💼 Job Details</h3>
-              <Input placeholder="Company Name" value={form.job_company} onChange={(e) => update("job_company", e.target.value)} className="rounded-xl bg-white" />
-              <div className="grid grid-cols-2 gap-3">
-                <Input type="number" placeholder="Min Salary" value={form.job_salary_min} onChange={(e) => update("job_salary_min", e.target.value)} className="rounded-xl bg-white" />
-                <Input type="number" placeholder="Max Salary" value={form.job_salary_max} onChange={(e) => update("job_salary_max", e.target.value)} className="rounded-xl bg-white" />
-              </div>
-              <Select value={form.job_type} onValueChange={(v) => update("job_type", v)}>
-                <SelectTrigger className="rounded-xl bg-white"><SelectValue placeholder="Job Type" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full-time">Full-time</SelectItem>
-                  <SelectItem value="part-time">Part-time</SelectItem>
-                  <SelectItem value="contract">Contract</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="temp">Temporary</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input placeholder="Schedule (e.g. Mon-Fri)" value={form.job_schedule} onChange={(e) => update("job_schedule", e.target.value)} className="rounded-xl bg-white" />
-              <Input placeholder="Benefits" value={form.job_benefits} onChange={(e) => update("job_benefits", e.target.value)} className="rounded-xl bg-white" />
-            </motion.div>
-          )}
-
-          {category === "housing" && (
-            <motion.div key="housing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4 p-4 rounded-2xl bg-orange-50 border border-orange-100">
-              <h3 className="text-sm font-bold text-orange-800">🏠 Housing Details</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <Input type="number" placeholder="Bedrooms" value={form.housing_bedrooms} onChange={(e) => update("housing_bedrooms", e.target.value)} className="rounded-xl bg-white" />
-                <Input type="number" placeholder="Bathrooms" value={form.housing_bathrooms} onChange={(e) => update("housing_bathrooms", e.target.value)} className="rounded-xl bg-white" />
-              </div>
-              <Select value={form.housing_type} onValueChange={(v) => update("housing_type", v)}>
-                <SelectTrigger className="rounded-xl bg-white"><SelectValue placeholder="Property Type" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="apartment">Apartment</SelectItem>
-                  <SelectItem value="house">House</SelectItem>
-                  <SelectItem value="room">Room</SelectItem>
-                  <SelectItem value="studio">Studio</SelectItem>
-                  <SelectItem value="condo">Condo</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input placeholder="Lease Term" value={form.housing_lease} onChange={(e) => update("housing_lease", e.target.value)} className="rounded-xl bg-white" />
-              <Input placeholder="Utilities included?" value={form.housing_utilities} onChange={(e) => update("housing_utilities", e.target.value)} className="rounded-xl bg-white" />
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold">Furnished</Label>
-                <Switch checked={form.housing_furnished} onCheckedChange={(v) => update("housing_furnished", v)} />
-              </div>
-            </motion.div>
-          )}
-
-          {category === "events" && (
-            <motion.div key="events" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4 p-4 rounded-2xl bg-pink-50 border border-pink-100">
-              <h3 className="text-sm font-bold text-pink-800">🎉 Event Details</h3>
-              <div>
-                <Label className="text-xs font-semibold mb-1.5 block">Event Date</Label>
-                <Input type="datetime-local" value={form.event_date} onChange={(e) => update("event_date", e.target.value)} className="rounded-xl bg-white" />
-              </div>
-              <Input placeholder="Venue" value={form.event_venue} onChange={(e) => update("event_venue", e.target.value)} className="rounded-xl bg-white" />
-              <Input type="number" placeholder="Ticket Price" value={form.event_ticket_price} onChange={(e) => update("event_ticket_price", e.target.value)} className="rounded-xl bg-white" />
-              <Input placeholder="Organizer" value={form.event_organizer} onChange={(e) => update("event_organizer", e.target.value)} className="rounded-xl bg-white" />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          <Textarea
+            value={form.description}
+            onChange={(e) => update("description", e.target.value)}
+            placeholder="Тайлбар... Эсвэл дээрх 'AI Үүсгэх' товчийг ашиглаарай."
+            className="rounded-xl bg-card border-border/60 min-h-[120px]"
+          />
+        </FormField>
 
         {/* Contact */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold">Contact Info</h3>
-          <Input placeholder="Phone number" value={form.contact_phone} onChange={(e) => update("contact_phone", e.target.value)} className="rounded-xl" />
-          <Input placeholder="Email" value={form.contact_email} onChange={(e) => update("contact_email", e.target.value)} className="rounded-xl" />
-        </div>
+        <FormField>
+          <SectionLabel>Холбоо барих</SectionLabel>
+          <div className="grid grid-cols-2 gap-3">
+            <Input value={form.contact_phone} onChange={(e) => update("contact_phone", e.target.value)} placeholder="+1 555 123 4567" className="rounded-xl bg-card border-border/60" />
+            <Input value={form.contact_email} onChange={(e) => update("contact_email", e.target.value)} placeholder="email@..." className="rounded-xl bg-card border-border/60" />
+          </div>
+        </FormField>
+      </div>
 
+      {/* Submit */}
+      <div className="fixed bottom-0 left-0 right-0 glass border-t border-border/30 px-4 py-3 pb-[env(safe-area-inset-bottom)]">
         <Button
           onClick={handleSubmit}
-          disabled={!form.title || !category || submitting}
-          className="w-full rounded-xl bg-primary text-white py-6 text-base font-bold hover:bg-primary/90"
+          disabled={!form.title || submitting}
+          className="w-full rounded-xl py-6 text-base font-bold"
         >
-          {submitting ? "Posting..." : "Post Listing"}
+          {submitting ? "Нийтлэж байна..." : "Нийтлэх"}
         </Button>
       </div>
     </div>
