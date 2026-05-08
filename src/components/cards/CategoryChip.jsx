@@ -1,24 +1,27 @@
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ICONS } from "../../lib/mockData";
 
-export default function CategoryChip({ category, index = 0 }) {
+export default function CategoryChip({ category, index = 0, onClick, isSelected = false }) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Link
-        to={`/explore?category=${category.id}`}
-        className="flex items-center gap-2 px-6 py-3 rounded-full bg-white dark:bg-slate-800 border border-border/50 hover:bg-secondary/50 transition-smooth active:scale-95"
+      <button
+        onClick={() => onClick?.(category)}
+        className={`flex items-center gap-2 px-6 py-3 rounded-full border transition-smooth active:scale-95 ${
+          isSelected
+            ? "bg-foreground text-background border-foreground"
+            : "bg-white dark:bg-slate-800 border-border/50 hover:bg-secondary/50"
+        }`}
       >
         <span className="text-lg">{ICONS[category.icon] || "•"}</span>
-        <div>
-          <p className="text-sm font-semibold text-foreground">{category.label}</p>
-          <p className="text-[11px] text-muted-foreground">{category.labelMn}</p>
+        <div className="text-left">
+          <p className="text-sm font-semibold">{category.label}</p>
+          <p className={`text-[11px] ${isSelected ? "opacity-75" : "text-muted-foreground"}`}>{category.labelMn}</p>
         </div>
-      </Link>
+      </button>
     </motion.div>
   );
 }
