@@ -3,12 +3,11 @@ import { forwardRef } from 'react';
 /**
  * ChildPageLayout - Standardized wrapper for all child pages
  * 
- * Ensures:
- * - Consistent spacing
- * - Proper header offset (pt-14 for header)
- * - Safe area handling
+ * Provides:
+ * - Consistent pt spacing (14 = 56px header / 14px = 1 unit per Tailwind)
+ * - Safe bottom nav padding (pb-24)
  * - Proper scroll behavior
- * - Bottom nav padding
+ * - Dark/light mode support
  */
 const ChildPageLayout = forwardRef(function ChildPageLayout({ children, className = '' }, ref) {
   return (
@@ -16,6 +15,7 @@ const ChildPageLayout = forwardRef(function ChildPageLayout({ children, classNam
       ref={ref}
       className={`min-h-dvh bg-background pt-14 pb-24 ${className}`}
       data-scrollable="true"
+      style={{ scrollBehavior: 'smooth' }}
     >
       {children}
     </div>
