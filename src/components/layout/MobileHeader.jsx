@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell } from 'lucide-react';
+import { useScrollDirection } from '@/hooks/useScrollDirection';
 
 const ROOT_ROUTES = ['/', '/search', '/groups', '/create', '/profile'];
 
@@ -33,8 +34,18 @@ export default function MobileHeader() {
     return '';
   };
 
+  const isVisible = useScrollDirection();
+
   return (
-    <div className="px-4 pt-4 pb-3 space-y-3 max-w-lg mx-auto">
+    <div
+      data-header
+      className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40 shadow-sm"
+      style={{
+        transform: isVisible ? 'translateY(0)' : 'translateY(-110%)',
+        transition: 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      }}
+    >
+      <div className="px-4 pt-4 pb-3 space-y-3 max-w-lg mx-auto" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
       {isRoot ? (
         // Root screen header with logo
         <div className="flex items-center justify-between">
@@ -59,6 +70,7 @@ export default function MobileHeader() {
           </h2>
         </div>
       )}
+      </div>
     </div>
   );
 }

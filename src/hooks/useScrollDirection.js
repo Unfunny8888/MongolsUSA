@@ -13,8 +13,10 @@ export function useScrollDirection(threshold = 20) {
   useEffect(() => {
     let rafId = null;
 
+    const getScrollY = () => document.documentElement.scrollTop || document.body.scrollTop;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = getScrollY();
       const scrollDiff = currentScrollY - scrollYRef.current;
 
       // Clear existing timeout
@@ -37,11 +39,13 @@ export function useScrollDirection(threshold = 20) {
       }, 50);
     };
 
-    // Passive scroll listener for performance
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Listen on document since html has overflow:hidden and body is the scroller
+    document.addEventListener('scroll', handleScroll, { passive: true });
+    document.body.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('scroll', handleScroll);
+      document.body.removeEventListener('scroll', handleScroll);
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
