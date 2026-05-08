@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, MessageSquare, Eye, Heart, Users, Star, CheckCheck } from "lucide-react";
+import { ArrowLeft, Bell, MessageSquare, Eye, Heart, Users, Star, CheckCheck, Search, Sparkles, MapPin, Bookmark, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 
@@ -11,6 +11,11 @@ const TYPE_CONFIG = {
   group_join: { icon: Users, color: "bg-emerald-100 text-emerald-600" },
   review: { icon: Star, color: "bg-amber-100 text-amber-600" },
   system: { icon: Bell, color: "bg-gray-100 text-gray-600" },
+  saved_search: { icon: Search, color: "bg-violet-100 text-violet-600" },
+  nearby_event: { icon: MapPin, color: "bg-orange-100 text-orange-600" },
+  group_activity: { icon: Users, color: "bg-teal-100 text-teal-600" },
+  ai_recommendation: { icon: Sparkles, color: "bg-pink-100 text-pink-600" },
+  featured_listing: { icon: Zap, color: "bg-amber-100 text-amber-600" },
 };
 
 function timeAgo(dateStr) {
@@ -27,6 +32,7 @@ export default function Notifications() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [filter, setFilter] = useState("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,12 +41,33 @@ export default function Notifications() {
       if (!authed) { setLoading(false); return; }
       const me = await base44.auth.me();
       setUser(me);
-      const notifs = await base44.entities.Notification.filter({ user_email: me.email }, "-created_date", 30);
+      const notifs = await base44.entities.Notification.filter({ user_email: me.email }, "-created_date", 50);
       setNotifications(notifs);
       setLoading(false);
+
+      // Real-time subscription
+      const unsub = base44.entities.Notification.subscribe((event) => {
+        if (event.data?.user_email !== me.email) return;
+        if (event.type === "create") {
+          setNotifications(prev => [event.data, ...prev]);
+          // Browser push notification
+          if (Notification?.permission === "granted") {
+            new Notification(event.data.title, { body: event.data.body, icon: "/favicon.ico" });
+          }
+        } else if (event.type === "update") {
+          setNotifications(prev => prev.map(n => n.id === event.id ? { ...n, ...event.data } : n));
+        }
+      });
+      return unsub;
     }
-    load();
+    const cleanup = load();
+    return () => { cleanup?.then?.(fn => fn?.())?.catch?.(() => {}); };
   }, []);
+
+  async function requestPushPermission() {
+    if (!('Notification' in window)) return;
+    await Notification.requestPermission();
+  }
 
   async function markAllRead() {
     const unread = notifications.filter(n => !n.is_read);
@@ -49,6 +76,14 @@ export default function Notifications() {
   }
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
+  const FILTERS = [
+    { id: "all", label: "All" },
+    { id: "message", label: "Messages" },
+    { id: "saved_search", label: "Matches" },
+    { id: "nearby_event", label: "Events" },
+    { id: "ai_recommendation", label: "AI" },
+  ];
+  const filtered = filter === "all" ? notifications : notifications.filter(n => n.type === filter);
 
   if (!user && !loading) {
     return (
@@ -64,10 +99,24 @@ export default function Notifications() {
     <div className="min-h-dvh">
       <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
-        <h1 className="text-base font-bold flex-1">Notifications {unreadCount > 0 && `(${unreadCount})`}</h1>
+        <h1 className="text-base font-bold flex-1">Notifications {unreadCount > 0 && <span className="text-primary">({unreadCount})</span>}</h1>
         {unreadCount > 0 && (
           <button onClick={markAllRead} className="flex items-center gap-1 text-xs text-primary font-semibold">
-            <CheckCheck className="w-3.5 h-3.5" /> Mark all read
+            <CheckCheck className="w-3.5 h-3.5" /> Read all
+          </button>
+        )}
+      </div>
+      <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
+        {FILTERS.map(f => (
+          <button key={f.id} onClick={() => setFilter(f.id)}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-smooth ${filter === f.id ? "bg-primary text-white" : "bg-secondary text-muted-foreground"}`}>
+            {f.label}
+          </button>
+        ))}
+        {typeof window !== 'undefined' && 'Notification' in window && Notification.permission !== 'granted' && (
+          <button onClick={requestPushPermission}
+            className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+            <Bell className="w-3 h-3" /> Enable Push
           </button>
         )}
       </div>
@@ -82,9 +131,14 @@ export default function Notifications() {
           <p className="text-base font-semibold mb-1">No notifications yet</p>
           <p className="text-sm text-muted-foreground">You'll see activity on your listings and account here.</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-20 px-6">
+          <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">No notifications in this category</p>
+        </div>
       ) : (
         <div className="divide-y divide-border/30">
-          {notifications.map((notif, i) => {
+          {filtered.map((notif, i) => {
             const cfg = TYPE_CONFIG[notif.type] || TYPE_CONFIG.system;
             const Icon = cfg.icon;
             return (
@@ -97,7 +151,7 @@ export default function Notifications() {
                   base44.entities.Notification.update(notif.id, { is_read: true });
                   if (notif.link) navigate(notif.link);
                 }}
-                className={`w-full flex items-start gap-3 px-4 py-4 text-left transition-smooth ${!notif.is_read ? "bg-primary/5" : "hover:bg-secondary/30"}`}
+                className={`w-full flex items-start gap-3 px-4 py-4 text-left transition-smooth ${!notif.is_read ? "bg-primary/5" : "hover:bg-secondary/30"} ${notif.priority === "high" ? "border-l-2 border-primary" : ""}`}
               >
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.color}`}>
                   <Icon className="w-4 h-4" />

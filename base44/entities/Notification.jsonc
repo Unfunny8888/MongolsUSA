@@ -13,7 +13,12 @@
         "listing_save",
         "group_join",
         "review",
-        "system"
+        "system",
+        "saved_search",
+        "nearby_event",
+        "group_activity",
+        "ai_recommendation",
+        "featured_listing"
       ]
     },
     "title": {
@@ -31,6 +36,15 @@
     },
     "icon": {
       "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "normal",
+        "high"
+      ],
+      "default": "normal"
     }
   },
   "required": [
