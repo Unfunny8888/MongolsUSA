@@ -1,12 +1,31 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Users, Shield, MessageSquare, Send } from "lucide-react";
-import AITranslateBlock from "../components/common/AITranslateBlock";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import TranslateButton from "../components/common/TranslateButton";
 import { MOCK_GROUPS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
+
+function PostCard({ text, name, time, avatar }) {
+  const [translated, setTranslated] = useState(null);
+  return (
+    <div className="p-3 rounded-xl bg-secondary/50">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm">{avatar}</div>
+          <div>
+            <p className="text-xs font-semibold">{name}</p>
+            <p className="text-[10px] text-muted-foreground">{time}</p>
+          </div>
+        </div>
+        {text && <TranslateButton text={text} onTranslated={setTranslated} />}
+      </div>
+      <p className="text-xs text-muted-foreground leading-relaxed">{translated || text}</p>
+    </div>
+  );
+}
 
 export default function GroupDetail() {
   const { groupId } = useParams();
@@ -17,22 +36,20 @@ export default function GroupDetail() {
   const [postText, setPostText] = useState("");
   const [user, setUser] = useState(null);
   const [posting, setPosting] = useState(false);
+  const [translatedDesc, setTranslatedDesc] = useState(null);
 
   useEffect(() => {
     async function load() {
       if (!groupId.startsWith("grp-")) {
         const data = await base44.entities.Group.get(groupId);
         setGroup(data);
-        return;
-      }
-      setGroup(MOCK_GROUPS.find((g) => g.id === groupId));
-      // Load posts
-      const me = await base44.auth.me().catch(() => null);
-      setUser(me);
-      if (!groupId.startsWith("grp-")) {
         const groupPosts = await base44.entities.Post.filter({ group_id: groupId }, "-created_date", 20);
         setPosts(groupPosts);
+      } else {
+        setGroup(MOCK_GROUPS.find((g) => g.id === groupId));
       }
+      const me = await base44.auth.me().catch(() => null);
+      setUser(me);
     }
     load();
   }, [groupId]);
@@ -48,11 +65,7 @@ export default function GroupDetail() {
   return (
     <div className="min-h-dvh pb-24">
       <div className="relative">
-        <img
-          src={group.cover_image}
-          alt={group.name}
-          className="w-full h-48 object-cover"
-        />
+        <img src={group.cover_image} alt={group.name} className="w-full h-48 object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <button
           onClick={() => navigate(-1)}
@@ -83,7 +96,10 @@ export default function GroupDetail() {
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">{group.description}</p>
+          <div className="mb-4">
+            <p className="text-sm text-muted-foreground leading-relaxed mb-2">{translatedDesc || group.description}</p>
+            {group.description && <TranslateButton text={group.description} onTranslated={setTranslatedDesc} />}
+          </div>
 
           <div className="flex gap-2 mb-4">
             <Badge variant="secondary">{group.category}</Badge>
@@ -135,29 +151,21 @@ export default function GroupDetail() {
             )}
 
             {posts.length === 0 ? (
-              ["Anyone know a good Mongolian restaurant? Looking for authentic buuz. 🥟", "Sharing my experience getting a driver's license here! Happy to help 🚗", "Community BBQ this weekend! Everyone welcome. Бүгдийг урьж байна! 🎉"].map((txt, i) => (
-                <div key={i} className="p-3 rounded-xl bg-secondary/50">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm">{["👨", "👩", "🧑"][i]}</div>
-                    <div>
-                      <p className="text-xs font-semibold">Community Member</p>
-                      <p className="text-[10px] text-muted-foreground">{i + 1}h ago</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{txt}</p>
-                </div>
+              [
+                { text: "Anyone know a good Mongolian restaurant? Looking for authentic buuz. 🥟", avatar: "👨" },
+                { text: "Sharing my experience getting a driver's license here! Happy to help 🚗", avatar: "👩" },
+                { text: "Community BBQ this weekend! Everyone welcome. Бүгдийг урьж байна! 🎉", avatar: "🧑" },
+              ].map((item, i) => (
+                <PostCard key={i} text={item.text} name="Community Member" time={`${i + 1}h ago`} avatar={item.avatar} />
               ))
-            ) : posts.map((post, i) => (
-              <div key={post.id} className="p-3 rounded-xl bg-secondary/50">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm">👤</div>
-                  <div>
-                    <p className="text-xs font-semibold">{post.author_name || "Member"}</p>
-                    <p className="text-[10px] text-muted-foreground">{new Date(post.created_date).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <AITranslateBlock text={post.content} />
-              </div>
+            ) : posts.map((post) => (
+              <PostCard
+                key={post.id}
+                text={post.content}
+                name={post.author_name || "Member"}
+                time={new Date(post.created_date).toLocaleDateString()}
+                avatar="👤"
+              />
             ))}
           </div>
         </motion.div>

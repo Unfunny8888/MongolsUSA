@@ -6,12 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MOCK_BUSINESSES } from "../lib/mockData";
 import ReviewSection from "../components/common/ReviewSection";
+import TranslateButton from "../components/common/TranslateButton";
 import { base44 } from "@/api/base44Client";
 
 export default function BusinessDetail() {
   const { businessId } = useParams();
   const navigate = useNavigate();
   const [business, setBusiness] = useState(null);
+  const [translatedDesc, setTranslatedDesc] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -80,7 +82,12 @@ export default function BusinessDetail() {
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground leading-relaxed mb-4">{business.description}</p>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-1.5">
+              {business.description && <TranslateButton text={business.description} onTranslated={setTranslatedDesc} />}
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">{translatedDesc || business.description}</p>
+          </div>
 
           <div className="space-y-2.5 mb-5">
             {business.city && (
