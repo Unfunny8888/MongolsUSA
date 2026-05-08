@@ -20,7 +20,14 @@ export default function AppLayout() {
   const location = useLocation();
   const headerRef = useRef(null);
   const mainRef = useRef(null);
-  const { pageInfo, isRoot, handleBack } = useNavigationStack();
+  const { pageInfo, isRoot, handleBack, scrollRef: navigationScrollRef } = useNavigationStack();
+
+  // Connect AppLayout's main ref to navigation stack's scroll tracking
+  useEffect(() => {
+    if (navigationScrollRef.current !== mainRef.current) {
+      navigationScrollRef.current = mainRef.current;
+    }
+  }, [navigationScrollRef]);
 
   useEffect(() => { registerSW(); }, []);
 
