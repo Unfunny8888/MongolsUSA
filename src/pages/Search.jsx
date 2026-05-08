@@ -82,6 +82,7 @@ export default function Search() {
   const [errorType, setErrorType] = useState(null);
   const [searchedQuery, setSearchedQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedLocation, setSelectedLocation] = useState("Current Location");
   const [recentSearches, setRecentSearches] = useState(() => {
     try { return JSON.parse(localStorage.getItem("nomadlink_recent") || "[]"); } catch { return []; }
   });
@@ -253,8 +254,42 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Location & Filter Bar */}
+      <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-border/30 px-4 pt-4 pb-3 shadow-sm" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))' }}>
+        <div className="flex gap-3 items-center">
+          <button className="flex-1 flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border-2 border-primary/30 text-foreground text-sm font-medium">
+            <span className="text-base">📍</span>
+            <span>{selectedLocation}</span>
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium">
+            <span className="text-lg">≡</span>
+            <span>Фильтр</span>
+          </button>
+        </div>
+
+        {/* Category Pills */}
+        <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-2">
+          <button className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-smooth ${
+            selectedCategory === null ? "bg-foreground text-background" : "bg-secondary text-foreground"
+          }`}>
+            Все
+          </button>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-smooth ${
+                selectedCategory === cat.id ? "bg-primary text-white" : "bg-secondary text-foreground"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Search Header */}
-      <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))', paddingBottom: '12px' }}>
+      <div className="glass fixed top-24 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1 shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -291,31 +326,11 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
             }
           </button>
         </div>
-
-        {/* Filter Button */}
-        <div className="flex gap-2 mt-3">
-          <button
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium bg-secondary/70 text-foreground hover:bg-secondary transition-smooth whitespace-nowrap"
-            title="Open filters"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
-          </button>
-          {selectedCategory && (
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium bg-primary text-white hover:bg-primary/90 transition-smooth whitespace-nowrap"
-            >
-              {CATEGORIES.find(c => c.id === selectedCategory)?.icon} {CATEGORIES.find(c => c.id === selectedCategory)?.label}
-              <X className="w-3 h-3" />
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Body */}
       <div
-        className="flex-1 px-4 py-4 overflow-y-auto mt-28"
+        className="flex-1 px-4 py-4 overflow-y-auto mt-48"
         onScroll={() => dismissKeyboard(inputRef)}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
