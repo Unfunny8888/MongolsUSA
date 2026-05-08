@@ -1,13 +1,10 @@
 import { Link } from "react-router-dom";
 import { Star, MapPin, Shield, Crown } from "lucide-react";
 import { motion } from "framer-motion";
-import { memo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
-function BusinessCard({ business, index = 0 }) {
-   const [bannerLoading, setBannerLoading] = useState(true);
-   const [logoLoading, setLogoLoading] = useState(true);
-   return (
+export default function BusinessCard({ business, index = 0 }) {
+  return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -15,16 +12,12 @@ function BusinessCard({ business, index = 0 }) {
     >
       <Link to={`/business/${business.id}`} className="block group">
         <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-lg transition-smooth min-w-[240px]">
-          <div className="relative h-32 overflow-hidden bg-secondary/50">
-            {bannerLoading && (
-              <div className="absolute inset-0 bg-secondary/50 animate-pulse" />
-            )}
+          <div className="relative h-32 overflow-hidden">
             <img
               src={business.banner}
               alt={business.name}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
-              onLoad={() => setBannerLoading(false)}
             />
             {business.is_premium && (
               <div className="absolute top-2 right-2">
@@ -37,17 +30,11 @@ function BusinessCard({ business, index = 0 }) {
           </div>
           <div className="p-3 -mt-5 relative">
             <div className="flex items-end gap-3">
-              <div className="relative w-12 h-12">
-                {logoLoading && (
-                  <div className="absolute inset-0 bg-secondary/50 rounded-xl animate-pulse" />
-                )}
-                <img
-                  src={business.logo}
-                  alt={business.name}
-                  className="w-12 h-12 rounded-xl object-cover border-2 border-card shadow-md"
-                  onLoad={() => setLogoLoading(false)}
-                />
-              </div>
+              <img
+                src={business.logo}
+                alt={business.name}
+                className="w-12 h-12 rounded-xl object-cover border-2 border-card shadow-md"
+              />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-bold text-sm text-foreground truncate">{business.name}</h3>
@@ -77,5 +64,3 @@ function BusinessCard({ business, index = 0 }) {
     </motion.div>
   );
 }
-
-export default memo(BusinessCard, (prev, next) => prev.business.id === next.business.id);

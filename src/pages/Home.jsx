@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -11,8 +11,6 @@ import BusinessCard from "../components/cards/BusinessCard";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/mockData";
 import { buildFeedSections } from "../lib/feedAlgorithm";
 import { base44 } from "@/api/base44Client";
-import { useScrollPreservation } from "../hooks/useScrollPreservation";
-import { useScrollLocking } from "../hooks/useScrollLocking";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -25,8 +23,6 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
-  const { restoreScrollPosition } = useScrollPreservation(containerRef, "home_scroll");
-  const { lockScroll, unlockScroll } = useScrollLocking(containerRef);
 
   useEffect(() => {
     async function loadData() {
@@ -51,7 +47,7 @@ export default function Home() {
   const filteredListings = selectedCategory ? listings.filter(l => l.category === selectedCategory.id) : listings;
   const { forYou, nearby, trending, fresh, featured, jobs, events } = buildFeedSections(filteredListings, currentUser);
 
-  const handlePullToRefresh = useCallback(async (e) => {
+  const handlePullToRefresh = async (e) => {
     const scrollTop = containerRef.current?.scrollTop || 0;
     if (scrollTop !== 0) return;
 
@@ -72,28 +68,23 @@ export default function Home() {
 
     if (e.type === "touchend") {
       if (pullProgress > 0.7) {
-        lockScroll();
         setIsRefreshing(true);
         setPullProgress(0);
-        await new Promise((resolve) => {
-          setTimeout(async () => {
-            setListings(MOCK_LISTINGS);
-            const [dbGroups, dbBiz] = await Promise.allSettled([
-              base44.entities.Group.list("-member_count", 10),
-              base44.entities.Business.list("-rating", 10),
-            ]);
-            setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
-            setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
-            setIsRefreshing(false);
-            unlockScroll();
-            resolve();
-          }, 800);
-        });
+        setTimeout(async () => {
+          setListings(MOCK_LISTINGS);
+          const [dbGroups, dbBiz] = await Promise.allSettled([
+            base44.entities.Group.list("-member_count", 10),
+            base44.entities.Business.list("-rating", 10),
+          ]);
+          setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
+          setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
+          setIsRefreshing(false);
+        }, 800);
       } else {
         setPullProgress(0);
       }
     }
-  }, [pullProgress, isRefreshing, lockScroll, unlockScroll]);
+  };
 
   return (
     <div
@@ -102,13 +93,11 @@ export default function Home() {
       onTouchMove={handlePullToRefresh}
       onTouchEnd={handlePullToRefresh}
       className="min-h-dvh overflow-y-auto relative"
-      style={{ scrollBehavior: 'smooth', WebkitOverflowScrolling: 'touch' }}
     >
       {pullProgress > 0 && (
         <motion.div
           className="fixed top-8 left-1/2 -translate-x-1/2 z-40"
           animate={{ scale: pullProgress }}
-          style={{ willChange: 'transform' }}
         >
           <Loader2 className="w-5 h-5 text-primary animate-spin" />
         </motion.div>
@@ -121,7 +110,7 @@ export default function Home() {
           </div>
         </div>
       )}
-      <div className="min-h-dvh" style={{ contain: 'layout style paint' }}>
+      <div className="min-h-dvh">
         <HomeHeader />
 
         {/* Categories */}

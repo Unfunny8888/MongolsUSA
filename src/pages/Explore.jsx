@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback, Suspense, lazy } from "react";
+import { useState, useEffect, lazy, Suspense, useRef } from "react";
 import { ArrowLeft, SlidersHorizontal, X, Map, LayoutGrid, Loader2, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,7 +10,6 @@ import { useQueryCache } from "../hooks/useQueryCache";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import MapViewErrorBoundary from "../components/explore/MapViewErrorBoundary";
 const MapView = lazy(() => import("../components/explore/MapView"));
 
 export default function Explore() {
@@ -24,8 +23,8 @@ export default function Explore() {
   const [showFilters, setShowFilters] = useState(false);
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [viewMode, setViewMode] = useState("grid");
+  const [dateFilter, setDateFilter] = useState(""); // today | week | month
+  const [viewMode, setViewMode] = useState("grid"); // grid | map
   const [allListings, setAllListings] = useState(MOCK_LISTINGS);
   const [pullProgress, setPullProgress] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -40,10 +39,10 @@ export default function Explore() {
     if (cached) { setAllListings(cached); return; }
     base44.entities.Listing.filter({ status: "active" }, "-created_date", 200).then(data => {
       if (data && data.length > 0) { setAllListings(data); cache.set(cacheKey, data); }
-    }).catch(() => {});
-  }, [cache]);
+    });
+  }, []);
 
-  const filtered = useMemo(() => allListings.filter((l) => {
+  const filtered = allListings.filter((l) => {
     if (category && l.category !== category) return false;
     if (city && l.location_city !== city) return false;
     if (initFeatured && !l.is_featured) return false;
@@ -58,31 +57,12 @@ export default function Explore() {
       if (dateFilter === "month" && diff > 2592000000) return false;
     }
     return true;
-  }), [allListings, category, city, initFeatured, priceMin, priceMax, dateFilter]);
+  });
 
   const { visible, sentinelRef, hasMore } = useInfiniteScroll(filtered, 15);
   const activeFilters = [category, city, priceMin || priceMax, dateFilter].filter(Boolean).length;
 
-  // Top-level callbacks
-  const handleCategoryAll = useCallback(() => setCategory(""), []);
-  const handleCategorySelect = useCallback((catId) => setCategory(c => c === catId ? "" : catId), []);
-  const handleClearFilters = useCallback(() => { 
-    setCategory(""); 
-    setCity(""); 
-    setPriceMin(""); 
-    setPriceMax(""); 
-    setDateFilter(""); 
-  }, []);
-  const handleCityAll = useCallback(() => {
-    setCity("");
-    setShowCityDrawer(false);
-  }, []);
-  const handleCitySelect = useCallback((cityName) => {
-    setCity(cityName);
-    setShowCityDrawer(false);
-  }, []);
-
-  const handlePullToRefresh = useCallback(async (e) => {
+  const handlePullToRefresh = async (e) => {
     const scrollTop = containerRef.current?.scrollTop || 0;
     if (scrollTop !== 0) return;
 
@@ -117,14 +97,14 @@ export default function Explore() {
         setPullProgress(0);
       }
     }
-  }, [pullProgress, isRefreshing, cache]);
+  };
 
   return (
     <div
       ref={containerRef}
-      onTouchStart={(e) => handlePullToRefresh(e)}
-      onTouchMove={(e) => handlePullToRefresh(e)}
-      onTouchEnd={(e) => handlePullToRefresh(e)}
+      onTouchStart={handlePullToRefresh}
+      onTouchMove={handlePullToRefresh}
+      onTouchEnd={handlePullToRefresh}
       className="min-h-screen overflow-y-auto relative"
     >
       {pullProgress > 0 && (
@@ -176,7 +156,7 @@ export default function Explore() {
         <div className="px-4 pb-3">
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             <button
-              onClick={handleCategoryAll}
+              onClick={() => setCategory("")}
               className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-smooth ${
                 !category ? "bg-primary text-white" : "bg-secondary text-foreground"
               }`}
@@ -186,7 +166,7 @@ export default function Explore() {
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => handleCategorySelect(cat.id)}
+                onClick={() => setCategory(category === cat.id ? "" : cat.id)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-smooth ${
                   category === cat.id ? "bg-primary text-white" : "bg-secondary text-foreground"
                 }`}
@@ -257,7 +237,7 @@ export default function Explore() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleClearFilters}
+                    onClick={() => { setCategory(""); setCity(""); setPriceMin(""); setPriceMax(""); setDateFilter(""); }}
                     className="mt-3 text-xs text-destructive"
                   >
                     <X className="w-3 h-3 mr-1" /> Clear filters
@@ -273,11 +253,9 @@ export default function Explore() {
       <div className="px-4 py-4">
         <p className="text-xs text-muted-foreground mb-4">{filtered.length} listings</p>
         {viewMode === "map" ? (
-          <MapViewErrorBoundary>
-            <Suspense fallback={<div className="h-[60vh] bg-secondary/50 rounded-2xl flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>}>
-              <MapView listings={filtered} />
-            </Suspense>
-          </MapViewErrorBoundary>
+          <Suspense fallback={<div className="h-[60vh] bg-secondary/50 rounded-2xl flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>}>
+            <MapView listings={filtered} />
+          </Suspense>
         ) : (
           <div className="space-y-3">
             {visible.map((l, i) => (
@@ -320,7 +298,10 @@ export default function Explore() {
             </div>
             <div className="space-y-1">
               <button
-                onClick={handleCityAll}
+                onClick={() => {
+                  setCity("");
+                  setShowCityDrawer(false);
+                }}
                 className={`w-full text-left px-4 py-3 rounded-xl transition-smooth ${
                   !city
                     ? "bg-primary text-white font-semibold"
@@ -332,7 +313,10 @@ export default function Explore() {
               {CITIES.map(c => (
                 <button
                   key={c.name}
-                  onClick={() => handleCitySelect(c.name)}
+                  onClick={() => {
+                    setCity(c.name);
+                    setShowCityDrawer(false);
+                  }}
                   className={`w-full text-left px-4 py-3 rounded-xl transition-smooth ${
                     city === c.name
                       ? "bg-primary text-white font-semibold"

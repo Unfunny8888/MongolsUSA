@@ -1,85 +1,51 @@
-import { useState, useRef, useEffect, memo } from 'react';
+import { useState, useRef, useEffect } from "react";
+import { optimizeImageUrl, srcSet } from "../../lib/imageUtils";
 
 /**
- * Optimized lazy image with blur-up effect
- * - Defers loading until near viewport
- * - Shows placeholder while loading
- * - No layout shift
+ * Lazy-loaded, CDN-optimized image with blur-up effect.
+ * Uses IntersectionObserver to defer loading off-screen images.
  */
-function LazyImage({ 
-  src, 
-  alt, 
-  className = '',
-  aspectRatio = '16/10',
-  blurDataURL = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 10"%3E%3Crect fill="%23f0f0f0" width="16" height="10"/%3E%3C/svg%3E'
-}) {
+export default function LazyImage({ src, alt = "", className = "", width = 800, quality = 80, fallback = null }) {
   const [loaded, setLoaded] = useState(false);
+  const [inView, setInView] = useState(false);
   const [error, setError] = useState(false);
-  const imgRef = useRef(null);
-  const containerRef = useRef(null);
+  const ref = useRef(null);
 
   useEffect(() => {
-    if (!containerRef.current || !src) return;
-
+    const el = ref.current;
+    if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && imgRef.current) {
-          // Start loading
-          imgRef.current.src = src;
-          imgRef.current.onload = () => setLoaded(true);
-          imgRef.current.onerror = () => setError(true);
-          observer.unobserve(containerRef.current);
-        }
-      },
-      { rootMargin: '50px' }
+      ([entry]) => { if (entry.isIntersecting) { setInView(true); observer.disconnect(); } },
+      { rootMargin: "300px" }
     );
-
-    observer.observe(containerRef.current);
-
+    observer.observe(el);
     return () => observer.disconnect();
-  }, [src]);
+  }, []);
+
+  const optimized = optimizeImageUrl(src, { width, quality });
+  const ss = srcSet(src);
+
+  if (error && fallback) return <>{fallback}</>;
 
   return (
-    <div
-      ref={containerRef}
-      className={`${className} relative overflow-hidden bg-secondary/50`}
-      style={{
-        aspectRatio,
-        contain: 'layout style paint',
-      }}
-    >
+    <div ref={ref} className={`relative overflow-hidden ${className}`}>
       {/* Blur placeholder */}
-      <img
-        src={blurDataURL}
-        alt={alt}
-        className="absolute inset-0 w-full h-full object-cover blur-sm"
-        aria-hidden="true"
-        style={{ contentVisibility: 'auto' }}
-      />
-
-      {/* Main image */}
-      <img
-        ref={imgRef}
-        alt={alt}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
-          loaded ? 'opacity-100' : 'opacity-0'
-        } ${error ? 'hidden' : ''}`}
-        loading="lazy"
-        decoding="async"
-        style={{
-          contentVisibility: 'auto',
-          willChange: loaded ? 'auto' : 'opacity',
-        }}
-      />
-
-      {/* Fallback for failed image */}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-secondary/70">
-          <span className="text-2xl">📷</span>
-        </div>
+      {!loaded && (
+        <div className="absolute inset-0 bg-secondary animate-pulse" />
+      )}
+      {inView && src && (
+        <img
+          src={optimized}
+          srcSet={ss}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 800px"
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${loaded ? "opacity-100" : "opacity-0"}`}
+        />
       )}
     </div>
   );
 }
-
-export default memo(LazyImage);

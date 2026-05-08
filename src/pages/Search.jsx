@@ -7,7 +7,6 @@ import ListingCard from "../components/cards/ListingCard";
 import { MOCK_LISTINGS, TRENDING_SEARCHES } from "../lib/mockData";
 import { useQueryCache } from "../hooks/useQueryCache";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
-import { useScrollPreservation } from "../hooks/useScrollPreservation";
 import { base44 } from "@/api/base44Client";
 
 // ── Skeleton shimmer card ──────────────────────────────────────────────
@@ -93,13 +92,11 @@ export default function Search() {
 
   const inputRef = useRef(null);
   const navigate = useNavigate();
-  const bodyRef = useRef(null);
   const cache = useQueryCache(120000);
   const allListingsRef = useRef(MOCK_LISTINGS);
   const abortRef = useRef(null);
   const isSearchingRef = useRef(false);
   const debounceRef = useRef(null);
-  const { restoreScrollPosition } = useScrollPreservation(bodyRef, "search_scroll");
 
   // Pre-load listings once
   useEffect(() => {
@@ -284,7 +281,6 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
               inputMode="search"
               enterKeyHint="search"
               className="w-full bg-secondary/70 rounded-xl pl-10 pr-10 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-smooth"
-              disabled={false}
             />
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
             {query ? (
@@ -308,7 +304,6 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
       {/* Body */}
       <div
-        ref={bodyRef}
         className="flex-1 px-4 py-4 overflow-y-auto mt-28"
         onScroll={() => dismissKeyboard(inputRef)}
         style={{ WebkitOverflowScrolling: 'touch' }}
