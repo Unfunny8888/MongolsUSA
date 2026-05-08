@@ -27,26 +27,12 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       const authed = await base44.auth.isAuthenticated();
-      let me = null;
       if (authed) {
-        me = await base44.auth.me();
+        const me = await base44.auth.me();
         setCurrentUser(me);
         if (!me.onboarded) navigate("/onboarding");
-        // Load personalized feed for authenticated user
-        try {
-          const feedResult = await base44.functions.invoke('generatePersonalizedFeed', { user_email: me.email });
-          if (feedResult.data?.listings?.length > 0) {
-            setListings(feedResult.data.listings);
-          } else {
-            setListings(MOCK_LISTINGS);
-          }
-        } catch (err) {
-          console.error('Feed generation failed:', err);
-          setListings(MOCK_LISTINGS);
-        }
-      } else {
-        setListings(MOCK_LISTINGS);
       }
+      setListings(MOCK_LISTINGS);
 
       const [dbGroups, dbBiz] = await Promise.allSettled([
         base44.entities.Group.list("-member_count", 10),
@@ -85,13 +71,7 @@ export default function Home() {
         setIsRefreshing(true);
         setPullProgress(0);
         setTimeout(async () => {
-          const authed = await base44.auth.isAuthenticated();
-          if (authed && currentUser) {
-            const feedResult = await base44.functions.invoke('generatePersonalizedFeed', { user_email: currentUser.email });
-            if (feedResult.data?.listings?.length > 0) {
-              setListings(feedResult.data.listings);
-            }
-          }
+          setListings(MOCK_LISTINGS);
           const [dbGroups, dbBiz] = await Promise.allSettled([
             base44.entities.Group.list("-member_count", 10),
             base44.entities.Business.list("-rating", 10),
