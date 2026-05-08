@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Heart, Eye, MapPin, Clock, Star, Zap, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 
 // Approximate coords for common US cities
 const CITY_COORDS = {
@@ -110,7 +110,7 @@ function MetaRow({ listing, dist }) {
   );
 }
 
-export default function ListingCard({ listing, index = 0 }) {
+function ListingCard({ listing, index = 0 }) {
   const hasImage = listing.images?.length > 0;
   const price = formatPrice(listing);
   const dist = useDistance(listing.location_city);
@@ -207,3 +207,5 @@ export default function ListingCard({ listing, index = 0 }) {
     </motion.div>
   );
 }
+
+export default memo(ListingCard, (prev, next) => prev.listing.id === next.listing.id);

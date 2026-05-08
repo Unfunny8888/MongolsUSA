@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
 import { Star, MapPin, Shield, Crown } from "lucide-react";
 import { motion } from "framer-motion";
+import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 
-export default function BusinessCard({ business, index = 0 }) {
+function BusinessCard({ business, index = 0 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -64,3 +65,5 @@ export default function BusinessCard({ business, index = 0 }) {
     </motion.div>
   );
 }
+
+export default memo(BusinessCard, (prev, next) => prev.business.id === next.business.id);
