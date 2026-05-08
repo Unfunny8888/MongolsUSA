@@ -11,6 +11,7 @@ import BusinessCard from "../components/cards/BusinessCard";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/mockData";
 import { buildFeedSections } from "../lib/feedAlgorithm";
 import { base44 } from "@/api/base44Client";
+import { useScrollPreservation } from "../hooks/useScrollPreservation";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const touchStartY = useRef(0);
   const containerRef = useRef(null);
+  const { restoreScrollPosition } = useScrollPreservation(containerRef, "home_scroll");
 
   useEffect(() => {
     async function loadData() {
@@ -80,6 +82,8 @@ export default function Home() {
             setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
             setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
             setIsRefreshing(false);
+            // Preserve scroll position after refresh
+            restoreScrollPosition();
             resolve();
           }, 800);
         });
