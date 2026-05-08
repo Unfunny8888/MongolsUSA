@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { MapPin, ChevronDown } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 
 const CITIES = [
   "All Cities",
@@ -26,15 +25,9 @@ const CITIES = [
 export default function CitySelector({ city, onCityChange }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleSelectCity = async (selectedCity) => {
+  const handleSelectCity = (selectedCity) => {
     onCityChange(selectedCity);
     setIsOpen(false);
-
-    // Save to user profile if authenticated
-    const authed = await base44.auth.isAuthenticated();
-    if (authed && selectedCity !== "All Cities") {
-      await base44.auth.updateMe({ preferred_city: selectedCity }).catch(() => {});
-    }
   };
 
   return (
@@ -54,10 +47,10 @@ export default function CitySelector({ city, onCityChange }) {
             <button
               key={c}
               onClick={() => handleSelectCity(c)}
-              className={`w-full text-left px-4 py-2.5 text-sm transition-smooth ${
-                city === c
-                  ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
-                  : "text-foreground hover:bg-secondary/50"
+              className={`w-full text-left px-4 py-3 text-sm transition-smooth ${
+              city === c || (city === null && c === "All Cities")
+              ? "bg-emerald-50 dark:bg-emerald-950/30 text-primary font-semibold border-l-4 border-primary"
+              : "text-foreground hover:bg-secondary/50"
               }`}
             >
               {c}
