@@ -13,6 +13,8 @@ const MobileHeader = forwardRef(function MobileHeader(_, ref) {
   const navigate = useNavigate();
   const isRoot = ROOT_ROUTES.includes(location.pathname);
 
+  if (location.pathname === '/search') return null;
+
   const getTitleFromPath = (pathname) => {
     const titles = {
       '/groups': 'Groups',
