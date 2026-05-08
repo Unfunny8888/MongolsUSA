@@ -5,7 +5,17 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-// Add page imports here
+import AppLayout from './components/layout/AppLayout';
+import Home from './pages/Home';
+import Search from './pages/Search';
+import Explore from './pages/Explore';
+import ListingDetail from './pages/ListingDetail';
+import Groups from './pages/Groups';
+import GroupDetail from './pages/GroupDetail';
+import Businesses from './pages/Businesses';
+import BusinessDetail from './pages/BusinessDetail';
+import CreateListing from './pages/CreateListing';
+import Profile from './pages/Profile';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -33,8 +43,19 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
-      <Route path="*" element={<PageNotFound />} />
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/listing/:listingId" element={<ListingDetail />} />
+        <Route path="/groups" element={<Groups />} />
+        <Route path="/group/:groupId" element={<GroupDetail />} />
+        <Route path="/businesses" element={<Businesses />} />
+        <Route path="/business/:businessId" element={<BusinessDetail />} />
+        <Route path="/create" element={<CreateListing />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Route>
     </Routes>
   );
 };

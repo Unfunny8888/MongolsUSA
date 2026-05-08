@@ -1,0 +1,76 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user",
+        "moderator",
+        "business_owner"
+      ]
+    },
+    "avatar": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "telegram": {
+      "type": "string"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "reputation_score": {
+      "type": "number",
+      "default": 0
+    },
+    "reputation_rank": {
+      "type": "string",
+      "enum": [
+        "bronze",
+        "silver",
+        "gold",
+        "elite"
+      ],
+      "default": "bronze"
+    },
+    "membership_tier": {
+      "type": "string",
+      "enum": [
+        "free",
+        "vip",
+        "super_vip",
+        "business_pro",
+        "ai_pro",
+        "recruiter_pro"
+      ],
+      "default": "free"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "listing_count": {
+      "type": "number",
+      "default": 0
+    },
+    "joined_groups": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

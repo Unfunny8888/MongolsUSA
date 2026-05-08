@@ -1,0 +1,89 @@
+{
+  "name": "Business",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "restaurant",
+        "trucking",
+        "legal",
+        "tax",
+        "salon",
+        "real_estate",
+        "auto",
+        "education",
+        "healthcare",
+        "retail",
+        "other"
+      ]
+    },
+    "logo": {
+      "type": "string"
+    },
+    "banner": {
+      "type": "string"
+    },
+    "gallery": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "hours": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number"
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_premium": {
+      "type": "boolean",
+      "default": false
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "name",
+    "category"
+  ]
+}

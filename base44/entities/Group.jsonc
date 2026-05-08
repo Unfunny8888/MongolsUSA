@@ -1,0 +1,60 @@
+{
+  "name": "Group",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "cover_image": {
+      "type": "string"
+    },
+    "avatar": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "community",
+        "professional",
+        "social",
+        "education",
+        "business",
+        "sports"
+      ]
+    },
+    "city": {
+      "type": "string"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 0
+    },
+    "is_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "privacy": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "default": "public"
+    },
+    "rules": {
+      "type": "string"
+    },
+    "admins": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

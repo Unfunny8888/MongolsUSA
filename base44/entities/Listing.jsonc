@@ -1,0 +1,218 @@
+{
+  "name": "Listing",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Listing title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "cars",
+        "jobs",
+        "housing",
+        "services",
+        "events",
+        "electronics",
+        "community"
+      ],
+      "description": "Listing category"
+    },
+    "price": {
+      "type": "number",
+      "description": "Price in USD"
+    },
+    "price_type": {
+      "type": "string",
+      "enum": [
+        "fixed",
+        "negotiable",
+        "free",
+        "hourly",
+        "monthly",
+        "yearly",
+        "contact"
+      ],
+      "description": "Price type"
+    },
+    "location_city": {
+      "type": "string",
+      "description": "City name"
+    },
+    "location_state": {
+      "type": "string",
+      "description": "State code"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Image URLs"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_telegram": {
+      "type": "string"
+    },
+    "contact_whatsapp": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "sold",
+        "expired",
+        "pending",
+        "flagged"
+      ],
+      "default": "active"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_boosted": {
+      "type": "boolean",
+      "default": false
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "saves": {
+      "type": "number",
+      "default": 0
+    },
+    "poster_name": {
+      "type": "string"
+    },
+    "poster_avatar": {
+      "type": "string"
+    },
+    "car_make": {
+      "type": "string"
+    },
+    "car_model": {
+      "type": "string"
+    },
+    "car_year": {
+      "type": "number"
+    },
+    "car_mileage": {
+      "type": "number"
+    },
+    "car_transmission": {
+      "type": "string",
+      "enum": [
+        "automatic",
+        "manual"
+      ]
+    },
+    "car_fuel": {
+      "type": "string",
+      "enum": [
+        "gasoline",
+        "diesel",
+        "electric",
+        "hybrid"
+      ]
+    },
+    "car_condition": {
+      "type": "string",
+      "enum": [
+        "new",
+        "excellent",
+        "good",
+        "fair",
+        "poor"
+      ]
+    },
+    "car_vin": {
+      "type": "string"
+    },
+    "job_company": {
+      "type": "string"
+    },
+    "job_salary_min": {
+      "type": "number"
+    },
+    "job_salary_max": {
+      "type": "number"
+    },
+    "job_type": {
+      "type": "string",
+      "enum": [
+        "full-time",
+        "part-time",
+        "contract",
+        "cash",
+        "temp"
+      ]
+    },
+    "job_schedule": {
+      "type": "string"
+    },
+    "job_benefits": {
+      "type": "string"
+    },
+    "housing_bedrooms": {
+      "type": "number"
+    },
+    "housing_bathrooms": {
+      "type": "number"
+    },
+    "housing_furnished": {
+      "type": "boolean"
+    },
+    "housing_utilities": {
+      "type": "string"
+    },
+    "housing_lease": {
+      "type": "string"
+    },
+    "housing_type": {
+      "type": "string",
+      "enum": [
+        "apartment",
+        "house",
+        "room",
+        "studio",
+        "condo"
+      ]
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "event_venue": {
+      "type": "string"
+    },
+    "event_ticket_price": {
+      "type": "number"
+    },
+    "event_organizer": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title",
+    "category"
+  ]
+}
