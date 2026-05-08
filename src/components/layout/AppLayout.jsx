@@ -4,7 +4,7 @@ import AIAssistantBubble from "../common/AIAssistantBubble";
 
 export default function AppLayout() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-dvh bg-background">
       <main className="pb-24 max-w-lg mx-auto">
         <Outlet />
       </main>

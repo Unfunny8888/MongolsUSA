@@ -21,7 +21,7 @@ const CATS = [
 
 function CategoryPicker({ onSelect }) {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
       <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3">
         <h1 className="text-base font-bold">Шинэ зар</h1>
       </div>
@@ -138,7 +138,7 @@ export default function CreateListing() {
   );
 
   if (!isLoggedIn) return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
       <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mb-6">
         <Plus className="w-10 h-10 text-primary" />
       </div>
@@ -155,7 +155,7 @@ export default function CreateListing() {
   const Icon = cat?.icon || Plus;
 
   return (
-    <div className="min-h-screen pb-32">
+    <div className="min-h-dvh pb-32">
       {/* Header */}
       <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
         <button onClick={() => setCategory("")} className="p-1">

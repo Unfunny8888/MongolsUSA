@@ -105,7 +105,7 @@ export default function Conversation() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col" style={{ height: '100dvh' }}>
       <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
         <div className="flex-1">
@@ -114,7 +114,7 @@ export default function Conversation() {
         </div>
       </div>
 
-      <div className="flex-1 px-4 py-4 space-y-3 pb-24 overflow-y-auto">
+      <div className="flex-1 px-4 py-4 space-y-3 pb-4 overflow-y-auto overscroll-contain">
         {messages.map((msg, i) => {
           const isMe = msg.from_user === user?.email;
           return (
@@ -168,7 +168,7 @@ export default function Conversation() {
       </div>
 
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && sendImage(e.target.files[0])} />
-      <div className="fixed bottom-0 left-0 right-0 glass border-t border-border/30 px-4 py-3 flex gap-2 items-center pb-[env(safe-area-inset-bottom)]">
+      <div className="glass border-t border-border/30 px-4 py-3 flex gap-2 items-center pb-[env(safe-area-inset-bottom)] shrink-0">
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadingImage}

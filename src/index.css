@@ -88,10 +88,21 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    height: 100%;
+    /* Prevent Safari from resizing viewport on keyboard open */
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
   body {
     @apply bg-background text-foreground font-inter;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: none;
+    /* Use dvh so layout doesn't recalculate when keyboard opens */
+    min-height: 100dvh;
   }
 }
 

@@ -163,7 +163,7 @@ export default function ListingDetail() {
 
   if (!listing) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-dvh">
         <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
       </div>
     );
@@ -180,7 +180,7 @@ export default function ListingDetail() {
   };
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-dvh pb-24">
       <div className="relative">
         <img
           src={listing.images?.[0] || "https://images.unsplash.com/photo-1557683316-973673baf926?w=800"}
