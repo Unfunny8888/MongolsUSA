@@ -80,9 +80,9 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="bg-gradient-to-br from-primary via-emerald-700 to-teal-800 px-4 pt-5 pb-8 relative overflow-hidden" style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-8 translate-x-8" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-6 -translate-x-6" />
+      <div className="bg-gradient-to-br from-primary/90 to-emerald-600/80 px-4 pt-5 pb-6 relative overflow-hidden" style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
+        <div className="absolute top-0 right-0 w-20 h-20 bg-white/3 rounded-full -translate-y-6 translate-x-6 blur-xl" />
+        <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/3 rounded-full translate-y-4 -translate-x-4 blur-xl" />
         <div className="relative z-10">
           <div className="flex items-center gap-3">
             <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-2xl shadow-lg overflow-hidden flex-shrink-0">
@@ -112,7 +112,7 @@ export default function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-2xl p-4 shadow-xl border border-border/50 grid grid-cols-3 gap-4"
+          className="glass rounded-2xl p-4 border border-white/20 grid grid-cols-3 gap-4 shadow-sm"
         >
           {[
             { label: "Listings", value: user.listing_count || 0 },
@@ -142,12 +142,12 @@ export default function Profile() {
             onClick={() => item.link && navigate(item.link)}
             className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-smooth ${
               item.highlight
-                ? "bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 hover:from-amber-100 hover:to-orange-100"
-                : "hover:bg-secondary/50"
+                ? "bg-gradient-to-r from-amber-100/40 to-orange-100/40 border border-amber-200/60 hover:from-amber-100/60 hover:to-orange-100/60"
+                : "bg-secondary/30 border border-border/30 hover:bg-secondary/50"
             }`}
           >
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-              item.highlight ? "bg-gradient-to-br from-amber-500 to-orange-500" : "bg-secondary"
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
+              item.highlight ? "bg-gradient-to-br from-amber-400 to-orange-500 shadow-sm" : "bg-secondary/60"
             }`}>
               <item.icon className={`w-4 h-4 ${item.highlight ? "text-white" : "text-foreground"}`} />
             </div>
@@ -162,11 +162,11 @@ export default function Profile() {
         ))}
       </div>
 
-      <div className="px-4 mt-8">
+      <div className="px-4 mt-8 mb-4">
         <Button
           variant="ghost"
           onClick={() => base44.auth.logout()}
-          className="w-full rounded-xl text-destructive hover:bg-destructive/10 gap-2"
+          className="w-full rounded-xl text-destructive hover:bg-destructive/10 gap-2 text-sm"
         >
           <LogOut className="w-4 h-4" /> Sign Out
         </Button>
