@@ -49,13 +49,7 @@ export default function MyListings() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
-        <h1 className="text-base font-bold flex-1">My Listings</h1>
-        <button onClick={() => navigate("/create")} className="flex items-center gap-1.5 bg-primary text-white text-xs font-bold px-3 py-2 rounded-xl">
-          <Plus className="w-3.5 h-3.5" /> Post
-        </button>
-      </div>
+
 
       {/* Analytics Summary */}
       {!loading && listings.length > 0 && (

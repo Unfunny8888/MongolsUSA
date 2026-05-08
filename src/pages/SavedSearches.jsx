@@ -99,10 +99,7 @@ export default function SavedSearches() {
 
   return (
     <div className="min-h-dvh">
-      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
-        <h1 className="text-base font-bold flex-1">Saved Searches</h1>
-      </div>
+
 
       <div className="px-4 py-4">
         {/* Hero */}

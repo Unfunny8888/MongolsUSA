@@ -97,15 +97,7 @@ export default function Notifications() {
 
   return (
     <div className="min-h-dvh">
-      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
-        <h1 className="text-base font-bold flex-1">Notifications {unreadCount > 0 && <span className="text-primary">({unreadCount})</span>}</h1>
-        {unreadCount > 0 && (
-          <button onClick={markAllRead} className="flex items-center gap-1 text-xs text-primary font-semibold">
-            <CheckCheck className="w-3.5 h-3.5" /> Read all
-          </button>
-        )}
-      </div>
+
       <div className="flex gap-2 px-4 pb-3 overflow-x-auto no-scrollbar">
         {FILTERS.map(f => (
           <button key={f.id} onClick={() => setFilter(f.id)}

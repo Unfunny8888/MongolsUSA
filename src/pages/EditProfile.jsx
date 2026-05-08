@@ -60,18 +60,7 @@ export default function EditProfile() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
-        <h1 className="text-base font-bold flex-1">Edit Profile</h1>
-        <button
-          onClick={save}
-          disabled={saving}
-          className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl transition-smooth ${saved ? "bg-emerald-100 text-emerald-700" : "bg-primary text-white"}`}
-        >
-          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : saved ? <Check className="w-3.5 h-3.5" /> : null}
-          {saved ? "Saved!" : "Save"}
-        </button>
-      </div>
+
 
       <div className="px-4 py-6 space-y-6">
         {/* Avatar */}

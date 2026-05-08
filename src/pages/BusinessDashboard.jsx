@@ -109,21 +109,8 @@ export default function BusinessDashboard() {
     <div className="min-h-dvh pb-24">
       {/* Header */}
       <div className="glass sticky top-0 z-40 border-b border-border/30">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex-1">
-            <h1 className="text-base font-bold">Business Dashboard</h1>
-            <p className="text-[10px] text-muted-foreground">{business.name}</p>
-          </div>
-          {business.logo && (
-            <img src={business.logo} alt={business.name} className="w-9 h-9 rounded-xl object-cover border border-border/50" />
-          )}
-        </div>
-
         {/* Tabs */}
-        <div className="flex gap-1 px-4 pb-2 overflow-x-auto no-scrollbar">
+        <div className="flex gap-1 px-4 py-2 overflow-x-auto no-scrollbar">
           {TABS.map(t => (
             <button
               key={t}
