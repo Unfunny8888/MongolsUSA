@@ -122,7 +122,12 @@
 nav,
 .glass,
 [class*="sticky"],
-[class*="fixed"] {
+[class*="fixed"],
+.fixed,
+.sticky,
+.floating-button,
+.bottom-nav,
+.header {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
