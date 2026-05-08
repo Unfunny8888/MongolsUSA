@@ -94,7 +94,11 @@ export default function GroupDetail() {
           className="bg-card rounded-3xl p-5 shadow-xl border border-border/50"
         >
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-4xl">{group.avatar}</span>
+            <img
+              src={group.avatar}
+              alt={group.name}
+              className="w-16 h-16 rounded-2xl object-cover border-2 border-border"
+            />
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <h1 className="text-lg font-bold">{group.name}</h1>
