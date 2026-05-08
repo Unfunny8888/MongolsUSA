@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ReputationBadge from "../components/common/ReputationBadge";
 import TrustCard from "../components/common/TrustCard";
+import ReputationBreakdown from "../components/common/ReputationBreakdown";
 import { base44 } from "@/api/base44Client";
 
 export default function Profile() {
@@ -13,6 +14,7 @@ export default function Profile() {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [repBreakdown, setRepBreakdown] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -21,6 +23,11 @@ export default function Profile() {
       if (authed) {
         const me = await base44.auth.me();
         setUser(me);
+        // Refresh reputation score in background
+        base44.functions.invoke('calculateReputation', {}).then(res => {
+          if (res?.data?.breakdown) setRepBreakdown(res.data.breakdown);
+          if (res?.data?.trust_score !== undefined) setUser(u => ({ ...u, trust_score: res.data.trust_score, reputation_rank: res.data.rank, reputation_score: res.data.trust_score }));
+        }).catch(() => {});
       }
       setLoading(false);
     }
@@ -119,7 +126,8 @@ export default function Profile() {
         </motion.div>
       </div>
 
-      <div className="px-4 mb-4">
+      <div className="px-4 mb-4 space-y-3">
+        <ReputationBreakdown user={user} breakdown={repBreakdown} />
         <TrustCard user={user} />
       </div>
 
