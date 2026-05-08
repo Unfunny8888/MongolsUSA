@@ -80,7 +80,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-dvh pb-24">
-      <div className="bg-gradient-to-br from-primary/90 to-emerald-600/80 px-4 pt-5 pb-6 relative overflow-hidden" style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
+      <div className="bg-gradient-to-br from-primary/90 to-emerald-600/80 px-4 pt-4 pb-5 relative overflow-hidden" style={{ paddingTop: 'max(16px, env(safe-area-inset-top))' }}>
         <div className="absolute top-0 right-0 w-20 h-20 bg-white/3 rounded-full -translate-y-6 translate-x-6 blur-xl" />
         <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/3 rounded-full translate-y-4 -translate-x-4 blur-xl" />
         <div className="relative z-10">
@@ -98,7 +98,7 @@ export default function Profile() {
               <p className="text-xs text-emerald-100 truncate">{user.email}</p>
             </div>
           </div>
-          <div className="mt-3">
+          <div className="mt-2">
             <ReputationBadge
               rank={user.reputation_rank || "bronze"}
               tier={user.membership_tier || "free"}
@@ -108,11 +108,11 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="px-4 mt-2 mb-6">
+      <div className="px-4 mt-3 mb-5">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass rounded-2xl p-5 border border-white/20 shadow-sm"
+          className="glass rounded-2xl p-4 border border-white/15 shadow-md backdrop-blur-xl"
         >
           <div className="grid grid-cols-3 gap-0 divide-x divide-white/10">
             {[
@@ -120,21 +120,21 @@ export default function Profile() {
               { label: "Reputation", value: user.reputation_score || 0 },
               { label: "Groups", value: user.joined_groups?.length || 0 },
             ].map((stat) => (
-              <div key={stat.label} className="flex flex-col items-center justify-center py-4 px-2">
+              <div key={stat.label} className="flex flex-col items-center justify-center py-3.5 px-2">
                 <p className="text-2xl font-extrabold text-primary leading-none">{stat.value}</p>
-                <p className="text-xs text-muted-foreground font-medium mt-1.5">{stat.label}</p>
+                <p className="text-xs text-muted-foreground font-medium mt-1">{stat.label}</p>
               </div>
             ))}
           </div>
         </motion.div>
       </div>
 
-      <div className="px-4 mt-4 mb-6 space-y-3">
+      <div className="px-4 mt-3 mb-5 space-y-2.5">
         <ReputationBreakdown user={user} breakdown={repBreakdown} />
         <TrustCard user={user} />
       </div>
 
-      <div className="px-4 mt-6 space-y-1">
+      <div className="px-4 mt-5 space-y-1">
         {menuItems.map((item, i) => (
           <motion.button
             key={item.label}
@@ -142,10 +142,10 @@ export default function Profile() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.05 }}
             onClick={() => item.link && navigate(item.link)}
-            className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-smooth ${
+            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-smooth ${
               item.highlight
-                ? "bg-gradient-to-r from-amber-100/40 to-orange-100/40 border border-amber-200/60 hover:from-amber-100/60 hover:to-orange-100/60"
-                : "bg-secondary/30 border border-border/30 hover:bg-secondary/50"
+                ? "bg-gradient-to-r from-amber-100/50 to-orange-100/50 border border-amber-200/70 hover:from-amber-100/70 hover:to-orange-100/70 shadow-sm"
+                : "bg-secondary/35 border border-border/40 hover:bg-secondary/55"
             }`}
           >
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
