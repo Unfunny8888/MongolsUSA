@@ -168,30 +168,6 @@ nav,
   min-height: 100dvh;
   overflow-x: hidden;
   position: relative;
-  overscroll-behavior-x: contain;
-  overscroll-behavior-y: auto;
-}
-
-/* Swipeable containers (carousels, cards) */
-.swipeable {
-  touch-action: pan-y pinch-zoom;
-  overscroll-behavior-x: contain;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-}
-
-/* Scrollable areas (vertical lists, feeds) */
-.scrollable {
-  touch-action: pan-y;
-  overscroll-behavior-x: contain;
-  -webkit-user-select: text;
-}
-
-/* Prevent accidental navigation on edge swipes */
-.no-edge-swipe {
-  touch-action: manipulation;
-  overscroll-behavior: contain;
 }
 
 /* Bottom nav safe area */
@@ -203,8 +179,6 @@ nav,
 button, a, [role="button"] {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 /* Page slide transitions */

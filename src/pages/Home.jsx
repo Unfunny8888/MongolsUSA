@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import HomeHeader from "../components/home/HomeHeader";
-import WelcomeFeed from "../components/home/WelcomeFeed";
-import { useGuestDataMigration } from "../hooks/useGuestDataMigration";
 import FeaturedBanner from "../components/home/FeaturedBanner";
 import SectionHeader from "../components/home/SectionHeader";
 import CategoryChip from "../components/cards/CategoryChip";
@@ -20,26 +18,14 @@ export default function Home() {
   const [groups, setGroups] = useState(MOCK_GROUPS);
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [currentUser, setCurrentUser] = useState(null);
-  const [isNewUser, setIsNewUser] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // Migrate guest data to user account on login
-  useGuestDataMigration(isLoggedIn);
 
   useEffect(() => {
     async function loadData() {
       const authed = await base44.auth.isAuthenticated();
-      setIsLoggedIn(authed);
       if (authed) {
         const me = await base44.auth.me();
         setCurrentUser(me);
         if (!me.onboarded) navigate("/onboarding");
-        // Show welcome feed for new users (first 7 days)
-        if (me.created_date) {
-          const createdDate = new Date(me.created_date);
-          const daysSinceCreation = (Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-          setIsNewUser(daysSinceCreation < 7);
-        }
       }
 
       const [dbListings, dbGroups, dbBiz] = await Promise.allSettled([
@@ -61,18 +47,6 @@ export default function Home() {
   }, []);
 
   const { forYou, nearby, trending, fresh, featured, jobs, events } = buildFeedSections(listings, currentUser);
-
-  // Show personalized welcome feed for new users
-  if (isNewUser && currentUser) {
-    return (
-      <div className="min-h-dvh">
-        <HomeHeader />
-        <div className="px-4 py-4">
-          <WelcomeFeed userCity={currentUser.city} userInterests={currentUser.interests} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-dvh">
