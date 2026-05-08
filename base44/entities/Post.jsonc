@@ -35,11 +35,14 @@
     "type": {
       "type": "string",
       "enum": [
-        "post",
-        "announcement",
-        "poll"
+        "text",
+        "image",
+        "event",
+        "poll",
+        "ride_share",
+        "travel"
       ],
-      "default": "post"
+      "default": "text"
     },
     "reactions": {
       "type": "object",
@@ -72,6 +75,38 @@
     "is_pinned": {
       "type": "boolean",
       "default": false
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "event_location": {
+      "type": "string"
+    },
+    "ride_share_from": {
+      "type": "string"
+    },
+    "ride_share_to": {
+      "type": "string"
+    },
+    "ride_share_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ride_share_seats": {
+      "type": "number"
+    },
+    "travel_destination": {
+      "type": "string"
+    },
+    "travel_dates": {
+      "type": "string"
+    },
+    "travel_interests": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "required": [

@@ -1,0 +1,32 @@
+{
+  "name": "Reaction",
+  "type": "object",
+  "properties": {
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "post",
+        "comment"
+      ]
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "emoji": {
+      "type": "string",
+      "description": "Emoji reaction (fire, heart, laughing, etc)"
+    }
+  },
+  "required": [
+    "target_type",
+    "target_id",
+    "user_email",
+    "emoji"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "description": "Parent post ID"
+    },
+    "parent_comment_id": {
+      "type": "string",
+      "description": "Parent comment ID for nested replies (null for top-level)"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_avatar": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "description": "Comment text with possible @mentions"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Optional image in comment"
+    },
+    "reactions": {
+      "type": "object",
+      "description": "Map of emoji -> list of user emails, e.g. {fire: ['user@example.com']}"
+    },
+    "reply_count": {
+      "type": "number",
+      "default": 0
+    },
+    "is_edited": {
+      "type": "boolean",
+      "default": false
+    },
+    "edited_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "mentions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of @mentioned user emails"
+    }
+  },
+  "required": [
+    "post_id",
+    "author_email",
+    "content"
+  ]
+}

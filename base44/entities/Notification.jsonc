@@ -18,7 +18,11 @@
         "nearby_event",
         "group_activity",
         "ai_recommendation",
-        "featured_listing"
+        "featured_listing",
+        "comment_reply",
+        "comment_mention",
+        "post_reaction",
+        "comment_reaction"
       ]
     },
     "title": {
@@ -45,6 +49,10 @@
         "high"
       ],
       "default": "normal"
+    },
+    "related_user": {
+      "type": "string",
+      "description": "Email of user who triggered notification"
     }
   },
   "required": [
