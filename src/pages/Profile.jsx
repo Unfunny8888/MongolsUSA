@@ -79,7 +79,7 @@ export default function Profile() {
   ];
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-dvh pb-24">
       <div className="bg-gradient-to-br from-primary/90 to-emerald-600/80 px-4 pt-5 pb-6 relative overflow-hidden" style={{ paddingTop: 'max(20px, env(safe-area-inset-top))' }}>
         <div className="absolute top-0 right-0 w-20 h-20 bg-white/3 rounded-full -translate-y-6 translate-x-6 blur-xl" />
         <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/3 rounded-full translate-y-4 -translate-x-4 blur-xl" />
@@ -164,7 +164,7 @@ export default function Profile() {
         ))}
       </div>
 
-      <div className="px-4 mt-8 mb-4">
+      <div className="px-4 mt-8 mb-4" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
         <Button
           variant="ghost"
           onClick={() => base44.auth.logout()}
