@@ -1,14 +1,8 @@
 import { Link } from "react-router-dom";
-import { Car, Briefcase, Home, Wrench, Calendar, Smartphone, Users } from "lucide-react";
 import { motion } from "framer-motion";
-
-const ICON_MAP = {
-  Car, Briefcase, Home, Wrench, Calendar, Smartphone, Users
-};
+import { ICONS } from "../../lib/mockData";
 
 export default function CategoryChip({ category, index = 0 }) {
-  const Icon = ICON_MAP[category.icon] || Car;
-
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -17,14 +11,12 @@ export default function CategoryChip({ category, index = 0 }) {
     >
       <Link
         to={`/explore?category=${category.id}`}
-        className="flex flex-col items-center gap-2 min-w-[72px]"
+        className="flex items-center gap-2 px-6 py-3 rounded-full bg-white dark:bg-slate-800 border border-border/50 hover:bg-secondary/50 transition-smooth active:scale-95"
       >
-        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center shadow-lg shadow-black/10 transition-smooth hover:scale-105 active:scale-95`}>
-          <Icon className="w-6 h-6 text-white" />
-        </div>
-        <div className="text-center">
-          <p className="text-[11px] font-semibold text-foreground leading-tight">{category.label}</p>
-          <p className="text-[9px] text-muted-foreground">{category.labelMn}</p>
+        <span className="text-lg">{ICONS[category.icon] || "•"}</span>
+        <div>
+          <p className="text-sm font-semibold text-foreground">{category.label}</p>
+          <p className="text-[11px] text-muted-foreground">{category.labelMn}</p>
         </div>
       </Link>
     </motion.div>

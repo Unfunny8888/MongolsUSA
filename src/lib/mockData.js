@@ -369,14 +369,24 @@ export const MOCK_BUSINESSES = [
 ];
 
 export const CATEGORIES = [
-  { id: "cars", label: "Cars", labelMn: "Машин", icon: "Car", color: "from-blue-500 to-blue-600" },
-  { id: "jobs", label: "Jobs", labelMn: "Ажил", icon: "Briefcase", color: "from-emerald-500 to-emerald-600" },
-  { id: "housing", label: "Housing", labelMn: "Байр", icon: "Home", color: "from-orange-500 to-orange-600" },
-  { id: "services", label: "Services", labelMn: "Үйлчилгээ", icon: "Wrench", color: "from-purple-500 to-purple-600" },
-  { id: "events", label: "Events", labelMn: "Арга хэмжээ", icon: "Calendar", color: "from-pink-500 to-pink-600" },
-  { id: "electronics", label: "Electronics", labelMn: "Электроник", icon: "Smartphone", color: "from-cyan-500 to-cyan-600" },
-  { id: "community", label: "Community", labelMn: "Нийгэмлэг", icon: "Users", color: "from-amber-500 to-amber-600" }
+  { id: "jobs", label: "Jobs", labelMn: "Ажил", icon: "Briefcase" },
+  { id: "housing", label: "Housing", labelMn: "Байр", icon: "Home" },
+  { id: "events", label: "Events", labelMn: "Арга хэмжээ", icon: "Calendar" },
+  { id: "cars", label: "Cars", labelMn: "Машин", icon: "Car" },
+  { id: "services", label: "Services", labelMn: "Үйлчилгээ", icon: "Wrench" },
+  { id: "electronics", label: "Electronics", labelMn: "Электроник", icon: "Smartphone" },
+  { id: "community", label: "Community", labelMn: "Нийгэмлэг", icon: "Users" }
 ];
+
+export const ICONS = {
+  Car: "🚗",
+  Briefcase: "💼",
+  Home: "🏠",
+  Wrench: "🔧",
+  Calendar: "📅",
+  Smartphone: "📱",
+  Users: "👥"
+};
 
 export const TRENDING_SEARCHES = [
   "CDL ажил Chicago",
