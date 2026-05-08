@@ -3,8 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, Share2, MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import ContactMask from "../components/common/ContactMask";
+import TranslateButton from "../components/common/TranslateButton";
+import BoostModal from "../components/common/BoostModal";
 import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 
@@ -24,7 +25,6 @@ function CarDetails({ listing }) {
     { icon: Fuel, label: "Fuel", value: listing.car_fuel },
     { icon: Shield, label: "Condition", value: listing.car_condition },
   ].filter(d => d.value);
-
   return (
     <div className="grid grid-cols-2 gap-2.5">
       {details.map((d, i) => (
@@ -47,7 +47,6 @@ function JobDetails({ listing }) {
     { icon: Clock, label: "Type", value: listing.job_type },
     { icon: Calendar, label: "Schedule", value: listing.job_schedule },
   ].filter(d => d.value);
-
   return (
     <div className="space-y-2.5">
       {details.map((d, i) => (
@@ -76,7 +75,6 @@ function HousingDetails({ listing }) {
     { icon: Home, label: "Type", value: listing.housing_type },
     { icon: Calendar, label: "Lease", value: listing.housing_lease },
   ].filter(d => d.value);
-
   return (
     <div className="grid grid-cols-2 gap-2.5">
       {details.map((d, i) => (
@@ -137,22 +135,24 @@ export default function ListingDetail() {
   const [listing, setListing] = useState(null);
   const [saved, setSaved] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const [translatedDesc, setTranslatedDesc] = useState(null);
+  const [showBoost, setShowBoost] = useState(false);
 
   useEffect(() => {
     async function load() {
-      // Check auth
       const authed = await base44.auth.isAuthenticated();
       setIsLoggedIn(authed);
-
-      // Try DB first
+      if (authed) {
+        const me = await base44.auth.me();
+        setUser(me);
+      }
       if (!listingId.startsWith("mock-")) {
         const data = await base44.entities.Listing.get(listingId);
         setListing(data);
         return;
       }
-      // Fallback to mock
-      const mock = MOCK_LISTINGS.find((l) => l.id === listingId);
-      setListing(mock);
+      setListing(MOCK_LISTINGS.find((l) => l.id === listingId));
     }
     load();
   }, [listingId]);
@@ -177,7 +177,6 @@ export default function ListingDetail() {
 
   return (
     <div className="min-h-screen pb-24">
-      {/* Image */}
       <div className="relative">
         <img
           src={listing.images?.[0] || "https://images.unsplash.com/photo-1557683316-973673baf926?w=800"}
@@ -193,24 +192,19 @@ export default function ListingDetail() {
             <button className="w-10 h-10 rounded-xl glass flex items-center justify-center">
               <Share2 className="w-5 h-5 text-foreground" />
             </button>
-            <button
-              onClick={() => setSaved(!saved)}
-              className="w-10 h-10 rounded-xl glass flex items-center justify-center"
-            >
+            <button onClick={() => setSaved(!saved)} className="w-10 h-10 rounded-xl glass flex items-center justify-center">
               <Heart className={`w-5 h-5 ${saved ? "fill-red-500 text-red-500" : "text-foreground"}`} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Content */}
       <div className="px-4 -mt-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-3xl p-5 shadow-xl border border-border/50"
         >
-          {/* Price & Title */}
           <div className="mb-4">
             <p className="text-2xl font-extrabold text-primary">{formatPrice()}</p>
             <h1 className="text-lg font-bold text-foreground mt-1 leading-tight">{listing.title}</h1>
@@ -221,16 +215,11 @@ export default function ListingDetail() {
                   {listing.location_city}, {listing.location_state}
                 </span>
               )}
-              <span className="flex items-center gap-1">
-                <Eye className="w-3.5 h-3.5" /> {listing.views} views
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" /> {timeAgo(listing.created_date)}
-              </span>
+              <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {listing.views} views</span>
+              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {timeAgo(listing.created_date)}</span>
             </div>
           </div>
 
-          {/* Poster */}
           <div className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-secondary/50">
             <img
               src={listing.poster_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
@@ -243,21 +232,23 @@ export default function ListingDetail() {
             </div>
           </div>
 
-          {/* Category Details */}
           {listing.category === "cars" && <CarDetails listing={listing} />}
           {listing.category === "jobs" && <JobDetails listing={listing} />}
           {listing.category === "housing" && <HousingDetails listing={listing} />}
           {listing.category === "events" && <EventDetails listing={listing} />}
 
-          {/* Description */}
           <div className="mt-5">
-            <h3 className="text-sm font-bold mb-2">Description</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold">Description</h3>
+              {listing.description && (
+                <TranslateButton text={listing.description} onTranslated={setTranslatedDesc} />
+              )}
+            </div>
             <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-              {listing.description}
+              {translatedDesc || listing.description}
             </p>
           </div>
 
-          {/* Tags */}
           {listing.tags?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4">
               {listing.tags.map((tag) => (
@@ -266,7 +257,6 @@ export default function ListingDetail() {
             </div>
           )}
 
-          {/* Contact */}
           <div className="mt-6 pt-5 border-t border-border">
             <h3 className="text-sm font-bold mb-3">Contact Information</h3>
             <ContactMask
@@ -277,8 +267,37 @@ export default function ListingDetail() {
               isLoggedIn={isLoggedIn}
             />
           </div>
+
+          {isLoggedIn && listing.created_by && listing.created_by !== user?.email && (
+            <button
+              onClick={() => {
+                const convId = [user.email, listing.created_by].sort().join("_") + "_" + listing.id;
+                navigate(`/conversation/${convId}?other=${listing.poster_name || "Seller"}&listing=${encodeURIComponent(listing.title)}`);
+              }}
+              className="mt-4 w-full py-3 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-smooth"
+            >
+              💬 Message Seller
+            </button>
+          )}
+
+          {isLoggedIn && user?.email === listing.created_by && (
+            <button
+              onClick={() => setShowBoost(true)}
+              className="mt-3 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold shadow-lg"
+            >
+              ⚡ Boost This Listing
+            </button>
+          )}
         </motion.div>
       </div>
+
+      {showBoost && (
+        <BoostModal
+          listingId={listing.id}
+          listingTitle={listing.title}
+          onClose={() => setShowBoost(false)}
+        />
+      )}
     </div>
   );
 }

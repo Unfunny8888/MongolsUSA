@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MOCK_BUSINESSES } from "../lib/mockData";
+import ReviewSection from "../components/common/ReviewSection";
 import { base44 } from "@/api/base44Client";
 
 export default function BusinessDetail() {
@@ -119,6 +120,15 @@ export default function BusinessDetail() {
           <Button className="w-full rounded-xl bg-primary text-white hover:bg-primary/90">
             Contact Business
           </Button>
+
+          {business.id && !business.id.startsWith("biz-") && (
+            <ReviewSection businessId={business.id} />
+          )}
+          {business.id?.startsWith("biz-") && (
+            <div className="mt-6 pt-5 border-t border-border">
+              <p className="text-xs text-center text-muted-foreground">Reviews available for registered businesses</p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

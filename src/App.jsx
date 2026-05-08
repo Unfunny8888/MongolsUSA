@@ -16,6 +16,11 @@ import Businesses from './pages/Businesses';
 import BusinessDetail from './pages/BusinessDetail';
 import CreateListing from './pages/CreateListing';
 import Profile from './pages/Profile';
+import Inbox from './pages/Inbox';
+import Conversation from './pages/Conversation';
+import Notifications from './pages/Notifications';
+import Admin from './pages/Admin';
+import Onboarding from './pages/Onboarding';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -54,6 +59,11 @@ const AuthenticatedApp = () => {
         <Route path="/business/:businessId" element={<BusinessDetail />} />
         <Route path="/create" element={<CreateListing />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/inbox" element={<Inbox />} />
+        <Route path="/conversation/:conversationId" element={<Conversation />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/onboarding" element={<Onboarding />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

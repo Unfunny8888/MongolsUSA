@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import HomeHeader from "../components/home/HomeHeader";
 import SearchBar from "../components/home/SearchBar";
@@ -12,6 +13,7 @@ import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/
 import { base44 } from "@/api/base44Client";
 
 export default function Home() {
+  const navigate = useNavigate();
   const [listings, setListings] = useState(MOCK_LISTINGS);
   const [groups, setGroups] = useState(MOCK_GROUPS);
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
@@ -34,6 +36,17 @@ export default function Home() {
       }
     }
     loadData();
+  }, []);
+
+  useEffect(() => {
+    async function checkOnboarding() {
+      const authed = await base44.auth.isAuthenticated();
+      if (authed) {
+        const me = await base44.auth.me();
+        if (!me.onboarded) navigate("/onboarding");
+      }
+    }
+    checkOnboarding();
   }, []);
 
   const featured = listings.filter((l) => l.is_featured);

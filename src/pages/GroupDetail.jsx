@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Shield, Lock, MessageSquare } from "lucide-react";
+import { ArrowLeft, Users, Shield, MessageSquare, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,10 @@ export default function GroupDetail() {
   const navigate = useNavigate();
   const [group, setGroup] = useState(null);
   const [joined, setJoined] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [postText, setPostText] = useState("");
+  const [user, setUser] = useState(null);
+  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -21,6 +25,13 @@ export default function GroupDetail() {
         return;
       }
       setGroup(MOCK_GROUPS.find((g) => g.id === groupId));
+      // Load posts
+      const me = await base44.auth.me().catch(() => null);
+      setUser(me);
+      if (!groupId.startsWith("grp-")) {
+        const groupPosts = await base44.entities.Post.filter({ group_id: groupId }, "-created_date", 20);
+        setPosts(groupPosts);
+      }
     }
     load();
   }, [groupId]);
@@ -85,30 +96,66 @@ export default function GroupDetail() {
             {joined ? "Joined ✓" : "Join Community"}
           </Button>
 
-          {/* Sample posts */}
+          {/* Posts */}
           <div className="mt-6 pt-5 border-t border-border space-y-4">
             <h3 className="text-sm font-bold flex items-center gap-1.5">
               <MessageSquare className="w-4 h-4 text-primary" />
-              Recent Posts
+              Community Posts
             </h3>
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="p-3 rounded-xl bg-secondary/50">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm">
-                    {["👨", "👩", "🧑"][i - 1]}
+
+            {user && joined && (
+              <div className="flex gap-2">
+                <input
+                  value={postText}
+                  onChange={e => setPostText(e.target.value)}
+                  placeholder="Share something with the community..."
+                  className="flex-1 bg-secondary/70 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                />
+                <button
+                  onClick={async () => {
+                    if (!postText.trim() || posting) return;
+                    setPosting(true);
+                    const p = await base44.entities.Post.create({
+                      group_id: group.id,
+                      author_name: user.full_name,
+                      author_email: user.email,
+                      content: postText.trim(),
+                    });
+                    setPosts(prev => [p, ...prev]);
+                    setPostText("");
+                    setPosting(false);
+                  }}
+                  disabled={!postText.trim() || posting}
+                  className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center disabled:opacity-40"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {posts.length === 0 ? (
+              ["Anyone know a good Mongolian restaurant? Looking for authentic buuz. 🥟", "Sharing my experience getting a driver's license here! Happy to help 🚗", "Community BBQ this weekend! Everyone welcome. Бүгдийг урьж байна! 🎉"].map((txt, i) => (
+                <div key={i} className="p-3 rounded-xl bg-secondary/50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm">{["👨", "👩", "🧑"][i]}</div>
+                    <div>
+                      <p className="text-xs font-semibold">Community Member</p>
+                      <p className="text-[10px] text-muted-foreground">{i + 1}h ago</p>
+                    </div>
                   </div>
+                  <p className="text-xs text-muted-foreground">{txt}</p>
+                </div>
+              ))
+            ) : posts.map((post, i) => (
+              <div key={post.id} className="p-3 rounded-xl bg-secondary/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-sm">👤</div>
                   <div>
-                    <p className="text-xs font-semibold">Community Member</p>
-                    <p className="text-[10px] text-muted-foreground">{i}h ago</p>
+                    <p className="text-xs font-semibold">{post.author_name || "Member"}</p>
+                    <p className="text-[10px] text-muted-foreground">{new Date(post.created_date).toLocaleDateString()}</p>
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {[
-                    "Anyone know a good Mongolian restaurant in the area? Looking for authentic buuz. 🥟",
-                    "Sharing my experience getting a driver's license here. Happy to help others! 🚗",
-                    "Community BBQ this weekend! Everyone is welcome. Бүгдийг урьж байна! 🎉"
-                  ][i - 1]}
-                </p>
+                <p className="text-xs text-muted-foreground">{post.content}</p>
               </div>
             ))}
           </div>

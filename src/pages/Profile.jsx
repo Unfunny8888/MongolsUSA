@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, LogOut, ChevronRight, Crown, Shield, Star, Users, Briefcase, Heart, Eye, Bell } from "lucide-react";
+import { Settings, LogOut, ChevronRight, Crown, Shield, Heart, Eye, Bell, MessageSquare } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,7 +46,7 @@ export default function Profile() {
         </motion.div>
         <h1 className="text-2xl font-extrabold mb-2">Welcome to NomadLink</h1>
         <p className="text-sm text-muted-foreground mb-8 max-w-xs leading-relaxed">
-          Join the largest Mongolian community marketplace in the USA. Find jobs, housing, cars, and connect with fellow Mongolians.
+          Join the largest Mongolian community marketplace in the USA.
         </p>
         <Button
           onClick={() => base44.auth.redirectToLogin()}
@@ -54,37 +54,32 @@ export default function Profile() {
         >
           Get Started
         </Button>
-        <p className="text-xs text-muted-foreground mt-4">
-          Free to join • Browse as guest
-        </p>
+        <p className="text-xs text-muted-foreground mt-4">Free to join • Browse as guest</p>
       </div>
     );
   }
 
   const menuItems = [
     { icon: Heart, label: "Saved Listings", count: 12 },
-    { icon: Eye, label: "My Listings", count: 3 },
-    { icon: Users, label: "My Groups", count: 2 },
-    { icon: Briefcase, label: "Applied Jobs", count: 5 },
-    { icon: Bell, label: "Notifications" },
+    { icon: Eye, label: "My Listings", count: 3, link: "/explore" },
+    { icon: MessageSquare, label: "Messages", link: "/inbox" },
+    { icon: Bell, label: "Notifications", link: "/notifications" },
     { icon: Crown, label: "Upgrade to VIP", highlight: true },
+    ...(user?.role === "admin" ? [{ icon: Settings, label: "Admin Dashboard", link: "/admin" }] : []),
     { icon: Settings, label: "Settings" },
   ];
 
   return (
     <div className="min-h-screen pb-24">
-      {/* Profile Header */}
       <div className="bg-gradient-to-br from-primary via-emerald-700 to-teal-800 px-4 pt-8 pb-16 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-12 translate-x-12" />
         <div className="absolute bottom-0 left-0 w-36 h-36 bg-white/5 rounded-full translate-y-10 -translate-x-10" />
         <div className="relative z-10">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shadow-lg">
+            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center text-3xl shadow-lg overflow-hidden">
               {user.avatar ? (
-                <img src={user.avatar} alt={user.full_name} className="w-full h-full rounded-2xl object-cover" />
-              ) : (
-                "👤"
-              )}
+                <img src={user.avatar} alt={user.full_name} className="w-full h-full object-cover" />
+              ) : "👤"}
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
@@ -104,7 +99,6 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="px-4 -mt-8 mb-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -124,7 +118,6 @@ export default function Profile() {
         </motion.div>
       </div>
 
-      {/* Menu */}
       <div className="px-4 space-y-1">
         {menuItems.map((item, i) => (
           <motion.button
@@ -132,6 +125,7 @@ export default function Profile() {
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: i * 0.05 }}
+            onClick={() => item.link && navigate(item.link)}
             className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-smooth ${
               item.highlight
                 ? "bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100 hover:from-amber-100 hover:to-orange-100"
@@ -154,7 +148,6 @@ export default function Profile() {
         ))}
       </div>
 
-      {/* Logout */}
       <div className="px-4 mt-6">
         <Button
           variant="ghost"
