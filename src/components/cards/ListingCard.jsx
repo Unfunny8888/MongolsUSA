@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Heart, Eye, MapPin, Clock, Star, Zap, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useTapGesture } from "@/hooks/useTapGesture";
 
 // Approximate coords for common US cities
 const CITY_COORDS = {
@@ -111,6 +112,9 @@ function MetaRow({ listing, dist }) {
 }
 
 export default function ListingCard({ listing, index = 0 }) {
+  const navigate = useNavigate();
+  const handleTap = useCallback(() => navigate(`/listing/${listing.id}`), [navigate, listing.id]);
+  const { onTouchStart, onTouchMove, onTouchEnd } = useTapGesture(handleTap);
   const hasImage = listing.images?.length > 0;
   const price = formatPrice(listing);
   const dist = useDistance(listing.location_city);
@@ -120,10 +124,15 @@ export default function ListingCard({ listing, index = 0 }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.25 }}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      style={{ touchAction: 'pan-y', WebkitUserSelect: 'none', userSelect: 'none' }}
     >
-      <Link to={`/listing/${listing.id}`} className="block group">
+      <div className="block group cursor-pointer">
         {hasImage ? (
-          <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-smooth">
+          <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm transition-smooth"
+            style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
             <div className="relative aspect-[16/10] overflow-hidden">
               <img
                 src={listing.images[0]}
@@ -175,8 +184,8 @@ export default function ListingCard({ listing, index = 0 }) {
             </div>
           </div>
         ) : (
-          /* Text-only card */
-          <div className="bg-card rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-smooth p-4">
+            <div className="bg-card rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-smooth p-4"
+            style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
             <div className="flex items-center justify-between mb-2">
               <Badge variant="secondary" className={`text-[10px] font-medium ${getCategoryColor(listing.category)}`}>
                 {listing.category}
@@ -199,7 +208,7 @@ export default function ListingCard({ listing, index = 0 }) {
             )}
           </div>
         )}
-      </Link>
+      </div>
     </motion.div>
   );
 }

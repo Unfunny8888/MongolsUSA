@@ -190,6 +190,24 @@ button, a, [role="button"], input[type="checkbox"], input[type="radio"] {
   justify-content: center;
 }
 
+/* Feed scroll — pan-y so cards don't intercept vertical scroll */
+.feed-container {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Prevent tap highlight on feed cards */
+.feed-card {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
+}
+
+/* Prevent input focus from causing aggressive viewport resize */
+input:focus, textarea:focus, select:focus {
+  font-size: 16px; /* prevents iOS zoom */
+}
+
 /* Haptic feedback for primary actions */
 button[class*="primary"],
 [role="button"][class*="primary"],
