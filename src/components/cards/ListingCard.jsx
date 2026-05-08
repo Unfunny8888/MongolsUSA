@@ -1,27 +1,59 @@
 import { Link } from "react-router-dom";
-import { Heart, Eye, MapPin, Clock, Star, Zap } from "lucide-react";
+import { Heart, Eye, MapPin, Clock, Star, Zap, Navigation } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from "react";
+
+// Approximate coords for common US cities
+const CITY_COORDS = {
+  "Chicago": [41.8781, -87.6298], "New York": [40.7128, -74.006], "Los Angeles": [34.0522, -118.2437],
+  "Houston": [29.7604, -95.3698], "Phoenix": [33.4484, -112.074], "Philadelphia": [39.9526, -75.1652],
+  "San Antonio": [29.4241, -98.4936], "San Diego": [32.7157, -117.1611], "Dallas": [32.7767, -96.797],
+  "San Jose": [37.3382, -121.8863], "Austin": [30.2672, -97.7431], "Jacksonville": [30.3322, -81.6557],
+  "Denver": [39.7392, -104.9903], "Seattle": [47.6062, -122.3321], "Nashville": [36.1627, -86.7816],
+  "Boston": [42.3601, -71.0589], "Las Vegas": [36.1699, -115.1398], "Minneapolis": [44.9778, -93.265],
+  "Atlanta": [33.749, -84.388], "Portland": [45.5051, -122.675], "Miami": [25.7617, -80.1918],
+  "Detroit": [42.3314, -83.0458], "Baltimore": [39.2904, -76.6122], "Louisville": [38.2527, -85.7585],
+  "Milwaukee": [43.0389, -87.9065], "Albuquerque": [35.0844, -106.6504], "Tucson": [32.2217, -110.9265],
+  "Sacramento": [38.5816, -121.4944], "Cleveland": [41.4993, -81.6944], "Columbus": [39.9612, -82.9988],
+};
+
+function haversineDistance([lat1, lon1], [lat2, lon2]) {
+  const R = 3958.8; // miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+}
+
+// Cache user position at module level
+let cachedPosition = null;
+function getUserPosition() {
+  if (cachedPosition) return Promise.resolve(cachedPosition);
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { cachedPosition = [pos.coords.latitude, pos.coords.longitude]; resolve(cachedPosition); },
+      () => resolve(null),
+      { timeout: 5000 }
+    );
+  });
+}
 
 function formatPrice(listing) {
-  if (listing.price_type === "free") return "Free";
+  if (listing.price_type === "free") return { text: "Free", color: "text-emerald-600" };
   if (!listing.price) return null;
   const p = `$${listing.price.toLocaleString()}`;
-  if (listing.price_type === "hourly") return `${p}/hr`;
-  if (listing.price_type === "monthly") return `${p}/mo`;
-  if (listing.price_type === "weekly") return `${p}/wk`;
-  if (listing.price_type === "yearly") return `${p}/yr`;
-  return p;
+  const suffixes = { hourly: "/цаг", monthly: "/сар", weekly: "/7 хоног", yearly: "/жил" };
+  const suffix = suffixes[listing.price_type] || "";
+  return { text: `${p}${suffix}`, color: "text-primary" };
 }
 
 function getCategoryColor(cat) {
   const colors = {
-    cars: "bg-blue-100 text-blue-700",
-    jobs: "bg-emerald-100 text-emerald-700",
-    housing: "bg-orange-100 text-orange-700",
-    services: "bg-purple-100 text-purple-700",
-    events: "bg-pink-100 text-pink-700",
-    electronics: "bg-cyan-100 text-cyan-700",
+    cars: "bg-blue-100 text-blue-700", jobs: "bg-emerald-100 text-emerald-700",
+    housing: "bg-orange-100 text-orange-700", services: "bg-purple-100 text-purple-700",
+    events: "bg-pink-100 text-pink-700", electronics: "bg-cyan-100 text-cyan-700",
     community: "bg-amber-100 text-amber-700",
   };
   return colors[cat] || "bg-gray-100 text-gray-700";
@@ -31,27 +63,66 @@ function timeAgo(dateStr) {
   if (!dateStr) return "";
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 2) return "Саяхан";
+  if (mins < 60) return `${mins} мин`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return `${hrs} цаг`;
   const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  if (days === 1) return "Өчигдөр";
+  if (days < 7) return `${days} өдөр`;
+  const weeks = Math.floor(days / 7);
+  return `${weeks} долоо хоног`;
+}
+
+function useDistance(city) {
+  const [dist, setDist] = useState(null);
+  useEffect(() => {
+    const coords = CITY_COORDS[city];
+    if (!coords) return;
+    getUserPosition().then((pos) => {
+      if (pos) setDist(haversineDistance(pos, coords));
+    });
+  }, [city]);
+  return dist;
+}
+
+function MetaRow({ listing, dist }) {
+  return (
+    <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+      {listing.location_city && (
+        <span className="flex items-center gap-1">
+          <MapPin className="w-3 h-3" />
+          {listing.location_city}{listing.location_state ? `, ${listing.location_state}` : ""}
+        </span>
+      )}
+      {dist !== null && (
+        <span className="flex items-center gap-1 text-primary/70">
+          <Navigation className="w-3 h-3" />~{dist} mi
+        </span>
+      )}
+      {listing.created_date && (
+        <span className="flex items-center gap-1">
+          <Clock className="w-3 h-3" />{timeAgo(listing.created_date)}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export default function ListingCard({ listing, index = 0 }) {
   const hasImage = listing.images?.length > 0;
   const price = formatPrice(listing);
+  const dist = useDistance(listing.location_city);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.3 }}
+      transition={{ delay: index * 0.04, duration: 0.25 }}
     >
       <Link to={`/listing/${listing.id}`} className="block group">
         {hasImage ? (
-          /* Card WITH image */
-          <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-lg transition-smooth">
+          <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-sm hover:shadow-md transition-smooth">
             <div className="relative aspect-[16/10] overflow-hidden">
               <img
                 src={listing.images[0]}
@@ -59,6 +130,7 @@ export default function ListingCard({ listing, index = 0 }) {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
+              {/* Top badges */}
               <div className="absolute top-3 left-3 flex gap-2">
                 {listing.is_featured && (
                   <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 shadow-lg text-[10px] font-semibold gap-1">
@@ -71,56 +143,53 @@ export default function ListingCard({ listing, index = 0 }) {
                   </Badge>
                 )}
               </div>
+              {/* Price overlay */}
               {price && (
                 <div className="absolute bottom-3 right-3">
                   <div className="glass rounded-xl px-3 py-1.5 font-bold text-sm text-foreground shadow-lg">
-                    {price}
+                    {price.text}
                   </div>
                 </div>
               )}
             </div>
             <div className="p-3.5">
-              <h3 className="font-semibold text-sm leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors mb-2">
+              <h3 className="font-semibold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors mb-2">
                 {listing.title}
               </h3>
-              <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2.5">
-                {listing.location_city && (
-                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{listing.location_city}{listing.location_state ? `, ${listing.location_state}` : ""}</span>
-                )}
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(listing.created_date)}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <Badge variant="secondary" className={`text-[10px] font-medium ${getCategoryColor(listing.category)}`}>{listing.category}</Badge>
+              <MetaRow listing={listing} dist={dist} />
+              <div className="flex items-center justify-between mt-2.5">
+                <Badge variant="secondary" className={`text-[10px] font-medium ${getCategoryColor(listing.category)}`}>
+                  {listing.category}
+                </Badge>
                 <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {listing.views}</span>
-                  <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {listing.saves}</span>
+                  <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{listing.views || 0}</span>
+                  <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{listing.saves || 0}</span>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          /* Card WITHOUT image — text-only layout */
+          /* Text-only card */
           <div className="bg-card rounded-2xl border border-border/50 shadow-sm hover:shadow-md transition-smooth p-4">
-            <div className="flex items-start justify-between gap-2 mb-1.5">
-              <Badge variant="secondary" className={`text-[10px] font-medium shrink-0 ${getCategoryColor(listing.category)}`}>{listing.category}</Badge>
-              <div className="flex items-center gap-2 text-muted-foreground shrink-0">
-                <Heart className="w-4 h-4" />
-              </div>
+            <div className="flex items-center justify-between mb-2">
+              <Badge variant="secondary" className={`text-[10px] font-medium ${getCategoryColor(listing.category)}`}>
+                {listing.category}
+              </Badge>
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" />{timeAgo(listing.created_date)}
+              </span>
             </div>
-            <h3 className="font-bold text-sm leading-snug text-foreground group-hover:text-primary transition-colors mb-1.5 line-clamp-2">
+            <h3 className="font-bold text-sm leading-snug line-clamp-2 text-foreground group-hover:text-primary transition-colors mb-1.5">
               {listing.title}
             </h3>
             {price && (
-              <p className="text-primary font-bold text-sm mb-2">{price}</p>
+              <p className={`font-bold text-sm mb-2 ${price.color}`}>{price.text}</p>
             )}
-            <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2">
-              {listing.location_city && (
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{listing.location_city}{listing.location_state ? `, ${listing.location_state}` : ""}</span>
-              )}
-              <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{timeAgo(listing.created_date)}</span>
-            </div>
+            <MetaRow listing={listing} dist={dist} />
             {listing.description && (
-              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{listing.description}</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2 mt-2 border-t border-border/30 pt-2">
+                {listing.description}
+              </p>
             )}
           </div>
         )}
