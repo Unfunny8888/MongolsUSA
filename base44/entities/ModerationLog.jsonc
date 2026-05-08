@@ -1,0 +1,72 @@
+{
+  "name": "ModerationLog",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string"
+    },
+    "listing_title": {
+      "type": "string"
+    },
+    "poster_email": {
+      "type": "string"
+    },
+    "risk_score": {
+      "type": "number"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "safe",
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": [
+        "approve",
+        "review",
+        "flag",
+        "remove"
+      ]
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "duplicate_count": {
+      "type": "number"
+    },
+    "actions_taken": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "admin_reviewed": {
+      "type": "boolean",
+      "default": false
+    },
+    "admin_decision": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "removed",
+        "ignored"
+      ]
+    }
+  },
+  "required": [
+    "listing_id",
+    "risk_score",
+    "risk_level"
+  ]
+}

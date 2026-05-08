@@ -1,10 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, BarChart2, Flag, CheckCircle, XCircle, Trash2, Users, ListChecks, Building } from "lucide-react";
+import { ArrowLeft, Shield, BarChart2, Flag, CheckCircle, XCircle, Trash2, Users, ListChecks, Building, AlertTriangle, Bot, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 
-const TABS = ["overview", "listings", "users"];
+const TABS = ["overview", "listings", "moderation", "users"];
+
+const RISK_COLORS = {
+  safe: "bg-emerald-100 text-emerald-700",
+  low: "bg-blue-100 text-blue-700",
+  medium: "bg-amber-100 text-amber-700",
+  high: "bg-orange-100 text-orange-700",
+  critical: "bg-red-100 text-red-700",
+};
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -13,6 +21,7 @@ export default function Admin() {
   const [stats, setStats] = useState({ listings: 0, users: 0, businesses: 0, groups: 0 });
   const [listings, setListings] = useState([]);
   const [users, setUsers] = useState([]);
+  const [modLogs, setModLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,14 +29,16 @@ export default function Admin() {
       const me = await base44.auth.me();
       if (me?.role !== "admin") { navigate("/"); return; }
       setUser(me);
-      const [ls, us, bs, gs] = await Promise.allSettled([
+      const [ls, us, bs, gs, ml] = await Promise.allSettled([
         base44.entities.Listing.list("-created_date", 30),
         base44.entities.User.list("-created_date", 30),
         base44.entities.Business.list("-created_date", 10),
         base44.entities.Group.list("-member_count", 10),
+        base44.entities.ModerationLog.list("-created_date", 50),
       ]);
       const lsData = ls.status === "fulfilled" ? ls.value : [];
       const usData = us.status === "fulfilled" ? us.value : [];
+      setModLogs(ml.status === "fulfilled" ? ml.value : []);
       setListings(lsData);
       setUsers(usData);
       setStats({
@@ -158,6 +169,70 @@ export default function Admin() {
                   )}
                   <button onClick={() => deleteListing(l.id)} className="p-1.5 rounded-lg bg-red-100 text-red-600 hover:bg-red-200">
                     <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+
+        {tab === "moderation" && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 p-3 rounded-2xl bg-violet-50 border border-violet-200">
+              <Bot className="w-5 h-5 text-violet-600" />
+              <div>
+                <p className="text-xs font-bold text-violet-800">AI Moderation Active</p>
+                <p className="text-[10px] text-violet-600">Every new listing is automatically analyzed. {modLogs.filter(m => !m.admin_reviewed).length} pending review.</p>
+              </div>
+            </div>
+            {modLogs.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-8">No moderation logs yet</p>
+            ) : modLogs.map((log, i) => (
+              <motion.div key={log.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
+                className="bg-card rounded-xl p-3 border border-border/50 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold truncate">{log.listing_title}</p>
+                    <p className="text-[10px] text-muted-foreground">{log.poster_email}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${RISK_COLORS[log.risk_level] || "bg-gray-100 text-gray-700"}`}>
+                      {log.risk_level} ({log.risk_score})
+                    </span>
+                    {!log.admin_reviewed && <span className="w-2 h-2 rounded-full bg-amber-400" />}
+                  </div>
+                </div>
+                {log.flags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {log.flags.map(f => <span key={f} className="text-[9px] px-1.5 py-0.5 rounded-md bg-red-50 text-red-700 font-medium">{f}</span>)}
+                  </div>
+                )}
+                {log.explanation && <p className="text-[10px] text-muted-foreground leading-relaxed">{log.explanation}</p>}
+                {log.actions_taken?.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {log.actions_taken.map(a => <span key={a} className="text-[9px] px-1.5 py-0.5 rounded-md bg-secondary font-medium">{a.replace(/_/g, " ")}</span>)}
+                  </div>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={async () => {
+                      await base44.entities.ModerationLog.update(log.id, { admin_reviewed: true, admin_decision: "approved" });
+                      await base44.entities.Listing.update(log.listing_id, { status: "active" });
+                      setModLogs(p => p.map(l => l.id === log.id ? { ...l, admin_reviewed: true, admin_decision: "approved" } : l));
+                    }}
+                    className="flex-1 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold flex items-center justify-center gap-1"
+                  >
+                    <CheckCircle className="w-3 h-3" /> Approve
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await base44.entities.ModerationLog.update(log.id, { admin_reviewed: true, admin_decision: "removed" });
+                      await base44.entities.Listing.update(log.listing_id, { status: "flagged" });
+                      setModLogs(p => p.map(l => l.id === log.id ? { ...l, admin_reviewed: true, admin_decision: "removed" } : l));
+                    }}
+                    className="flex-1 py-1.5 rounded-lg bg-red-100 text-red-700 text-[10px] font-bold flex items-center justify-center gap-1"
+                  >
+                    <XCircle className="w-3 h-3" /> Remove
                   </button>
                 </div>
               </motion.div>
