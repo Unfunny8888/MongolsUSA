@@ -256,38 +256,8 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* City Select */}
-      <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-border/30 px-4 py-2 shadow-sm" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))' }}>
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
-          <button
-            onClick={() => setSelectedCity(null)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-smooth ${
-              !selectedCity
-                ? "bg-primary text-white"
-                : "bg-secondary/70 text-foreground hover:bg-secondary"
-            }`}
-          >
-            All Cities
-          </button>
-          {[...new Set(allListingsRef.current.map(l => l.location_city).filter(Boolean))].slice(0, 8).map(city => (
-            <button
-              key={city}
-              onClick={() => setSelectedCity(selectedCity === city ? null : city)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-smooth ${
-                selectedCity === city
-                  ? "bg-primary text-white"
-                  : "bg-secondary/70 text-foreground hover:bg-secondary"
-              }`}
-            >
-              {city}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Search Header */}
-      <div className="glass fixed top-10 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingBottom: '12px' }}>
+      <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingTop: 'max(8px, env(safe-area-inset-top))', paddingBottom: '12px' }}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1 shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -328,7 +298,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
       {/* Body */}
       <div
-        className="flex-1 px-4 py-4 overflow-y-auto mt-44"
+        className="flex-1 px-4 py-4 overflow-y-auto mt-20"
         onScroll={() => dismissKeyboard(inputRef)}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
