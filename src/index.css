@@ -175,14 +175,19 @@ nav,
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Touch target optimization */
-button, a, [role="button"] {
+/* Touch target optimization - 44x44px minimum for iOS */
+button, a, [role="button"], input[type="checkbox"], input[type="radio"] {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Haptic feedback for primary actions */

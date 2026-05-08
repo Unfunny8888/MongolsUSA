@@ -93,6 +93,7 @@ export default function Home() {
       onTouchMove={handlePullToRefresh}
       onTouchEnd={handlePullToRefresh}
       className="min-h-dvh overflow-y-auto relative"
+      data-scrollable="true"
     >
       {pullProgress > 0 && (
         <motion.div
@@ -114,9 +115,9 @@ export default function Home() {
         <HomeHeader />
 
         {/* Categories */}
-        <SectionHeader title="Categories" subtitle="Browse by type" />
-        <div className="px-4 pb-4">
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1">
+         <SectionHeader title="Categories" subtitle="Browse by type" />
+         <div className="px-4 pb-4">
+           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1" data-scrollable="true">
             <CategoryChip
               category={{ id: "all", label: "All", labelMn: "Бүгд", icon: "globe" }}
               index={0}

@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Search, PlusCircle, Users, User } from "lucide-react";
 import { motion } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
+import { useTabNavigation } from "@/hooks/useTabNavigation";
 
 const NAV_ITEMS = [
   { path: "/", icon: Home, label: "Home" },
@@ -19,15 +20,31 @@ export default function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const lastClickedRef = useRef(null);
+  const { navigateTab } = useTabNavigation();
 
-  const handleNavClick = (path) => {
-    if (location.pathname === path && lastClickedRef.current === path) {
+  // Map routes to tab names
+  const getTabName = (pathname) => {
+    if (pathname === '/' || pathname.startsWith('/saved') || pathname.startsWith('/my-listings')) return 'home';
+    if (pathname === '/search') return 'search';
+    if (pathname.startsWith('/group')) return 'groups';
+    if (pathname === '/create') return 'create';
+    if (pathname === '/profile' || pathname === '/edit-profile') return 'profile';
+    return null;
+  };
+
+  const handleNavClick = (path, tabName) => {
+    const currentTab = getTabName(location.pathname);
+    const isActiveTab = currentTab === tabName;
+
+    if (isActiveTab && lastClickedRef.current === path) {
       // Double click on active tab - scroll to top
       window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
     }
     lastClickedRef.current = path;
+    
     if (location.pathname !== path) {
-      navigate(path);
+      navigateTab(tabName);
     }
   };
 
@@ -43,10 +60,11 @@ export default function BottomNav() {
             <button
               key={item.path}
               onClick={() => {
-                haptic();
-                handleNavClick(item.path);
+               haptic();
+               const tabMap = { '/': 'home', '/search': 'search', '/groups': 'groups', '/create': 'create', '/profile': 'profile' };
+               handleNavClick(item.path, tabMap[item.path]);
               }}
-              className="relative flex flex-col items-center gap-0.5 py-2 px-3 cursor-pointer touch-action-manipulation"
+              className="relative flex flex-col items-center gap-0.5 py-2 px-3 cursor-pointer touch-action-manipulation min-h-[44px] min-w-[44px]"
             >
               {isCreate ? (
                 <div className="relative -top-3 bg-gradient-to-br from-primary to-emerald-600 rounded-2xl p-3 shadow-lg shadow-primary/30">
