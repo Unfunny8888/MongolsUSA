@@ -1,0 +1,65 @@
+{
+  "name": "UserReputation",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "reputation_score": {
+      "type": "number",
+      "default": 50,
+      "description": "0-100 trust score"
+    },
+    "response_rate": {
+      "type": "number",
+      "default": 0,
+      "description": "Percentage of messages responded to"
+    },
+    "response_time_hours": {
+      "type": "number",
+      "default": 24
+    },
+    "positive_feedback": {
+      "type": "number",
+      "default": 0
+    },
+    "negative_feedback": {
+      "type": "number",
+      "default": 0
+    },
+    "total_transactions": {
+      "type": "number",
+      "default": 0
+    },
+    "successful_sales": {
+      "type": "number",
+      "default": 0
+    },
+    "badges": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Earned badges: power_seller, active_trader, helpful_community, trusted_buyer, etc"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_activity": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "member_since": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_email",
+    "user_name"
+  ]
+}

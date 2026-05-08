@@ -1,0 +1,47 @@
+{
+  "name": "UserVerification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "email_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "phone_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "id_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "address_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_business": {
+      "type": "boolean",
+      "default": false
+    },
+    "business_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "verification_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Admin email who verified"
+    },
+    "verification_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

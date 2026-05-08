@@ -1,0 +1,36 @@
+{
+  "name": "BlockedUser",
+  "type": "object",
+  "properties": {
+    "blocker_email": {
+      "type": "string"
+    },
+    "blocked_email": {
+      "type": "string"
+    },
+    "blocked_name": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "spam",
+        "harassment",
+        "scam",
+        "inappropriate",
+        "other"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "blocker_email",
+    "blocked_email"
+  ]
+}

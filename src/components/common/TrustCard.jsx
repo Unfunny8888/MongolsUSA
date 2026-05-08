@@ -1,78 +1,184 @@
-import { ShieldCheck, Clock, MessageSquare, TrendingUp } from "lucide-react";
-import VerificationBadge from "./VerificationBadge";
+import { useState } from 'react';
+import { Shield, MessageCircle, Award, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { calculateTrustScore, getTrustLevel, BADGE_INFO, getMemberTenureBadge, getResponseRateColor } from '@/lib/trustScoring';
+import VerificationBadge from './VerificationBadge';
 
-function trustLabel(score) {
-  if (score >= 90) return { label: "Highly Trusted", color: "text-emerald-600", bar: "bg-emerald-500" };
-  if (score >= 70) return { label: "Trusted", color: "text-blue-600", bar: "bg-blue-500" };
-  if (score >= 50) return { label: "Good Standing", color: "text-amber-600", bar: "bg-amber-500" };
-  return { label: "New Member", color: "text-muted-foreground", bar: "bg-muted-foreground/40" };
-}
+/**
+ * Trust card showing user reputation, verification, and trust signals
+ */
+export default function TrustCard({ user, reputation, verification, compact = false }) {
+  const [showDetails, setShowDetails] = useState(false);
 
-function accountAge(createdDate) {
-  if (!createdDate) return "New";
-  const months = Math.floor((Date.now() - new Date(createdDate).getTime()) / (1000 * 60 * 60 * 24 * 30));
-  if (months < 1) return "< 1 month";
-  if (months < 12) return `${months}mo`;
-  const years = Math.floor(months / 12);
-  const rem = months % 12;
-  return rem > 0 ? `${years}y ${rem}mo` : `${years}y`;
-}
+  if (!reputation) return null;
 
-export default function TrustCard({ user }) {
-  if (!user) return null;
+  const trustScore = calculateTrustScore(reputation, verification);
+  const trustLevel = getTrustLevel(trustScore);
+  const tenureBadge = getMemberTenureBadge(reputation.member_since);
 
-  const score = user.trust_score || 0;
-  const { label, color, bar } = trustLabel(score);
-  const responseRate = user.response_rate ?? 0;
-  const age = accountAge(user.created_date);
-  const hasAnyVerification = ["phone_verified", "email_verified", "trusted_seller", "verified_business", "recruiter_verified"].some(k => user[k]);
+  const scorePercentage = (trustScore / 100) * 100;
+
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2 p-2 bg-secondary/50 rounded-lg">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-semibold text-foreground">Trust Score</span>
+            <span className={`text-sm font-bold ${trustLevel.color}`}>{trustScore}/100</span>
+          </div>
+          <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+            <div
+              className={`h-full transition-all ${
+                trustScore >= 80 ? 'bg-emerald-600' :
+                trustScore >= 60 ? 'bg-blue-600' :
+                trustScore >= 40 ? 'bg-amber-600' :
+                'bg-red-600'
+              }`}
+              style={{ width: `${scorePercentage}%` }}
+            />
+          </div>
+        </div>
+        <VerificationBadge verification={verification} reputation={reputation} size="sm" />
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-card rounded-2xl border border-border/50 p-4 space-y-4">
-      <div className="flex items-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-primary" />
-        <span className="text-sm font-bold">Trust &amp; Verification</span>
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-1.5">
-          <span className={`text-xs font-bold ${color}`}>{label}</span>
-          <span className="text-xs font-extrabold text-foreground">{score}<span className="text-muted-foreground font-normal">/100</span></span>
-        </div>
-        <div className="h-2 bg-secondary rounded-full overflow-hidden">
-          <div className={`h-full rounded-full transition-all duration-700 ${bar}`} style={{ width: `${Math.min(score, 100)}%` }} />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-2">
-        <div className="flex flex-col items-center bg-secondary/60 rounded-xl py-2.5 px-1">
-          <Clock className="w-3.5 h-3.5 text-muted-foreground mb-1" />
-          <span className="text-xs font-bold">{age}</span>
-          <span className="text-[9px] text-muted-foreground mt-0.5">Account Age</span>
-        </div>
-        <div className="flex flex-col items-center bg-secondary/60 rounded-xl py-2.5 px-1">
-          <MessageSquare className="w-3.5 h-3.5 text-muted-foreground mb-1" />
-          <span className="text-xs font-bold">{responseRate}%</span>
-          <span className="text-[9px] text-muted-foreground mt-0.5">Response Rate</span>
-        </div>
-        <div className="flex flex-col items-center bg-secondary/60 rounded-xl py-2.5 px-1">
-          <TrendingUp className="w-3.5 h-3.5 text-muted-foreground mb-1" />
-          <span className="text-xs font-bold">{user.listing_count || 0}</span>
-          <span className="text-[9px] text-muted-foreground mt-0.5">Listings</span>
-        </div>
-      </div>
-
-      {hasAnyVerification ? (
+    <motion.div
+      className="bg-card border border-border/40 rounded-2xl p-4 space-y-3"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Verified Credentials</p>
-          <VerificationBadge user={user} />
+          <h3 className="text-sm font-bold text-foreground">Trust &amp; Safety</h3>
+          <p className={`text-xs font-semibold ${trustLevel.color}`}>{trustLevel.label}</p>
         </div>
-      ) : (
-        <div className="text-center py-2">
-          <p className="text-xs text-muted-foreground">No verifications yet</p>
-          <p className="text-[10px] text-muted-foreground/60 mt-0.5">Complete your profile to earn trust badges</p>
+        <VerificationBadge verification={verification} reputation={reputation} size="md" />
+      </div>
+
+      {/* Trust score bar */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-foreground">Trust Score</span>
+          <span className={`text-lg font-bold ${trustLevel.color}`}>{trustScore}</span>
+        </div>
+        <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+          <motion.div
+            className={`h-full transition-all ${
+              trustScore >= 80 ? 'bg-emerald-600 dark:bg-emerald-500' :
+              trustScore >= 60 ? 'bg-blue-600 dark:bg-blue-500' :
+              trustScore >= 40 ? 'bg-amber-600 dark:bg-amber-500' :
+              'bg-red-600 dark:bg-red-500'
+            }`}
+            initial={{ width: 0 }}
+            animate={{ width: `${scorePercentage}%` }}
+            transition={{ duration: 0.6 }}
+          />
+        </div>
+      </div>
+
+      {/* Quick stats */}
+      <div className="grid grid-cols-3 gap-2">
+        <div className="p-2 bg-secondary/50 rounded-lg text-center">
+          <p className="text-xs text-muted-foreground">Response</p>
+          <p className={`text-sm font-bold ${getResponseRateColor(reputation.response_rate || 0)}`}>
+            {Math.round(reputation.response_rate || 0)}%
+          </p>
+        </div>
+        <div className="p-2 bg-secondary/50 rounded-lg text-center">
+          <p className="text-xs text-muted-foreground">Transactions</p>
+          <p className="text-sm font-bold text-foreground">{reputation.total_transactions || 0}</p>
+        </div>
+        <div className="p-2 bg-secondary/50 rounded-lg text-center">
+          <p className="text-xs text-muted-foreground">Success</p>
+          <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+            {reputation.total_transactions ? Math.round((reputation.successful_sales / reputation.total_transactions) * 100) : 0}%
+          </p>
+        </div>
+      </div>
+
+      {/* Badges */}
+      {reputation.badges && reputation.badges.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-foreground">Earned Badges</p>
+          <div className="flex flex-wrap gap-1.5">
+            {reputation.badges.map(badge => {
+              const info = BADGE_INFO[badge];
+              return info ? (
+                <div
+                  key={badge}
+                  title={info.label}
+                  className="px-2 py-1 bg-secondary/60 rounded-full text-xs font-medium flex items-center gap-1"
+                >
+                  <span>{info.emoji}</span>
+                  <span className="text-foreground">{info.label}</span>
+                </div>
+              ) : null;
+            })}
+          </div>
         </div>
       )}
-    </div>
+
+      {/* Tenure */}
+      {tenureBadge && (
+        <div className="flex items-center gap-2 p-2 bg-secondary/40 rounded-lg">
+          <span className="text-lg">{tenureBadge.emoji}</span>
+          <span className="text-xs text-foreground">Member for {tenureBadge.label}</span>
+        </div>
+      )}
+
+      {/* Activity status */}
+      {reputation.is_active ? (
+        <div className="flex items-center gap-2 p-2 bg-emerald-100 dark:bg-emerald-950/30 rounded-lg">
+          <div className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+          <span className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">Active now</span>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 p-2 bg-secondary/40 rounded-lg">
+          <div className="w-2 h-2 rounded-full bg-slate-400" />
+          <span className="text-xs text-muted-foreground">
+            Last seen {reputation.last_activity ? new Date(reputation.last_activity).toLocaleDateString() : 'Unknown'}
+          </span>
+        </div>
+      )}
+
+      {/* Details toggle */}
+      <button
+        onClick={() => setShowDetails(!showDetails)}
+        className="w-full py-2 text-xs font-medium text-primary hover:underline"
+      >
+        {showDetails ? 'Hide' : 'Show'} Details
+      </button>
+
+      {/* Details */}
+      {showDetails && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="space-y-2 pt-2 border-t border-border/20"
+        >
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">Positive Feedback</span>
+            <span className="font-semibold text-emerald-600">{reputation.positive_feedback || 0}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">Negative Feedback</span>
+            <span className="font-semibold text-red-600">{reputation.negative_feedback || 0}</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">Avg Response Time</span>
+            <span className="font-semibold">{reputation.response_time_hours || 24}h</span>
+          </div>
+          <div className="flex justify-between text-xs">
+            <span className="text-muted-foreground">Member Since</span>
+            <span className="font-semibold">
+              {reputation.member_since ? new Date(reputation.member_since).toLocaleDateString() : 'Unknown'}
+            </span>
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
   );
 }
