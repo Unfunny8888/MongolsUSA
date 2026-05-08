@@ -23,6 +23,9 @@
     "content": {
       "type": "string"
     },
+    "image_url": {
+      "type": "string"
+    },
     "listing_id": {
       "type": "string"
     },
@@ -37,7 +40,6 @@
   "required": [
     "conversation_id",
     "from_user",
-    "to_user",
-    "content"
+    "to_user"
   ]
 }
