@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense, lazy } from "react";
 import { ArrowLeft, SlidersHorizontal, X, Map, LayoutGrid, Loader2, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,7 +10,7 @@ import { useQueryCache } from "../hooks/useQueryCache";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-const MapView = Suspense(() => import("../components/explore/MapView"));
+const MapView = lazy(() => import("../components/explore/MapView"));
 
 export default function Explore() {
   const navigate = useNavigate();
