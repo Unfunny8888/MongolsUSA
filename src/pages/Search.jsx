@@ -70,6 +70,7 @@ export default function Search() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState(null);
+  const [errorType, setErrorType] = useState(null);
   const [searchedQuery, setSearchedQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState(() => {
     try { return JSON.parse(localStorage.getItem("nomadlink_recent") || "[]"); } catch { return []; }
@@ -142,7 +143,9 @@ export default function Search() {
         `[${l.id}] ${l.title} - ${l.category} - ${l.location_city} - $${l.price || 0} - ${(l.description || "").slice(0, 80)}`
       ).join("\n");
 
-      const response = await base44.integrations.Core.InvokeLLM({
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000));
+      const response = await Promise.race([
+        base44.integrations.Core.InvokeLLM({
         prompt: `You are a search engine for a Mongolian community marketplace in the USA.
 The user searched: "${trimmed}"
 
@@ -158,7 +161,9 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
             matching_ids: { type: "array", items: { type: "string" } }
           }
         }
-      });
+      }),
+        timeoutPromise
+      ]);
 
       // Check if this request was superseded
       if (controller.signal.aborted) return;
@@ -170,15 +175,20 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
       if (aiMatched.length > 0) {
         setResults(aiMatched);
+        setErrorType(null);
       } else if (localMatches.length === 0) {
         setResults([]);
+        setErrorType(null);
       }
       // else keep local results shown
     } catch (err) {
       if (controller.signal.aborted) return; // silently discard aborted request
+      const isTimeout = err.message === 'timeout';
+      const isNetworkError = err.message?.includes('fetch') || err.message?.includes('network');
+      setErrorType(isTimeout ? 'timeout' : isNetworkError ? 'network' : 'ai_failed');
       // Fallback to local results on AI error
       if (localMatches.length === 0) {
-        setError("Search is unavailable right now. Showing local results.");
+        setError("Showing local results instead.");
         setResults(allListingsRef.current.slice(0, 10));
       }
     } finally {
@@ -360,6 +370,8 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-100 mb-4 text-xs text-amber-700">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   {error}
+                  {errorType === 'timeout' && ' (Request timed out)'}
+                  {errorType === 'network' && ' (Network issue)'}
                 </div>
               )}
 
@@ -368,14 +380,30 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
                 <SkeletonList count={4} />
               ) : results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4 text-3xl">🔍</div>
-                  <p className="text-sm font-semibold text-foreground">No results found</p>
-                  <p className="text-xs text-muted-foreground mt-1">Try different keywords or browse by category</p>
+                  {errorType === 'timeout' ? (
+                    <>
+                      <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4 text-3xl">⏱️</div>
+                      <p className="text-sm font-semibold text-foreground">Search timed out</p>
+                      <p className="text-xs text-muted-foreground mt-1">Your network is slow. Try again or use simpler keywords.</p>
+                    </>
+                  ) : errorType === 'network' ? (
+                    <>
+                      <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4 text-3xl">📡</div>
+                      <p className="text-sm font-semibold text-foreground">Network error</p>
+                      <p className="text-xs text-muted-foreground mt-1">Check your connection and try again.</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 rounded-2xl bg-secondary flex items-center justify-center mb-4 text-3xl">🔍</div>
+                      <p className="text-sm font-semibold text-foreground">No matching results found</p>
+                      <p className="text-xs text-muted-foreground mt-1">Try different keywords or browse by category</p>
+                    </>
+                  )}
                   <button
                     onClick={clearSearch}
                     className="mt-4 px-4 py-2 rounded-xl bg-primary text-white text-xs font-semibold"
                   >
-                    Clear Search
+                    {errorType ? 'Try again' : 'Clear search'}
                   </button>
                 </div>
               ) : (
