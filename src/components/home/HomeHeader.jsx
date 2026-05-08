@@ -28,7 +28,7 @@ export default function HomeHeader() {
         <div>
           <p className="text-sm text-muted-foreground mb-1">Өглөөний мөндөө 👋</p>
           <h1 className="text-4xl font-black text-foreground leading-tight">
-            Сайн уу, NomadLink
+            {user?.full_name || "NomadLink"}
           </h1>
           <div className="flex items-center gap-2 mt-2 text-sm">
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
