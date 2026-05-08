@@ -1,18 +1,26 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, Sparkles, Loader2, Bot } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Loader2, Bot, Mic } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES } from "../lib/mockData";
 
 const SUGGESTIONS = [
+  "Find CDL trucking jobs near Chicago",
+  "Cheap apartments under $1500",
+  "Mongolian restaurants nearby",
+  "Toyota Prius under $8,000",
+  "Cash jobs available today",
+  "2-bedroom furnished housing",
+];
+
+const _SUGGESTIONS_OLD = [
   "Find me a cheap apartment in Chicago",
   "Trucking jobs near me",
   "Best Mongolian restaurant",
   "Prius under $8,000",
   "Part-time jobs for students",
-  "2-bedroom furnished housing",
-];
+];  // end legacy
 
 function MessageBubble({ msg }) {
   const isUser = msg.role === "user";
@@ -51,6 +59,23 @@ function MessageBubble({ msg }) {
                   <p className="text-[10px] text-muted-foreground">
                     {l.price ? `$${l.price.toLocaleString()}` : "Contact"} {l.location_city ? `- ${l.location_city}` : ""}
                   </p>
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+        {msg.groups?.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {msg.groups.map((g) => (
+              <a
+                key={g.id}
+                href={`/group/${g.id}`}
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-secondary/50 hover:bg-secondary transition-smooth border border-border/50"
+              >
+                <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center text-xl shrink-0">👥</div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold truncate">{g.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{g.city} · {g.member_count} members</p>
                 </div>
               </a>
             ))}
@@ -103,11 +128,27 @@ export default function AIAssistant() {
     setMessages((prev) => [...prev, { role: "user", content: userText }]);
     setLoading(true);
 
-    const listingSummaries = MOCK_LISTINGS.map((l) =>
-      `[LISTING:${l.id}] ${l.title} - ${l.category} - ${l.location_city} - $${l.price || "contact"} - ${l.description?.slice(0, 80)}`
+    // Fetch real listings from DB + merge with mock
+    let allListings = [...MOCK_LISTINGS];
+    let allGroups = [...MOCK_GROUPS];
+    let allBiz = [...MOCK_BUSINESSES];
+    const [dbL, dbG, dbB] = await Promise.allSettled([
+      base44.entities.Listing.list("-created_date", 30),
+      base44.entities.Group.list("-member_count", 10),
+      base44.entities.Business.list("-rating", 10),
+    ]);
+    if (dbL.status === "fulfilled" && dbL.value.length > 0) allListings = [...dbL.value, ...allListings];
+    if (dbG.status === "fulfilled" && dbG.value.length > 0) allGroups = [...dbG.value, ...allGroups];
+    if (dbB.status === "fulfilled" && dbB.value.length > 0) allBiz = [...dbB.value, ...allBiz];
+
+    const listingSummaries = allListings.slice(0, 40).map((l) =>
+      `[LISTING:${l.id}] ${l.title} | ${l.category} | ${l.location_city || "?"} | $${l.price || "contact"} | ${l.description?.slice(0, 60)}`
     ).join("\n");
-    const businessSummaries = MOCK_BUSINESSES.map((b) =>
-      `[BUSINESS:${b.id}] ${b.name} - ${b.category} - ${b.city} - Rating: ${b.rating}`
+    const businessSummaries = allBiz.slice(0, 20).map((b) =>
+      `[BUSINESS:${b.id}] ${b.name} | ${b.category} | ${b.city} | Rating: ${b.rating}`
+    ).join("\n");
+    const groupSummaries = allGroups.slice(0, 10).map((g) =>
+      `[GROUP:${g.id}] ${g.name} | ${g.city} | ${g.member_count} members`
     ).join("\n");
 
     const history = messages
@@ -116,41 +157,61 @@ export default function AIAssistant() {
       .join("\n");
 
     const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are NomadLink's AI for the Mongolian diaspora in the USA.
-Help find listings, jobs, housing, cars, businesses, groups.
-Understand English, Mongolian Cyrillic, and transliterated Mongolian (mashin=car, bair=housing, ajil=job).
+      prompt: `You are NomadLink AI — a smart, friendly assistant for the Mongolian diaspora in the USA.
+You help users find: listings, jobs, housing, cars, businesses, groups, and events.
+Understand English, Mongolian Cyrillic, and transliterated Mongolian:
+- mashin / машин = car
+- bair / байр = apartment/housing
+- ajil / ажил = job
+- jaahan / жааан = a little / small
+- ukhaan / ухаан = smart
 
-History:
+Conversation history:
 ${history}
-User: ${userText}
 
-Available listings:
+User's latest message: "${userText}"
+
+Available listings (ID | title | category | city | price | description):
 ${listingSummaries}
 
 Available businesses:
 ${businessSummaries}
 
-Respond helpfully in English with occasional Mongolian phrases. Be friendly and specific. Keep under 120 words.
-List IDs of relevant items.`,
+Available groups:
+${groupSummaries}
+
+Instructions:
+- Detect user intent (find job, find car, find housing, find restaurant, find group, etc.)
+- Match relevant items from the data above
+- Respond in friendly English. Add 1-2 Mongolian words/phrases naturally.
+- Be specific: mention prices, locations, key details
+- Keep response under 140 words
+- Return IDs of best matches (max 4 listings, 2 businesses, 1 group)`,
       response_json_schema: {
         type: "object",
         properties: {
           message: { type: "string" },
           listing_ids: { type: "array", items: { type: "string" } },
           business_ids: { type: "array", items: { type: "string" } },
+          group_ids: { type: "array", items: { type: "string" } },
         },
       },
     });
 
     const matchedListings = (result.listing_ids || [])
-      .map((id) => MOCK_LISTINGS.find((l) => l.id === id))
+      .map((id) => allListings.find((l) => l.id === id))
       .filter(Boolean)
-      .slice(0, 3);
+      .slice(0, 4);
 
     const matchedBusinesses = (result.business_ids || [])
-      .map((id) => MOCK_BUSINESSES.find((b) => b.id === id))
+      .map((id) => allBiz.find((b) => b.id === id))
       .filter(Boolean)
       .slice(0, 2);
+
+    const matchedGroups = (result.group_ids || [])
+      .map((id) => allGroups.find((g) => g.id === id))
+      .filter(Boolean)
+      .slice(0, 1);
 
     setMessages((prev) => [
       ...prev,
@@ -159,13 +220,14 @@ List IDs of relevant items.`,
         content: result.message || "Let me help you with that!",
         listings: matchedListings,
         businesses: matchedBusinesses,
+        groups: matchedGroups,
       },
     ]);
     setLoading(false);
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col" style={{ height: '100dvh' }}>
       <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1">
           <ArrowLeft className="w-5 h-5" />
@@ -179,7 +241,7 @@ List IDs of relevant items.`,
         </div>
       </div>
 
-      <div className="flex-1 px-4 py-4 space-y-4 pb-36 overflow-y-auto">
+      <div className="flex-1 px-4 py-4 space-y-4 pb-4 overflow-y-auto overscroll-contain">
         {messages.map((msg, i) => (
           <MessageBubble key={i} msg={msg} />
         ))}
@@ -216,7 +278,7 @@ List IDs of relevant items.`,
         </div>
       )}
 
-      <div className="fixed bottom-0 left-0 right-0 glass border-t border-border/30 px-4 py-3 flex gap-3 items-center pb-[env(safe-area-inset-bottom)]">
+      <div className="glass border-t border-border/30 px-4 py-3 flex gap-3 items-center pb-[env(safe-area-inset-bottom)] shrink-0">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}

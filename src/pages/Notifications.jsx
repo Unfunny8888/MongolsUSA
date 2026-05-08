@@ -52,7 +52,7 @@ export default function Notifications() {
 
   if (!user && !loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
         <Bell className="w-16 h-16 text-muted-foreground/30 mb-4" />
         <h2 className="text-lg font-bold mb-2">Sign in to view notifications</h2>
         <button onClick={() => base44.auth.redirectToLogin()} className="px-6 py-2 bg-primary text-white rounded-xl text-sm font-semibold">Sign In</button>
@@ -61,7 +61,7 @@ export default function Notifications() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
       <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
         <h1 className="text-base font-bold flex-1">Notifications {unreadCount > 0 && `(${unreadCount})`}</h1>

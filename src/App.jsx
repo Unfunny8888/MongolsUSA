@@ -26,6 +26,7 @@ import SavedListings from './pages/SavedListings';
 import EditProfile from './pages/EditProfile';
 import MyListings from './pages/MyListings';
 import AIAssistant from './pages/AIAssistant';
+import SavedSearches from './pages/SavedSearches';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -74,6 +75,7 @@ const AuthenticatedApp = () => {
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/my-listings" element={<MyListings />} />
         <Route path="/ai-assistant" element={<AIAssistant />} />
+        <Route path="/saved-searches" element={<SavedSearches />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>

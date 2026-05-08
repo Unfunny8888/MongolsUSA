@@ -49,13 +49,26 @@ export default function Home() {
     checkOnboarding();
   }, []);
 
-  const featured = listings.filter((l) => l.is_featured);
-  const jobs = listings.filter((l) => l.category === "jobs");
-  const events = listings.filter((l) => l.category === "events");
-  const recent = listings.slice(0, 6);
+  // Smart feed ranking: featured > boosted > views > freshness
+  function scoreListings(items) {
+    const now = Date.now();
+    return [...items].sort((a, b) => {
+      const scoreA = (a.is_featured ? 100 : 0) + (a.is_boosted ? 50 : 0) + Math.min((a.views || 0) / 10, 20) +
+        Math.max(0, 10 - (now - new Date(a.created_date || 0).getTime()) / 86400000);
+      const scoreB = (b.is_featured ? 100 : 0) + (b.is_boosted ? 50 : 0) + Math.min((b.views || 0) / 10, 20) +
+        Math.max(0, 10 - (now - new Date(b.created_date || 0).getTime()) / 86400000);
+      return scoreB - scoreA;
+    });
+  }
+
+  const ranked = scoreListings(listings);
+  const featured = ranked.filter((l) => l.is_featured);
+  const jobs = ranked.filter((l) => l.category === "jobs");
+  const events = ranked.filter((l) => l.category === "events");
+  const recent = ranked.slice(0, 6);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-dvh">
       <HomeHeader />
       <SearchBar />
       <FeaturedBanner />
