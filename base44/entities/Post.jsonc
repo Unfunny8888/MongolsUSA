@@ -27,6 +27,51 @@
     "comment_count": {
       "type": "number",
       "default": 0
+    },
+    "repost_count": {
+      "type": "number",
+      "default": 0
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "post",
+        "announcement",
+        "poll"
+      ],
+      "default": "post"
+    },
+    "reactions": {
+      "type": "object",
+      "description": "Map of emoji -> count, e.g. {fire: 3, heart: 5}"
+    },
+    "reposted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of user emails who reposted"
+    },
+    "poll_question": {
+      "type": "string"
+    },
+    "poll_options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "poll_votes": {
+      "type": "object",
+      "description": "Map of option -> list of voter emails"
+    },
+    "poll_ends_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

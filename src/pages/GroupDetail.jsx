@@ -1,15 +1,26 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Shield, MessageSquare, Send } from "lucide-react";
+import { ArrowLeft, Users, Shield, MessageSquare, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import TranslateButton from "../components/common/TranslateButton";
+import PostReactions from "../components/community/PostReactions";
+import PollCard from "../components/community/PollCard";
+import AnnouncementBanner from "../components/community/AnnouncementBanner";
+import CreatePostModal from "../components/community/CreatePostModal";
 import { MOCK_GROUPS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 
-function PostCard({ text, name, time, avatar }) {
+function PostCard({ post, userEmail, onUpdate }) {
   const [translated, setTranslated] = useState(null);
+  const text = post.content;
+  const name = post.author_name || "Member";
+  const time = post.created_date ? new Date(post.created_date).toLocaleDateString() : "";
+  const avatar = post.author_avatar || "👤";
+
+  if (post.type === "announcement") return <AnnouncementBanner post={post} />;
+
   return (
     <div className="p-3 rounded-xl bg-secondary/50">
       <div className="flex items-center justify-between mb-2">
@@ -23,6 +34,8 @@ function PostCard({ text, name, time, avatar }) {
         {text && <TranslateButton text={text} onTranslated={setTranslated} />}
       </div>
       <p className="text-xs text-muted-foreground leading-relaxed">{translated || text}</p>
+      {post.type === "poll" && <PollCard post={post} userEmail={userEmail} onUpdate={onUpdate} />}
+      <PostReactions post={post} userEmail={userEmail} onUpdate={onUpdate} />
     </div>
   );
 }
@@ -33,7 +46,6 @@ export default function GroupDetail() {
   const [group, setGroup] = useState(null);
   const [joined, setJoined] = useState(false);
   const [posts, setPosts] = useState([]);
-  const [postText, setPostText] = useState("");
   const [user, setUser] = useState(null);
   const [posting, setPosting] = useState(false);
   const [translatedDesc, setTranslatedDesc] = useState(null);
@@ -115,56 +127,57 @@ export default function GroupDetail() {
 
           {/* Posts */}
           <div className="mt-6 pt-5 border-t border-border space-y-4">
+            {/* Trending indicator */}
+            {posts.filter(p => (p.like_count || 0) + (p.repost_count || 0) > 3).length > 0 && (
+              <div className="flex items-center gap-1.5 text-xs text-orange-500 font-semibold">
+                <TrendingUp className="w-3.5 h-3.5" /> Trending discussions
+              </div>
+            )}
+
             <h3 className="text-sm font-bold flex items-center gap-1.5">
               <MessageSquare className="w-4 h-4 text-primary" />
               Community Posts
             </h3>
 
             {user && joined && (
-              <div className="flex gap-2">
-                <input
-                  value={postText}
-                  onChange={e => setPostText(e.target.value)}
-                  placeholder="Share something with the community..."
-                  className="flex-1 bg-secondary/70 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-                />
-                <button
-                  onClick={async () => {
-                    if (!postText.trim() || posting) return;
-                    setPosting(true);
-                    const p = await base44.entities.Post.create({
-                      group_id: group.id,
-                      author_name: user.full_name,
-                      author_email: user.email,
-                      content: postText.trim(),
-                    });
-                    setPosts(prev => [p, ...prev]);
-                    setPostText("");
-                    setPosting(false);
-                  }}
-                  disabled={!postText.trim() || posting}
-                  className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center disabled:opacity-40"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
+              <CreatePostModal
+                posting={posting}
+                onSubmit={async (data) => {
+                  if (posting) return;
+                  setPosting(true);
+                  const p = await base44.entities.Post.create({
+                    group_id: group.id,
+                    author_name: user.full_name,
+                    author_email: user.email,
+                    reactions: {},
+                    reposted_by: [],
+                    ...data,
+                  });
+                  setPosts(prev => [p, ...prev]);
+                  setPosting(false);
+                }}
+              />
             )}
+
+            {/* Pinned announcements first */}
+            {posts.filter(p => p.is_pinned).map(post => (
+              <PostCard key={post.id} post={post} userEmail={user?.email} onUpdate={updated => setPosts(prev => prev.map(p => p.id === updated.id ? updated : p))} />
+            ))}
 
             {posts.length === 0 ? (
               [
-                { text: "Anyone know a good Mongolian restaurant? Looking for authentic buuz. 🥟", avatar: "👨" },
-                { text: "Sharing my experience getting a driver's license here! Happy to help 🚗", avatar: "👩" },
-                { text: "Community BBQ this weekend! Everyone welcome. Бүгдийг урьж байна! 🎉", avatar: "🧑" },
+                { content: "Community BBQ this weekend! Everyone welcome. Бүгдийг урьж байна! 🎉", author_name: "Community Member", type: "announcement", author_avatar: "🧑" },
+                { content: "Anyone know a good Mongolian restaurant? Looking for authentic buuz. 🥟", author_name: "Community Member", type: "post", author_avatar: "👨", reactions: { "❤️": 3, "🔥": 1 } },
+                { content: "What's your favorite part of living here?", author_name: "Community Member", type: "poll", author_avatar: "👩", poll_question: "What\'s your favorite part of living here?", poll_options: ["People", "Opportunities", "Culture", "Weather"], poll_votes: {} },
               ].map((item, i) => (
-                <PostCard key={i} text={item.text} name="Community Member" time={`${i + 1}h ago`} avatar={item.avatar} />
+                <PostCard key={i} post={{ ...item, id: `mock-${i}` }} userEmail={user?.email} onUpdate={() => {}} />
               ))
-            ) : posts.map((post) => (
+            ) : posts.filter(p => !p.is_pinned).map(post => (
               <PostCard
                 key={post.id}
-                text={post.content}
-                name={post.author_name || "Member"}
-                time={new Date(post.created_date).toLocaleDateString()}
-                avatar="👤"
+                post={post}
+                userEmail={user?.email}
+                onUpdate={updated => setPosts(prev => prev.map(p => p.id === updated.id ? updated : p))}
               />
             ))}
           </div>
