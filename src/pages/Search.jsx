@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { ArrowLeft, Search as SearchIcon, X, TrendingUp, Clock, Sparkles, Loader2, AlertCircle, SlidersHorizontal, MapPin } from "lucide-react";
+import { ArrowLeft, Search as SearchIcon, X, TrendingUp, Clock, Sparkles, Loader2, AlertCircle, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ListingCard from "../components/cards/ListingCard";
@@ -323,26 +323,6 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
               : <Sparkles className="w-4 h-4 text-white" />
             }
           </button>
-        </div>
-
-        {/* Filter Button */}
-        <div className="flex gap-2 mt-3">
-          <button
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium bg-secondary/70 text-foreground hover:bg-secondary transition-smooth whitespace-nowrap"
-            title="Open filters"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-            Filters
-          </button>
-          {selectedCategory && (
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium bg-primary text-white hover:bg-primary/90 transition-smooth whitespace-nowrap"
-            >
-              {CATEGORIES.find(c => c.id === selectedCategory)?.icon} {CATEGORIES.find(c => c.id === selectedCategory)?.label}
-              <X className="w-3 h-3" />
-            </button>
-          )}
         </div>
       </div>
 
