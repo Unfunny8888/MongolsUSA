@@ -1,6 +1,8 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import BottomNav from "./BottomNav";
+import PageTransition from "./PageTransition";
 
 
 
@@ -14,12 +16,17 @@ function registerSW() {
 }
 
 export default function AppLayout() {
+  const location = useLocation();
   useEffect(() => { registerSW(); }, []);
 
   return (
     <div className="app-container bg-background">
       <main className="pb-24 max-w-lg mx-auto">
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <PageTransition key={location.pathname}>
+            <Outlet />
+          </PageTransition>
+        </AnimatePresence>
       </main>
       <BottomNav />
     </div>

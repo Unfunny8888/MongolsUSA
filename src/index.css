@@ -185,6 +185,15 @@ button, a, [role="button"] {
   -ms-user-select: none;
 }
 
+/* Haptic feedback for primary actions */
+button[class*="primary"],
+[role="button"][class*="primary"],
+button:not([disabled]):active,
+[role="button"]:not([disabled]):active {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 /* Enable text selection on content */
 article, [class*="card"], [class*="listing"], p:not([class*="button"]), span:not([class*="button"]), div[class*="description"], div[class*="content"], div[class*="text"] {
   user-select: text;

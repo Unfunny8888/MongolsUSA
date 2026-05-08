@@ -46,7 +46,7 @@ export default function BottomNav() {
                 haptic();
                 handleNavClick(item.path);
               }}
-              className="relative flex flex-col items-center gap-0.5 py-2 px-3 cursor-pointer"
+              className="relative flex flex-col items-center gap-0.5 py-2 px-3 cursor-pointer touch-action-manipulation"
             >
               {isCreate ? (
                 <div className="relative -top-3 bg-gradient-to-br from-primary to-emerald-600 rounded-2xl p-3 shadow-lg shadow-primary/30">
