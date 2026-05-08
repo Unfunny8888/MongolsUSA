@@ -91,16 +91,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1"><ArrowLeft className="w-5 h-5" /></button>
-        <Shield className="w-4 h-4 text-primary" />
-        <h1 className="text-base font-bold flex-1">Admin Dashboard</h1>
-        {(pendingMod + pendingReports) > 0 && (
-          <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-            {pendingMod + pendingReports} pending
-          </span>
-        )}
-      </div>
+
 
       {/* Tabs */}
       <div className="flex border-b border-border/30 px-2 overflow-x-auto no-scrollbar">
