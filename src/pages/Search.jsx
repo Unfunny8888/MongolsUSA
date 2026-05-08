@@ -3,8 +3,24 @@ import { ArrowLeft, Search as SearchIcon, Mic, X, TrendingUp, Clock, Sparkles, L
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
+
+function InfiniteResults({ results }) {
+  const { visible, sentinelRef, hasMore } = useInfiniteScroll(results, 15);
+  return (
+    <div className="space-y-3">
+      {visible.map((l, i) => <ListingCard key={l.id} listing={l} index={i} />)}
+      {hasMore && (
+        <div ref={sentinelRef} className="flex justify-center py-4">
+          <div className="w-6 h-6 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+        </div>
+      )}
+    </div>
+  );
+}
 import ListingCard from "../components/cards/ListingCard";
 import { MOCK_LISTINGS, TRENDING_SEARCHES } from "../lib/mockData";
+import { useQueryCache } from "../hooks/useQueryCache";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 
 export default function Search() {
   const [query, setQuery] = useState("");
@@ -17,6 +33,16 @@ export default function Search() {
   });
   const inputRef = useRef(null);
   const navigate = useNavigate();
+  const cache = useQueryCache(120000);
+  const [allListings, setAllListings] = useState(MOCK_LISTINGS);
+
+  useEffect(() => {
+    const cached = cache.get("search_listings");
+    if (cached) { setAllListings(cached); return; }
+    base44.entities.Listing.filter({ status: "active" }, "-created_date", 300).then(data => {
+      if (data && data.length > 0) { setAllListings(data); cache.set("search_listings", data); }
+    });
+  }, []);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -35,8 +61,7 @@ export default function Search() {
     localStorage.setItem("nomadlink_recent", JSON.stringify(updated));
 
     // AI search using InvokeLLM
-    const allListings = MOCK_LISTINGS;
-    const listingSummaries = allListings.map((l) =>
+    const listingSummaries = allListings.slice(0, 150).map((l) =>
       `[${l.id}] ${l.title} - ${l.category} - ${l.location_city} - $${l.price} - ${l.description?.slice(0, 100)}`
     ).join("\n");
 
@@ -65,8 +90,18 @@ Return the IDs of relevant listings ranked by relevance. Return ALL listings tha
     });
 
     const matchedIds = response.matching_ids || [];
-    const matched = matchedIds.map((id) => allListings.find((l) => l.id === id)).filter(Boolean);
-    setResults(matched.length > 0 ? matched : allListings.slice(0, 3));
+    let matched = matchedIds.map((id) => allListings.find((l) => l.id === id)).filter(Boolean);
+    // Fallback: simple keyword filter on all listings
+    if (matched.length === 0) {
+      const qLower = q.toLowerCase();
+      matched = allListings.filter(l =>
+        (l.title || "").toLowerCase().includes(qLower) ||
+        (l.description || "").toLowerCase().includes(qLower) ||
+        (l.category || "").toLowerCase().includes(qLower) ||
+        (l.location_city || "").toLowerCase().includes(qLower)
+      ).slice(0, 20);
+    }
+    setResults(matched.length > 0 ? matched : allListings.slice(0, 5));
     setLoading(false);
   }
 
@@ -185,11 +220,7 @@ Return the IDs of relevant listings ranked by relevance. Return ALL listings tha
                   <p className="text-xs text-muted-foreground mb-4">
                     {results.length} results for "{query}"
                   </p>
-                  <div className="space-y-3">
-                    {results.map((l, i) => (
-                      <ListingCard key={l.id} listing={l} index={i} />
-                    ))}
-                  </div>
+                  <InfiniteResults results={results} />
                 </>
               )}
             </motion.div>

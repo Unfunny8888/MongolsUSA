@@ -1,10 +1,13 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { ArrowLeft, SlidersHorizontal, X, Map, LayoutGrid } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ListingCard from "../components/cards/ListingCard";
 import CategoryChip from "../components/cards/CategoryChip";
 import { MOCK_LISTINGS, CATEGORIES, CITIES } from "../lib/mockData";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import { useQueryCache } from "../hooks/useQueryCache";
+import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 const MapView = lazy(() => import("../components/explore/MapView"));
@@ -22,8 +25,19 @@ export default function Explore() {
   const [priceMax, setPriceMax] = useState("");
   const [dateFilter, setDateFilter] = useState(""); // today | week | month
   const [viewMode, setViewMode] = useState("grid"); // grid | map
+  const [allListings, setAllListings] = useState(MOCK_LISTINGS);
+  const cache = useQueryCache();
 
-  const filtered = MOCK_LISTINGS.filter((l) => {
+  useEffect(() => {
+    const cacheKey = "explore_listings";
+    const cached = cache.get(cacheKey);
+    if (cached) { setAllListings(cached); return; }
+    base44.entities.Listing.filter({ status: "active" }, "-created_date", 200).then(data => {
+      if (data && data.length > 0) { setAllListings(data); cache.set(cacheKey, data); }
+    });
+  }, []);
+
+  const filtered = allListings.filter((l) => {
     if (category && l.category !== category) return false;
     if (city && l.location_city !== city) return false;
     if (initFeatured && !l.is_featured) return false;
@@ -40,6 +54,7 @@ export default function Explore() {
     return true;
   });
 
+  const { visible, sentinelRef, hasMore } = useInfiniteScroll(filtered, 15);
   const activeFilters = [category, city, priceMin || priceMax, dateFilter].filter(Boolean).length;
 
   return (
@@ -181,9 +196,14 @@ export default function Explore() {
           </Suspense>
         ) : (
           <div className="space-y-3">
-            {filtered.map((l, i) => (
+            {visible.map((l, i) => (
               <ListingCard key={l.id} listing={l} index={i} />
             ))}
+            {hasMore && (
+              <div ref={sentinelRef} className="flex justify-center py-6">
+                <div className="w-6 h-6 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              </div>
+            )}
           </div>
         )}
         {filtered.length === 0 && viewMode === "grid" && (
