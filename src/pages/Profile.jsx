@@ -80,7 +80,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="bg-gradient-to-br from-primary via-emerald-700 to-teal-800 px-4 pt-8 pb-16 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary via-emerald-700 to-teal-800 px-4 pt-6 pb-12 relative overflow-hidden" style={{ paddingTop: 'max(24px, env(safe-area-inset-top))' }}>
         <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -translate-y-12 translate-x-12" />
         <div className="absolute bottom-0 left-0 w-36 h-36 bg-white/5 rounded-full translate-y-10 -translate-x-10" />
         <div className="relative z-10">
@@ -108,7 +108,7 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="px-4 -mt-8 mb-4">
+      <div className="px-4 -mt-6 mb-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
