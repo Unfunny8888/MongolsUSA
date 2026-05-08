@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import TranslateButton from "../components/common/TranslateButton";
+import LikeButton from "../components/common/LikeButton";
 import PostReactions from "../components/community/PostReactions";
 import PollCard from "../components/community/PollCard";
 import AnnouncementBanner from "../components/community/AnnouncementBanner";
@@ -35,6 +36,9 @@ function PostCard({ post, userEmail, onUpdate }) {
       </div>
       <p className="text-xs text-muted-foreground leading-relaxed">{translated || text}</p>
       {post.type === "poll" && <PollCard post={post} userEmail={userEmail} onUpdate={onUpdate} />}
+      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-border/30">
+        <LikeButton postId={post.id} initialLikes={post.like_count || 0} userEmail={userEmail} />
+      </div>
       <PostReactions post={post} userEmail={userEmail} onUpdate={onUpdate} />
     </div>
   );
