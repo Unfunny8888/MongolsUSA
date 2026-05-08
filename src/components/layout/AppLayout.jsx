@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
-import { AnimatePresence } from "framer-motion";
 import BottomNav from "./BottomNav";
 import MobileHeader from "./MobileHeader";
 import PageTransition from "./PageTransition";
@@ -53,11 +52,9 @@ export default function AppLayout() {
     <div className="app-container bg-background">
       <MobileHeader ref={headerRef} />
       <main ref={mainRef} className={`pb-24 max-w-lg mx-auto overflow-y-auto h-dvh ${location.pathname === '/search' ? '' : 'pt-[calc(4rem+1rem)]'}`} data-scrollable="true">
-        <AnimatePresence mode="wait">
-          <PageTransition key={location.pathname}>
-            <Outlet />
-          </PageTransition>
-        </AnimatePresence>
+        <PageTransition key={location.pathname}>
+          <Outlet />
+        </PageTransition>
       </main>
       <BottomNav />
     </div>
