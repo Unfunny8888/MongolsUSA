@@ -230,7 +230,7 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
   return (
     <div className="min-h-screen flex flex-col">
       {/* Search Header */}
-      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm">
+      <div className="glass fixed top-0 left-0 right-0 z-40 border-b border-border/30 px-4 py-3 shadow-sm" style={{ paddingTop: 'max(12px, env(safe-area-inset-top))', paddingBottom: '12px' }}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-1 shrink-0">
             <ArrowLeft className="w-5 h-5 text-foreground" />
@@ -271,8 +271,9 @@ Return the IDs of relevant listings ranked by relevance. Cast a wide net.`,
 
       {/* Body */}
       <div
-        className="flex-1 px-4 py-4 overflow-y-auto"
+        className="flex-1 px-4 py-4 overflow-y-auto mt-20"
         onScroll={() => dismissKeyboard(inputRef)}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <AnimatePresence mode="wait">
           {!searched ? (
