@@ -10,6 +10,7 @@ import { useQueryCache } from "../hooks/useQueryCache";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import MapViewErrorBoundary from "../components/explore/MapViewErrorBoundary";
 const MapView = lazy(() => import("../components/explore/MapView"));
 
 export default function Explore() {
@@ -272,9 +273,11 @@ export default function Explore() {
       <div className="px-4 py-4">
         <p className="text-xs text-muted-foreground mb-4">{filtered.length} listings</p>
         {viewMode === "map" ? (
-          <Suspense fallback={<div className="h-[60vh] bg-secondary/50 rounded-2xl flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>}>
-            <MapView listings={filtered} />
-          </Suspense>
+          <MapViewErrorBoundary>
+            <Suspense fallback={<div className="h-[60vh] bg-secondary/50 rounded-2xl flex items-center justify-center"><div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" /></div>}>
+              <MapView listings={filtered} />
+            </Suspense>
+          </MapViewErrorBoundary>
         ) : (
           <div className="space-y-3">
             {visible.map((l, i) => (
