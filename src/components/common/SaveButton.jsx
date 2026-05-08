@@ -1,57 +1,47 @@
-import { useState, useEffect } from "react";
-import { Heart } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { Heart } from 'lucide-react';
+import { useOptimisticUpdate } from '@/hooks/useOptimisticUpdate';
+import { base44 } from '@/api/base44Client';
+import { useEffect, useState } from 'react';
 
-export default function SaveButton({ listing, className = "" }) {
-  const [saved, setSaved] = useState(false);
-  const [saveId, setSaveId] = useState(null);
-  const [loading, setLoading] = useState(false);
+/**
+ * SaveButton - Heart icon with optimistic save/unsave
+ * Toggles instantly on tap, syncs with backend
+ */
+export default function SaveButton({ listingId, initialSaved = false }) {
+  const [isSaved, setIsSaved] = useState(initialSaved);
 
-  useEffect(() => {
-    async function check() {
-      const authed = await base44.auth.isAuthenticated();
-      if (!authed) return;
-      const me = await base44.auth.me();
-      const existing = await base44.entities.SavedListing.filter({ user_email: me.email, listing_id: listing.id }, "-created_date", 1);
-      if (existing.length > 0) { setSaved(true); setSaveId(existing[0].id); }
-    }
-    check();
-  }, [listing.id]);
-
-  async function toggle(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const authed = await base44.auth.isAuthenticated();
-    if (!authed) { base44.auth.redirectToLogin(); return; }
-    setLoading(true);
-    if (saved) {
-      await base44.entities.SavedListing.delete(saveId);
-      setSaved(false);
-      setSaveId(null);
-    } else {
-      const me = await base44.auth.me();
-      const item = await base44.entities.SavedListing.create({
-        user_email: me.email,
-        listing_id: listing.id,
-        listing_title: listing.title,
-        listing_image: listing.images?.[0],
-        listing_price: listing.price,
-        listing_category: listing.category,
-        listing_city: listing.location_city,
+  const { value: saved, toggle } = useOptimisticUpdate(isSaved, async (newState) => {
+    if (newState) {
+      await base44.entities.SavedListing.create({
+        listing_id: listingId,
+        listing_title: '',
+        listing_image: '',
+        listing_price: 0,
+        listing_category: '',
+        listing_city: '',
       });
-      setSaved(true);
-      setSaveId(item.id);
+    } else {
+      const saves = await base44.entities.SavedListing.filter({ listing_id: listingId });
+      if (saves[0]) {
+        await base44.entities.SavedListing.delete(saves[0].id);
+      }
     }
-    setLoading(false);
-  }
+    setIsSaved(newState);
+  });
 
   return (
     <button
-      onClick={toggle}
-      disabled={loading}
-      className={`transition-smooth ${className}`}
+      onClick={(e) => {
+        e.preventDefault();
+        toggle();
+      }}
+      className="p-2 rounded-full hover:bg-secondary transition-smooth"
     >
-      <Heart className={`w-5 h-5 transition-smooth ${saved ? "fill-red-500 text-red-500" : "text-foreground"}`} />
+      <Heart
+        className={`w-5 h-5 transition-colors ${
+          saved ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+        }`}
+      />
     </button>
   );
 }

@@ -2,6 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import BottomNav from "./BottomNav";
+import MobileHeader from "./MobileHeader";
 import PageTransition from "./PageTransition";
 
 
@@ -21,6 +22,7 @@ export default function AppLayout() {
 
   return (
     <div className="app-container bg-background">
+      <MobileHeader />
       <main className="pb-24 max-w-lg mx-auto">
         <AnimatePresence mode="wait">
           <PageTransition key={location.pathname}>
