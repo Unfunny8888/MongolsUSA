@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import HomeHeader from "../components/home/HomeHeader";
-import SearchBar from "../components/home/SearchBar";
 import FeaturedBanner from "../components/home/FeaturedBanner";
 import SectionHeader from "../components/home/SectionHeader";
 import CategoryChip from "../components/cards/CategoryChip";
@@ -52,7 +51,6 @@ export default function Home() {
   return (
     <div className="min-h-dvh">
       <HomeHeader />
-      <SearchBar />
       <FeaturedBanner />
 
       {/* Categories */}
