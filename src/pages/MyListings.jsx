@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Plus, Eye, Heart, Zap, Star, BarChart2, Pencil, Trash2 } from "lucide-react";
+import { Plus, Eye, Heart, Zap, Star, BarChart2, Trash2, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import BoostModal from "../components/common/BoostModal";
+import EmptyState from "../components/common/EmptyState";
 import { base44 } from "@/api/base44Client";
 
 const STATUS_COLOR = {
@@ -75,12 +76,13 @@ export default function MyListings() {
           <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       ) : listings.length === 0 ? (
-        <div className="text-center py-20 px-6">
-          <BarChart2 className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-          <p className="text-base font-semibold mb-1">No listings yet</p>
-          <p className="text-sm text-muted-foreground mb-6">Start selling — post your first listing!</p>
-          <button onClick={() => navigate("/create")} className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-bold">+ Post Listing</button>
-        </div>
+        <EmptyState
+          icon={Tag}
+          title="No listings yet"
+          description="Post your first listing and reach thousands of buyers in your community."
+          action={{ label: "Post a Listing", onClick: () => navigate("/create") }}
+          className="min-h-[60vh]"
+        />
       ) : (
         <div className="px-4 space-y-3">
           {listings.map((listing, i) => (

@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Heart, Trash2, MapPin } from "lucide-react";
+import { Heart, Trash2, MapPin, Bookmark, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
+import EmptyState from "../components/common/EmptyState";
 
 function formatPrice(item) {
   if (!item.listing_price) return "Contact";
@@ -35,11 +36,13 @@ export default function SavedListings() {
 
   if (!user && !loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <Heart className="w-16 h-16 text-muted-foreground/30 mb-4" />
-        <h2 className="text-lg font-bold mb-2">Sign in to view saved listings</h2>
-        <button onClick={() => base44.auth.redirectToLogin()} className="px-6 py-2 bg-primary text-white rounded-xl text-sm font-semibold">Sign In</button>
-      </div>
+      <EmptyState
+        icon={User}
+        title="Sign in to view saved listings"
+        description="Save listings you love and find them here anytime."
+        action={{ label: "Sign In", onClick: () => base44.auth.redirectToLogin() }}
+        className="min-h-[60vh]"
+      />
     );
   }
 
@@ -52,12 +55,14 @@ export default function SavedListings() {
           <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       ) : saved.length === 0 ? (
-        <div className="text-center py-20 px-6">
-          <Heart className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-          <p className="text-base font-semibold mb-1">No saved listings yet</p>
-          <p className="text-sm text-muted-foreground mb-6">Tap the heart on any listing to save it here.</p>
-          <button onClick={() => navigate("/explore")} className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-semibold">Browse Listings</button>
-        </div>
+        <EmptyState
+          icon={Bookmark}
+          title="Nothing saved yet"
+          description="Tap the heart on any listing to save it here for later."
+          action={{ label: "Browse Listings", onClick: () => navigate("/explore") }}
+          secondaryAction={{ label: "Explore communities", onClick: () => navigate("/groups") }}
+          className="min-h-[60vh]"
+        />
       ) : (
         <div className="px-4 py-4 space-y-3">
           <AnimatePresence>

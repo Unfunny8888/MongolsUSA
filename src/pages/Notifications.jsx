@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, MessageSquare, Eye, Heart, Users, Star, CheckCheck, Search, Sparkles, MapPin, Bookmark, Zap } from "lucide-react";
+import { Bell, MessageSquare, Eye, Heart, Users, Star, Search, Sparkles, MapPin, Zap, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
+import EmptyState from "../components/common/EmptyState";
 
 const TYPE_CONFIG = {
   message: { icon: MessageSquare, color: "bg-blue-100 text-blue-600" },
@@ -87,11 +88,13 @@ export default function Notifications() {
 
   if (!user && !loading) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
-        <Bell className="w-16 h-16 text-muted-foreground/30 mb-4" />
-        <h2 className="text-lg font-bold mb-2">Sign in to view notifications</h2>
-        <button onClick={() => base44.auth.redirectToLogin()} className="px-6 py-2 bg-primary text-white rounded-xl text-sm font-semibold">Sign In</button>
-      </div>
+      <EmptyState
+        icon={User}
+        title="Sign in for notifications"
+        description="Stay updated on your listings, messages, and community activity."
+        action={{ label: "Sign In", onClick: () => base44.auth.redirectToLogin() }}
+        className="min-h-[60vh]"
+      />
     );
   }
 
@@ -118,16 +121,20 @@ export default function Notifications() {
           <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       ) : notifications.length === 0 ? (
-        <div className="text-center py-20 px-6">
-          <Bell className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-          <p className="text-base font-semibold mb-1">No notifications yet</p>
-          <p className="text-sm text-muted-foreground">You'll see activity on your listings and account here.</p>
-        </div>
+        <EmptyState
+          icon={Bell}
+          title="All caught up"
+          description="You'll see activity on your listings, messages, and account here."
+          className="min-h-[50vh]"
+        />
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 px-6">
-          <Bell className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">No notifications in this category</p>
-        </div>
+        <EmptyState
+          icon={Bell}
+          title="Nothing here"
+          description="No notifications in this category yet."
+          secondaryAction={{ label: "Show all", onClick: () => setFilter("all") }}
+          className="min-h-[40vh]"
+        />
       ) : (
         <div className="divide-y divide-border/30">
           {filtered.map((notif, i) => {

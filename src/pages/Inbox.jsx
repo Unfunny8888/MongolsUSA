@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, MessageSquare } from "lucide-react";
+import { MessageSquare, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
+import EmptyState from "../components/common/EmptyState";
 
 function timeAgo(dateStr) {
   if (!dateStr) return "";
@@ -47,11 +48,13 @@ export default function Inbox() {
 
   if (!user) {
     return (
-      <div className="min-h-dvh flex flex-col items-center justify-center px-6 text-center">
-        <MessageSquare className="w-16 h-16 text-muted-foreground/30 mb-4" />
-        <h2 className="text-lg font-bold mb-2">Sign in to view messages</h2>
-        <button onClick={() => base44.auth.redirectToLogin()} className="px-6 py-2 bg-primary text-white rounded-xl text-sm font-semibold">Sign In</button>
-      </div>
+      <EmptyState
+        icon={User}
+        title="Sign in to view messages"
+        description="Connect with buyers and sellers in the community."
+        action={{ label: "Sign In", onClick: () => base44.auth.redirectToLogin() }}
+        className="min-h-[60vh]"
+      />
     );
   }
 
@@ -64,11 +67,13 @@ export default function Inbox() {
           <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
         </div>
       ) : conversations.length === 0 ? (
-        <div className="text-center py-20 px-6">
-          <MessageSquare className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
-          <p className="text-base font-semibold mb-1">No messages yet</p>
-          <p className="text-sm text-muted-foreground">When you contact a seller or receive a message, it will appear here.</p>
-        </div>
+        <EmptyState
+          icon={MessageSquare}
+          title="No messages yet"
+          description="When you contact a seller or receive a message, it will appear here."
+          action={{ label: "Browse Listings", onClick: () => navigate("/explore") }}
+          className="min-h-[60vh]"
+        />
       ) : (
         <div className="divide-y divide-border/50">
           {conversations.map((conv, i) => {
