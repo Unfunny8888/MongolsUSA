@@ -61,8 +61,8 @@ function ListingCard({ listing, index = 0, locationRelevance, userCity }) {
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
-        className="bg-card rounded-2xl border border-border/40 overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 cursor-pointer active:scale-[0.98]"
-        style={{ willChange: 'transform, box-shadow', transform: 'translateZ(0)' }}
+        className="bg-card rounded-2xl border border-border/30 overflow-hidden shadow-sm active:shadow-none transition-all duration-200 cursor-pointer active:scale-[0.985]"
+        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
       >
         {/* Image section */}
         <div className="relative w-full bg-secondary/50" style={{ aspectRatio: '4/3' }}>
@@ -95,7 +95,7 @@ function ListingCard({ listing, index = 0, locationRelevance, userCity }) {
         </div>
 
         {/* Content section */}
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-2.5">
           {/* Seller info & location */}
           <div className="flex items-center gap-3">
             <img
@@ -117,7 +117,7 @@ function ListingCard({ listing, index = 0, locationRelevance, userCity }) {
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-bold leading-tight line-clamp-2 text-foreground">
+          <h3 className="text-[15px] font-bold leading-snug line-clamp-2 text-foreground">
             {listing.title}
           </h3>
 
@@ -142,17 +142,17 @@ function ListingCard({ listing, index = 0, locationRelevance, userCity }) {
           )}
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2 pt-3 border-t border-border/20">
-            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-all duration-250 active:scale-95 active:shadow-inner text-sm font-medium">
-              <Heart className="w-4 h-4" />
+          <div className="flex items-center gap-1.5 pt-2.5 border-t border-border/20">
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/40 active:bg-secondary/80 transition-colors duration-150 text-xs font-semibold text-muted-foreground active:scale-95">
+              <Heart className="w-3.5 h-3.5" strokeWidth={2} />
               Save
             </button>
-            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-all duration-250 active:scale-95 active:shadow-inner text-sm font-medium">
-              <MessageCircle className="w-4 h-4" />
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/40 active:bg-secondary/80 transition-colors duration-150 text-xs font-semibold text-muted-foreground active:scale-95">
+              <MessageCircle className="w-3.5 h-3.5" strokeWidth={2} />
               Message
             </button>
-            <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg bg-secondary/50 hover:bg-secondary/70 transition-all duration-250 active:scale-95 active:shadow-inner text-sm font-medium">
-              <Share2 className="w-4 h-4" />
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/40 active:bg-secondary/80 transition-colors duration-150 text-xs font-semibold text-muted-foreground active:scale-95">
+              <Share2 className="w-3.5 h-3.5" strokeWidth={2} />
               Share
             </button>
           </div>

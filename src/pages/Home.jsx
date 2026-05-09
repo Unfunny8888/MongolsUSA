@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles, Star, MapPin, TrendingUp, Clock, Briefcase, CalendarDays, Store, Users } from "lucide-react";
 import SectionHeader from "../components/home/SectionHeader";
 import CitySelector from "../components/home/CitySelector"
 import CategoryChip from "../components/cards/CategoryChip";
@@ -148,15 +148,15 @@ export default function Home() {
       )}
       <div className="min-h-dvh">
         {/* Categories */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-1">
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <div>
-            <h2 className="text-xl font-bold text-foreground">Categories</h2>
-            <p className="text-xs text-muted-foreground">Browse by type</p>
+            <h2 className="text-[15px] font-bold tracking-tight text-foreground">Browse</h2>
+            <p className="text-[11px] text-muted-foreground font-medium mt-0.5">Filter by category</p>
           </div>
           <CitySelector city={selectedCity} onCityChange={setSelectedCity} />
         </div>
         <div className="px-4 pb-4">
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-1" data-scrollable="true">
+          <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1" data-scrollable="true">
             <CategoryChip
               category={{ id: "all", label: "All", labelMn: "Бүгд", icon: "globe" }}
               index={0}
@@ -212,7 +212,7 @@ export default function Home() {
             {/* Featured — premium boosted */}
             {featured.length > 0 && (
               <>
-                <SectionHeader title="✨ Featured" subtitle="Promoted listings" linkTo="/explore?featured=true" />
+                <SectionHeader title="Featured" subtitle="Promoted listings" linkTo="/explore?featured=true" icon={Sparkles} />
                 <div className="px-4 pb-2">
                   <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
                     {featured.map((l, i) => (
@@ -228,7 +228,7 @@ export default function Home() {
             {/* For You — interest + reputation + proximity ranked */}
             {forYou.length > 0 && (
               <>
-                <SectionHeader title="⭐ For You" subtitle="Based on your interests" linkTo="/explore" />
+                <SectionHeader title="For You" subtitle="Based on your interests" linkTo="/explore" icon={Star} />
                 <div className="px-4 pb-2">
                   <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
                     {forYou.map((l, i) => (
@@ -244,7 +244,7 @@ export default function Home() {
             {/* Nearby — location proximity */}
             {nearby.length > 0 && (
               <>
-                <SectionHeader title="📍 Near You" subtitle={currentUser?.city || "In your city"} linkTo="/explore" />
+                <SectionHeader title="Near You" subtitle={currentUser?.city || "In your city"} linkTo="/explore" icon={MapPin} />
                 <div className="px-4 pb-2">
                   <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
                     {nearby.map((l, i) => (
@@ -258,7 +258,7 @@ export default function Home() {
             )}
 
             {/* Trending — engagement score */}
-            <SectionHeader title="🔥 Trending" subtitle="Most viewed this week" linkTo="/explore" />
+            <SectionHeader title="Trending" subtitle="Most viewed this week" linkTo="/explore" icon={TrendingUp} />
             <div className="px-4 space-y-3.5 pb-4">
               {isLoading ? (
               <FeedSkeleton count={2} />
@@ -270,7 +270,7 @@ export default function Home() {
             </div>
 
             {/* Just Listed — freshness */}
-            <SectionHeader title="🆕 Just Listed" subtitle="Posted recently" linkTo="/explore" />
+            <SectionHeader title="Just Listed" subtitle="Posted recently" linkTo="/explore" icon={Clock} />
             <div className="px-4 space-y-3.5 pb-4">
               {fresh.map((l, i) => (
                 <ListingCard key={l.id} listing={l} index={i} />
@@ -280,7 +280,7 @@ export default function Home() {
             {/* Jobs Section */}
             {jobs.length > 0 && (
               <>
-                <SectionHeader title="💼 Jobs" subtitle="Latest opportunities" linkTo="/explore?category=jobs" />
+                <SectionHeader title="Jobs" subtitle="Latest opportunities" linkTo="/explore?category=jobs" icon={Briefcase} />
                 <div className="px-4 space-y-3.5 pb-4">
                   {jobs.map((l, i) => (
                     <ListingCard key={l.id} listing={l} index={i} />
@@ -292,7 +292,7 @@ export default function Home() {
             {/* Events */}
             {events.length > 0 && (
               <>
-                <SectionHeader title="🎉 Events" subtitle="Upcoming gatherings" linkTo="/explore?category=events" />
+                <SectionHeader title="Events" subtitle="Upcoming gatherings" linkTo="/explore?category=events" icon={CalendarDays} />
                 <div className="px-4 space-y-3.5 pb-4">
                   {events.map((l, i) => (
                     <ListingCard key={l.id} listing={l} index={i} />
@@ -302,7 +302,7 @@ export default function Home() {
             )}
 
             {/* Businesses */}
-            <SectionHeader title="🏪 Businesses" subtitle="Mongolian-owned" linkTo="/businesses" />
+            <SectionHeader title="Businesses" subtitle="Mongolian-owned" linkTo="/businesses" icon={Store} />
             <div className="px-4 pb-4">
               <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
                 {businesses.map((b, i) => (
@@ -324,7 +324,7 @@ export default function Home() {
             <SuggestedGroups />
 
             {/* Groups */}
-            <SectionHeader title="👥 Communities" subtitle="Join your local group" linkTo="/groups" />
+            <SectionHeader title="Communities" subtitle="Join your local group" linkTo="/groups" icon={Users} />
             <div className="px-4 space-y-3 pb-6">
               {isLoading ? (
               <FeedSkeleton count={2} />

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, MessageCircle, Share2, MoreVertical, Flame, Smile } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MoreVertical, Smile, BarChart2, CalendarDays, Car, Plane } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
@@ -78,8 +78,11 @@ export default function PostCard({ post, user, isExpanded, onExpandComments }) {
 
       {/* Post type indicators */}
       {post.type === 'poll' && post.poll_question && (
-        <div className="bg-secondary/50 rounded-lg p-3 space-y-2">
-          <p className="text-xs font-semibold text-foreground">📊 {post.poll_question}</p>
+        <div className="bg-secondary/50 rounded-xl p-3.5 space-y-2">
+          <div className="flex items-center gap-1.5 mb-1">
+            <BarChart2 className="w-3.5 h-3.5 text-primary" strokeWidth={2} />
+            <p className="text-xs font-semibold text-foreground">{post.poll_question}</p>
+          </div>
           <div className="space-y-1.5">
             {post.poll_options?.map((opt) => (
               <div key={opt} className="flex items-center gap-2 p-2 bg-background/50 rounded hover:bg-background transition-smooth cursor-pointer">
@@ -92,25 +95,34 @@ export default function PostCard({ post, user, isExpanded, onExpandComments }) {
       )}
 
       {post.type === 'event' && post.event_date && (
-        <div className="bg-secondary/50 rounded-lg p-3">
-          <p className="text-xs font-semibold text-foreground">📅 Event</p>
-          <p className="text-xs text-muted-foreground mt-1">{new Date(post.event_date).toLocaleDateString()} @ {post.event_location}</p>
+        <div className="bg-secondary/50 rounded-xl p-3.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <CalendarDays className="w-3.5 h-3.5 text-primary" strokeWidth={2} />
+            <p className="text-xs font-semibold text-foreground">Event</p>
+          </div>
+          <p className="text-xs text-muted-foreground">{new Date(post.event_date).toLocaleDateString()} · {post.event_location}</p>
         </div>
       )}
 
       {post.type === 'ride_share' && (
-        <div className="bg-secondary/50 rounded-lg p-3">
-          <p className="text-xs font-semibold text-foreground">🚗 Ride Share</p>
-          <p className="text-xs text-muted-foreground mt-1">{post.ride_share_from} → {post.ride_share_to}</p>
-          <p className="text-xs text-muted-foreground">{post.ride_share_seats} seats • {new Date(post.ride_share_date).toLocaleDateString()}</p>
+        <div className="bg-secondary/50 rounded-xl p-3.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Car className="w-3.5 h-3.5 text-primary" strokeWidth={2} />
+            <p className="text-xs font-semibold text-foreground">Ride Share</p>
+          </div>
+          <p className="text-xs text-muted-foreground">{post.ride_share_from} → {post.ride_share_to}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{post.ride_share_seats} seats · {new Date(post.ride_share_date).toLocaleDateString()}</p>
         </div>
       )}
 
       {post.type === 'travel' && (
-        <div className="bg-secondary/50 rounded-lg p-3">
-          <p className="text-xs font-semibold text-foreground">✈️ Travel Buddy</p>
-          <p className="text-xs text-muted-foreground mt-1">📍 {post.travel_destination}</p>
-          <p className="text-xs text-muted-foreground">{post.travel_dates}</p>
+        <div className="bg-secondary/50 rounded-xl p-3.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Plane className="w-3.5 h-3.5 text-primary" strokeWidth={2} />
+            <p className="text-xs font-semibold text-foreground">Travel Buddy</p>
+          </div>
+          <p className="text-xs text-muted-foreground">{post.travel_destination}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{post.travel_dates}</p>
         </div>
       )}
 
@@ -131,29 +143,29 @@ export default function PostCard({ post, user, isExpanded, onExpandComments }) {
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-2 pt-3 border-t border-border/20">
-        <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary/40 transition-smooth text-xs font-medium">
-          <Heart className="w-4 h-4" />
+      <div className="flex items-center gap-1.5 pt-2.5 border-t border-border/20">
+        <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/40 active:bg-secondary/80 transition-colors duration-150 text-xs font-semibold text-muted-foreground active:scale-95">
+          <Heart className="w-3.5 h-3.5" strokeWidth={2} />
           Like
         </button>
         <button
           onClick={onExpandComments}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg transition-smooth text-xs font-medium ${
-            isExpanded ? 'bg-secondary/60' : 'hover:bg-secondary/40'
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg transition-colors duration-150 text-xs font-semibold text-muted-foreground active:scale-95 ${
+            isExpanded ? 'bg-secondary/80' : 'bg-secondary/40 active:bg-secondary/80'
           }`}
         >
-          <MessageCircle className="w-4 h-4" />
+          <MessageCircle className="w-3.5 h-3.5" strokeWidth={2} />
           {post.comment_count || 0}
         </button>
-        <button className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary/40 transition-smooth text-xs font-medium">
-          <Share2 className="w-4 h-4" />
+        <button className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/40 active:bg-secondary/80 transition-colors duration-150 text-xs font-semibold text-muted-foreground active:scale-95">
+          <Share2 className="w-3.5 h-3.5" strokeWidth={2} />
           Share
         </button>
         <button
           onClick={() => setShowReactions(!showReactions)}
-          className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg hover:bg-secondary/40 transition-smooth text-xs font-medium"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-secondary/40 active:bg-secondary/80 transition-colors duration-150 text-xs font-semibold text-muted-foreground active:scale-95"
         >
-          <Smile className="w-4 h-4" />
+          <Smile className="w-3.5 h-3.5" strokeWidth={2} />
         </button>
       </div>
 

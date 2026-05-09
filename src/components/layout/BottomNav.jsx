@@ -52,18 +52,19 @@ export default function BottomNav() {
       {/* Floating create button — above bottom nav */}
       <motion.button
         onClick={handleCreate}
-        whileHover={{ scale: 1.06 }}
-        whileTap={{ scale: 0.92 }}
-        className="fixed z-40 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.91 }}
+        className="fixed z-40 bg-primary text-primary-foreground rounded-full flex items-center justify-center"
         style={{
-          width: 52,
-          height: 52,
-          bottom: `calc(5.5rem + env(safe-area-inset-bottom))`,
-          right: '1rem',
+          width: 44,
+          height: 44,
+          bottom: `calc(4.75rem + env(safe-area-inset-bottom))`,
+          right: '1.25rem',
           willChange: 'transform',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.08) inset',
         }}
       >
-        <Plus className="w-6 h-6" />
+        <Plus className="w-5 h-5" strokeWidth={2.5} />
       </motion.button>
 
       {/* Bottom navigation bar */}
