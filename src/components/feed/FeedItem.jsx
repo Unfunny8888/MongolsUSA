@@ -3,7 +3,7 @@
  * Listings feel like posts from real local people, not catalog entries.
  */
 import { useNavigate } from "react-router-dom";
-import { MapPin, Briefcase, CalendarDays, Heart, MessageCircle, Flame, Wrench, Clock, Home, Car, Sparkles, BookmarkPlus, ChevronRight } from "lucide-react";
+import { MapPin, Briefcase, CalendarDays, Heart, MessageCircle, Flame, Wrench, Clock, Home, Car, Sparkles, ChevronRight, ShieldCheck } from "lucide-react";
 import { useState, memo } from "react";
 
 function timeAgo(dateStr) {
@@ -49,6 +49,22 @@ function Avatar({ src, name, size = "sm" }) {
   );
 }
 
+// Subtle seller trust signal — only shown when meaningful
+function SellerTrust({ listing }) {
+  if (listing.is_verified) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600/80">
+        <ShieldCheck className="w-2.5 h-2.5" strokeWidth={2.5} />
+        Verified
+      </span>
+    );
+  }
+  if ((listing.saves || 0) > 5) {
+    return <span className="text-[10px] text-muted-foreground/60">Active seller</span>;
+  }
+  return null;
+}
+
 function formatPrice(listing) {
   if (listing.price_type === "free") return "Free";
   if (!listing.price) return null;
@@ -58,14 +74,12 @@ function formatPrice(listing) {
   return p;
 }
 
-// Inline social action bar — ask, save, react
+// Inline social action bar
 function SocialBar({ listing, onAsk }) {
   const [saved, setSaved] = useState(false);
   const interested = (listing.saves || 0) + (listing.comment_count || 0);
-
   return (
     <div className="flex items-center gap-2 pt-2 border-t border-border/10">
-      {/* Ask question */}
       <button
         onClick={e => { e.stopPropagation(); onAsk(); }}
         className="flex items-center gap-1.5 text-[11px] font-semibold text-primary/80 bg-primary/6 hover:bg-primary/10 active:bg-primary/15 rounded-lg px-2.5 py-1.5 transition-colors"
@@ -73,8 +87,6 @@ function SocialBar({ listing, onAsk }) {
         <MessageCircle className="w-3 h-3" strokeWidth={2.5} />
         Ask
       </button>
-
-      {/* Save */}
       <button
         onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
         className={`flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 transition-colors ${
@@ -84,8 +96,6 @@ function SocialBar({ listing, onAsk }) {
         <Heart className={`w-3 h-3 ${saved ? "fill-rose-500" : ""}`} strokeWidth={2.5} />
         Save
       </button>
-
-      {/* Social proof */}
       {interested > 0 && (
         <span className="ml-auto text-[10px] text-muted-foreground/70">
           {interested} {interested === 1 ? "person" : "people"} interested
@@ -95,7 +105,7 @@ function SocialBar({ listing, onAsk }) {
   );
 }
 
-// Inline ask input — expands in place
+// Inline ask input
 function InlineAsk({ onClose }) {
   const [text, setText] = useState("");
   function submit(e) { e.stopPropagation(); if (text.trim()) onClose(); }
@@ -122,7 +132,6 @@ function InlineAsk({ onClose }) {
 function HeroCard({ listing, onClick }) {
   const [asking, setAsking] = useState(false);
   const hasImg = listing.images?.length > 0;
-
   return (
     <div className="bg-card rounded-2xl overflow-hidden border border-border/15 active:scale-[0.99] active:opacity-90 transition-all duration-150">
       <div onClick={onClick} className="cursor-pointer">
@@ -133,7 +142,6 @@ function HeroCard({ listing, onClick }) {
             <div className="w-full h-full bg-secondary/40" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          {/* Badges */}
           <div className="absolute top-3 left-3 flex items-center gap-1.5">
             {listing.is_featured ? (
               <span className="flex items-center gap-1 bg-amber-500/90 rounded-full px-2 py-0.5 text-[10px] font-bold text-white">
@@ -150,7 +158,6 @@ function HeroCard({ listing, onClick }) {
               ${listing.price.toLocaleString()}
             </div>
           )}
-          {/* Overlay */}
           <div className="absolute bottom-0 left-0 right-0 px-3.5 pb-3.5">
             <div className="flex items-center gap-2 mb-1.5">
               <Avatar src={listing.poster_avatar} name={listing.poster_name} size="xs" />
@@ -165,7 +172,6 @@ function HeroCard({ listing, onClick }) {
           </div>
         </div>
       </div>
-      {/* Social bar below image */}
       <div className="px-3.5 pb-3 pt-2.5">
         {asking
           ? <InlineAsk onClose={() => setAsking(false)} />
@@ -181,10 +187,8 @@ function StandardCard({ listing, onClick }) {
   const [asking, setAsking] = useState(false);
   const hasImg = listing.images?.length > 0;
   const price = formatPrice(listing);
-
   return (
     <div className="bg-card rounded-2xl border border-border/15 overflow-hidden active:scale-[0.99] active:opacity-90 transition-all duration-150">
-      {/* Image */}
       {hasImg && (
         <div onClick={onClick} className="relative w-full cursor-pointer" style={{ aspectRatio: "16/9" }}>
           <img src={listing.images[0]} alt={listing.title} loading="lazy" className="w-full h-full object-cover" />
@@ -200,29 +204,26 @@ function StandardCard({ listing, onClick }) {
           )}
         </div>
       )}
-
       <div className="px-3.5 pt-3 pb-3 space-y-2">
-        {/* Header row */}
         <div onClick={onClick} className="flex items-center justify-between cursor-pointer">
           <TypePill category={listing.category} />
           <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
             <Clock className="w-2.5 h-2.5" />{timeAgo(listing.created_date)}
           </span>
         </div>
-
-        {/* Title + description */}
         <div onClick={onClick} className="cursor-pointer">
           <p className="text-[14px] font-bold leading-snug line-clamp-2 text-foreground">{listing.title}</p>
           {listing.description && (
             <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-2 mt-1">{listing.description}</p>
           )}
         </div>
-
-        {/* Author row */}
         <div onClick={onClick} className="flex items-center gap-2 cursor-pointer">
           <Avatar src={listing.poster_avatar} name={listing.poster_name} />
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold text-foreground leading-none">{listing.poster_name || "Member"}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-[11px] font-semibold text-foreground leading-none">{listing.poster_name || "Member"}</p>
+              <SellerTrust listing={listing} />
+            </div>
             {listing.location_city && (
               <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
                 <MapPin className="w-2.5 h-2.5" />Posted in {listing.location_city}
@@ -232,8 +233,6 @@ function StandardCard({ listing, onClick }) {
           {!hasImg && price && <span className="text-[14px] font-bold text-primary">{price}</span>}
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
         </div>
-
-        {/* Social interaction */}
         {asking
           ? <InlineAsk onClose={() => setAsking(false)} />
           : <SocialBar listing={listing} onAsk={() => setAsking(true)} />
@@ -249,13 +248,9 @@ function CompactCard({ listing, onClick }) {
   const hasImg = listing.images?.length > 0;
   const price = formatPrice(listing);
   const interested = (listing.saves || 0) + (listing.comment_count || 0);
-
   return (
     <div className="bg-card rounded-xl border border-border/15 transition-all duration-150">
-      <div
-        onClick={onClick}
-        className="flex items-start gap-3 px-3 pt-3 pb-2 cursor-pointer active:opacity-80"
-      >
+      <div onClick={onClick} className="flex items-start gap-3 px-3 pt-3 pb-2 cursor-pointer active:opacity-80">
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2">
             <TypePill category={listing.category} />
@@ -264,9 +259,10 @@ function CompactCard({ listing, onClick }) {
             </span>
           </div>
           <p className="text-[13px] font-bold leading-snug line-clamp-2 text-foreground">{listing.title}</p>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <Avatar src={listing.poster_avatar} name={listing.poster_name} size="xs" />
             <span className="text-[10px] text-muted-foreground">{listing.poster_name || "Member"}</span>
+            <SellerTrust listing={listing} />
             {listing.location_city && (
               <>
                 <span className="text-muted-foreground/30">·</span>
@@ -287,8 +283,6 @@ function CompactCard({ listing, onClick }) {
           />
         )}
       </div>
-
-      {/* Compact social row */}
       <div className="px-3 pb-2.5">
         {asking ? (
           <InlineAsk onClose={() => setAsking(false)} />
@@ -311,7 +305,6 @@ function CompactCard({ listing, onClick }) {
 function FeedItem({ listing, variant = "standard" }) {
   const navigate = useNavigate();
   const onClick = () => navigate(`/listing/${listing.id}`);
-
   if (variant === "hero")    return <HeroCard listing={listing} onClick={onClick} />;
   if (variant === "compact") return <CompactCard listing={listing} onClick={onClick} />;
   return <StandardCard listing={listing} onClick={onClick} />;
