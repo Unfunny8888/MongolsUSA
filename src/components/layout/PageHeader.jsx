@@ -5,12 +5,16 @@ import { useTabNavigation } from '@/hooks/useTabNavigation';
 import { resolveRoute, TAB_ROOTS } from '@/lib/TabNavigationContext';
 import { base44 } from '@/api/base44Client';
 
-// Tab root labels for category pages
+// Root labels for non-home tab roots
 const ROOT_LABELS = {
-  '/jobs':     { title: 'Jobs',     icon: '💼' },
-  '/housing':  { title: 'Housing',  icon: '🏠' },
-  '/services': { title: 'Services', icon: '🔧' },
-  '/more':     { title: 'More',     icon: null  },
+  '/jobs':      'Jobs',
+  '/housing':   'Housing',
+  '/services':  'Services',
+  '/more':      'More',
+  '/events':    'Events',
+  '/vehicles':  'Vehicles',
+  '/marketplace': 'Marketplace',
+  '/rideshare': 'Ride Share',
 };
 
 const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
@@ -74,7 +78,7 @@ const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
                 </>
               ) : rootLabel ? (
                 <h1 className="text-[18px] font-bold text-foreground">
-                  {rootLabel.title}
+                  {rootLabel}
                 </h1>
               ) : (
                 <h1 className="text-[18px] font-bold text-foreground">{title}</h1>

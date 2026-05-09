@@ -2,36 +2,44 @@ import { createContext, useReducer, useCallback, useMemo } from 'react';
 
 export const TabNavigationContext = createContext(null);
 
-// Centralized route registry — single source of truth for tab + label mapping
+// Single source of truth for all route → tab mappings
 export const ROUTE_MAP = [
-  { match: (p) => p === '/',                         tab: 'home',     label: 'Home',               isRoot: true  },
-  { match: (p) => p === '/jobs',                     tab: 'jobs',     label: 'Jobs',               isRoot: true  },
-  { match: (p) => p === '/housing',                  tab: 'housing',  label: 'Housing',            isRoot: true  },
-  { match: (p) => p === '/services',                 tab: 'services', label: 'Services',           isRoot: true  },
-  { match: (p) => p === '/more',                     tab: 'more',     label: 'More',               isRoot: true  },
-  { match: (p) => p === '/explore',                  tab: 'home',     label: 'Explore',            isRoot: false },
-  { match: (p) => p === '/groups',                   tab: 'home',     label: 'Community',          isRoot: false },
-  { match: (p) => p === '/notifications',            tab: 'home',     label: 'Notifications',      isRoot: false },
-  { match: (p) => p === '/profile',                  tab: 'home',     label: 'Profile',            isRoot: false },
-  { match: (p) => p.startsWith('/listing/'),         tab: 'home',     label: 'Listing Detail',     isRoot: false },
-  { match: (p) => p.startsWith('/business/'),        tab: 'services', label: 'Business',           isRoot: false },
-  { match: (p) => p.startsWith('/group/'),           tab: 'home',     label: 'Group',              isRoot: false },
-  { match: (p) => p === '/emergency',                tab: 'home',     label: 'Emergency Help',     isRoot: false },
-  { match: (p) => p === '/recommendations',          tab: 'home',     label: 'Recommendations',    isRoot: false },
-  { match: (p) => p.startsWith('/conversation/'),    tab: 'home',     label: 'Chat',               isRoot: false },
-  { match: (p) => p === '/inbox',                    tab: 'home',     label: 'Messages',           isRoot: false },
-  { match: (p) => p === '/edit-profile',             tab: 'home',     label: 'Edit Profile',       isRoot: false },
-  { match: (p) => p === '/my-listings',              tab: 'home',     label: 'My Listings',        isRoot: false },
-  { match: (p) => p === '/saved',                    tab: 'home',     label: 'Saved Items',        isRoot: false },
-  { match: (p) => p === '/saved-searches',           tab: 'home',     label: 'Saved Searches',     isRoot: false },
-  { match: (p) => p === '/vip',                      tab: 'home',     label: 'VIP Membership',     isRoot: false },
-  { match: (p) => p === '/business-dashboard',       tab: 'home',     label: 'Business Dashboard', isRoot: false },
-  { match: (p) => p === '/recruiter',                tab: 'jobs',     label: 'Recruiter',          isRoot: false },
-  { match: (p) => p === '/admin',                    tab: 'home',     label: 'Admin',              isRoot: false },
-  { match: (p) => p === '/ai-assistant',             tab: 'home',     label: 'AI Assistant',       isRoot: false },
-  { match: (p) => p === '/create',                   tab: 'home',     label: 'Create Listing',     isRoot: false },
-  { match: (p) => p === '/search',                   tab: 'home',     label: 'Search',             isRoot: false },
-  { match: (p) => p === '/businesses',               tab: 'services', label: 'Businesses',         isRoot: false },
+  // ── Tab roots ──
+  { match: (p) => p === '/',           tab: 'home',     label: 'Home',             isRoot: true  },
+  { match: (p) => p === '/jobs',       tab: 'jobs',     label: 'Jobs',             isRoot: true  },
+  { match: (p) => p === '/housing',    tab: 'housing',  label: 'Housing',          isRoot: true  },
+  { match: (p) => p === '/services',   tab: 'services', label: 'Services',         isRoot: true  },
+  { match: (p) => p === '/more',       tab: 'more',     label: 'More',             isRoot: true  },
+
+  // ── Category ecosystems (live under "more" tab) ──
+  { match: (p) => p === '/events',     tab: 'more',     label: 'Events',           isRoot: false },
+  { match: (p) => p === '/vehicles',   tab: 'more',     label: 'Vehicles',         isRoot: false },
+  { match: (p) => p === '/marketplace',tab: 'more',     label: 'Marketplace',      isRoot: false },
+  { match: (p) => p === '/rideshare',  tab: 'more',     label: 'Ride Share',       isRoot: false },
+  { match: (p) => p === '/community',  tab: 'more',     label: 'Community',        isRoot: false },
+
+  // ── Detail pages ──
+  { match: (p) => p.startsWith('/listing/'),      tab: 'home',     label: 'Listing Detail',     isRoot: false },
+  { match: (p) => p.startsWith('/business/'),     tab: 'services', label: 'Business',           isRoot: false },
+  { match: (p) => p === '/emergency',             tab: 'more',     label: 'Emergency Help',     isRoot: false },
+  { match: (p) => p === '/create',                tab: 'home',     label: 'Create Listing',     isRoot: false },
+
+  // ── User pages ──
+  { match: (p) => p === '/profile',               tab: 'home',     label: 'Profile',            isRoot: false },
+  { match: (p) => p === '/edit-profile',          tab: 'home',     label: 'Edit Profile',       isRoot: false },
+  { match: (p) => p === '/my-listings',           tab: 'home',     label: 'My Listings',        isRoot: false },
+  { match: (p) => p === '/saved',                 tab: 'home',     label: 'Saved Items',        isRoot: false },
+  { match: (p) => p === '/notifications',         tab: 'home',     label: 'Notifications',      isRoot: false },
+  { match: (p) => p === '/search',                tab: 'home',     label: 'Search',             isRoot: false },
+  { match: (p) => p === '/inbox',                 tab: 'home',     label: 'Messages',           isRoot: false },
+  { match: (p) => p.startsWith('/conversation/'), tab: 'home',     label: 'Chat',               isRoot: false },
+
+  // ── Tools / premium ──
+  { match: (p) => p === '/ai-assistant',          tab: 'home',     label: 'AI Assistant',       isRoot: false },
+  { match: (p) => p === '/vip',                   tab: 'home',     label: 'VIP Membership',     isRoot: false },
+  { match: (p) => p === '/business-dashboard',    tab: 'services', label: 'Business Dashboard', isRoot: false },
+  { match: (p) => p === '/recruiter',             tab: 'jobs',     label: 'Recruiter',          isRoot: false },
+  { match: (p) => p === '/admin',                 tab: 'home',     label: 'Admin',              isRoot: false },
 ];
 
 export const TAB_ROOTS = {
@@ -46,7 +54,6 @@ export function resolveRoute(pathname) {
   for (const entry of ROUTE_MAP) {
     if (entry.match(pathname)) return entry;
   }
-  // Fallback: treat as home child
   return { tab: 'home', label: '', isRoot: false };
 }
 
@@ -65,24 +72,18 @@ const initialState = {
     services: [{ path: '/services', label: 'Services', tab: 'services' }],
     more:     [{ path: '/more',     label: 'More',     tab: 'more'     }],
   },
-  scrollPositions: {
-    home: 0, jobs: 0, housing: 0, services: 0, more: 0,
-  },
+  scrollPositions: { home: 0, jobs: 0, housing: 0, services: 0, more: 0 },
 };
 
 function navigationReducer(state, action) {
   switch (action.type) {
-
-    // Unified navigate: atomically sets activeTab + updates correct stack
     case 'NAVIGATE': {
       const { path, tab, label, isRoot } = action.payload;
       const currentStack = state.stacks[tab] ?? [];
 
-      // Full no-op: already on this exact path in this tab
       if (state.activeTab === tab && currentStack.slice(-1)[0]?.path === path) return state;
 
       if (isRoot) {
-        // Tab root — reset that tab's stack to just the root entry
         return {
           ...state,
           activeTab: tab,
@@ -90,11 +91,7 @@ function navigationReducer(state, action) {
         };
       }
 
-      // Child page: build base stack
-      // If switching tabs, start fresh from that tab's root
       const baseStack = state.activeTab !== tab ? [makeRootEntry(tab)] : currentStack;
-
-      // If path already exists earlier in the stack, pop back to it
       const existingIndex = baseStack.findIndex(r => r.path === path);
       if (existingIndex !== -1) {
         return {
@@ -104,7 +101,6 @@ function navigationReducer(state, action) {
         };
       }
 
-      // Push new route
       return {
         ...state,
         activeTab: tab,
@@ -112,26 +108,16 @@ function navigationReducer(state, action) {
       };
     }
 
-    // Pop top of active tab's stack
     case 'POP': {
       const tab = state.activeTab;
       const stack = state.stacks[tab];
-      if (stack.length <= 1) return state; // Never pop root
-      return {
-        ...state,
-        stacks: {
-          ...state.stacks,
-          [tab]: stack.slice(0, -1),
-        },
-      };
+      if (stack.length <= 1) return state;
+      return { ...state, stacks: { ...state.stacks, [tab]: stack.slice(0, -1) } };
     }
 
     case 'SAVE_SCROLL': {
       const { tab, position } = action.payload;
-      return {
-        ...state,
-        scrollPositions: { ...state.scrollPositions, [tab]: position },
-      };
+      return { ...state, scrollPositions: { ...state.scrollPositions, [tab]: position } };
     }
 
     default:
@@ -142,20 +128,14 @@ function navigationReducer(state, action) {
 export function TabNavigationProvider({ children }) {
   const [state, dispatch] = useReducer(navigationReducer, initialState);
 
-  // Main navigation action — call this whenever a route changes
   const contextNavigate = useCallback((pathname) => {
     const resolved = resolveRoute(pathname);
-    dispatch({
-      type: 'NAVIGATE',
-      payload: { path: pathname, ...resolved },
-    });
+    dispatch({ type: 'NAVIGATE', payload: { path: pathname, ...resolved } });
   }, []);
 
-  // Go back within current tab stack — returns path to navigate to
   const goBack = useCallback(() => {
     const stack = state.stacks[state.activeTab];
     if (stack.length <= 1) return null;
-    // Compute target before popping
     const target = stack[stack.length - 2];
     dispatch({ type: 'POP' });
     return target;

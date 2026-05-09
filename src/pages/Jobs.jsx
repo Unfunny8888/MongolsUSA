@@ -3,19 +3,24 @@
  */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Briefcase, ChevronRight, Heart, Clock, SlidersHorizontal, Eye } from "lucide-react";
-import { MOCK_LISTINGS, MOCK_BUSINESSES, MOCK_DISCUSSIONS } from "../lib/mockData";
+import { MapPin, Briefcase, Heart, Clock } from "lucide-react";
+import { MOCK_LISTINGS, MOCK_DISCUSSIONS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
+import {
+  LocationBar, FilterBar, SubTabs,
+  SectionLabel, EmptyState,
+} from "../components/shared/CategoryPageLayout";
 
-const JOB_FILTERS = ["All", "Full-time", "Part-time", "Remote", "CDL", "Restaurant", "Office"];
+const FILTERS = ["All", "Full-time", "Part-time", "Remote", "CDL", "Restaurant", "Cash"];
+const TABS = [["hiring", "Hiring"], ["looking", "Looking for Work"]];
 
 function timeAgo(d) {
   if (!d) return "";
   const h = Math.floor((Date.now() - new Date(d)) / 3600000);
   if (h < 1) return "Just now";
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
 }
 
 function JobCard({ listing, index }) {
@@ -27,7 +32,7 @@ function JobCard({ listing, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
       onClick={() => navigate(`/listing/${listing.id}`)}
-      className="flex items-center gap-3 bg-card border border-border/20 rounded-2xl px-3 py-3 active:scale-[0.99] cursor-pointer"
+      className="flex items-center gap-3 bg-card border border-border/20 rounded-2xl px-3 py-3 active:scale-[0.99] cursor-pointer transition-transform"
     >
       {listing.images?.[0] ? (
         <img src={listing.images[0]} alt={listing.title} className="w-14 h-14 rounded-xl object-cover shrink-0" />
@@ -58,7 +63,7 @@ function JobCard({ listing, index }) {
       <div className="flex flex-col items-end gap-2 shrink-0">
         {listing.price && (
           <span className="text-[13px] font-bold text-primary">
-            ${listing.price.toLocaleString()}{listing.price_type === "hourly" ? "/hr" : listing.price_type === "weekly" ? "/wk" : ""}
+            ${listing.price.toLocaleString()}{listing.price_type === "hourly" ? "/hr" : ""}
           </span>
         )}
         <button onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
@@ -70,7 +75,6 @@ function JobCard({ listing, index }) {
   );
 }
 
-// Candidate card for "Looking for Work" tab
 function CandidateCard({ disc, index }) {
   return (
     <motion.div
@@ -79,14 +83,16 @@ function CandidateCard({ disc, index }) {
       transition={{ delay: index * 0.04 }}
       className="flex items-center gap-3 bg-card border border-border/20 rounded-2xl px-3 py-3"
     >
-      <img src={disc.author_avatar} alt={disc.author_name}
-        className="w-12 h-12 rounded-full object-cover shrink-0" />
+      <img src={disc.author_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
+        alt={disc.author_name} className="w-12 h-12 rounded-full object-cover shrink-0" />
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-bold text-foreground">{disc.author_name}</p>
         <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{disc.content}</p>
-        <div className="flex items-center gap-1.5 mt-1">
-          {disc.city && <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground"><MapPin className="w-2.5 h-2.5" />{disc.city}</span>}
-        </div>
+        {disc.city && (
+          <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground mt-1">
+            <MapPin className="w-2.5 h-2.5" />{disc.city}
+          </span>
+        )}
       </div>
       <button className="shrink-0 bg-primary text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
         View
@@ -103,13 +109,14 @@ export default function Jobs() {
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "jobs", status: "active" }, "-created_date", 50)
-      .then(data => { if (data?.length) setListings(data); });
+      .then(data => { if (data?.length) setListings(data); })
+      .catch(() => {});
   }, []);
 
   const filtered = useMemo(() => {
     if (activeFilter === "All") return listings;
-    const map = { "Full-time": "full-time", "Part-time": "part-time", "Remote": "remote", "CDL": "cdl", "Restaurant": "restaurant", "Office": "office" };
-    const key = map[activeFilter];
+    const map = { "Full-time": "full-time", "Part-time": "part-time", "Remote": "remote", "CDL": "cdl", "Cash": "cash" };
+    const key = map[activeFilter] || activeFilter.toLowerCase();
     return listings.filter(l =>
       l.job_type === key ||
       l.tags?.some(t => t.toLowerCase().includes(key)) ||
@@ -118,68 +125,31 @@ export default function Jobs() {
     );
   }, [listings, activeFilter]);
 
-  // Candidates from discussions (mock)
   const candidates = MOCK_DISCUSSIONS.filter(d => ["Ride Share", "CDL", "Roommate"].includes(d.tag));
 
   return (
     <div className="min-h-dvh">
-      {/* Location bar */}
-      <div className="px-4 py-2.5 border-b border-border/15">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] text-muted-foreground font-medium">Location</p>
-            <p className="text-[13px] font-bold text-foreground">{location}</p>
-          </div>
-          <button className="text-[12px] font-semibold text-primary">Change</button>
-        </div>
-      </div>
+      <LocationBar location={location} onChangeClick={() => {}} />
+      <FilterBar filters={FILTERS} active={activeFilter} onSelect={setActiveFilter} />
+      <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
-      {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 py-2.5 border-b border-border/10">
-        {JOB_FILTERS.map(f => (
-          <button key={f} onClick={() => setActiveFilter(f)}
-            className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${
-              activeFilter === f
-                ? "bg-foreground text-background"
-                : "bg-secondary/60 text-muted-foreground"
-            }`}>
-            {f}
-          </button>
-        ))}
-        <button className="shrink-0 w-8 h-8 rounded-full bg-secondary/60 flex items-center justify-center">
-          <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
-        </button>
-      </div>
-
-      {/* Sub-tabs */}
-      <div className="flex border-b border-border/20 px-4">
-        {[["hiring", "Hiring (Jobs)"], ["looking", "Looking for Work"]].map(([id, label]) => (
-          <button key={id} onClick={() => setActiveTab(id)}
-            className={`py-3 mr-5 text-[13px] font-semibold border-b-2 transition-colors ${
-              activeTab === id ? "border-primary text-primary" : "border-transparent text-muted-foreground"
-            }`}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
       <div className="px-4 py-4 space-y-2.5">
-        {activeTab === "hiring" ? (
+        {activeTab === "hiring" && (
           <>
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Jobs near you</p>
-            {filtered.map((l, i) => <JobCard key={l.id} listing={l} index={i} />)}
-            {filtered.length === 0 && (
-              <div className="text-center py-16">
-                <p className="text-3xl mb-2">💼</p>
-                <p className="text-sm text-muted-foreground">No jobs found</p>
-              </div>
-            )}
+            <SectionLabel>Jobs near you</SectionLabel>
+            {filtered.length > 0
+              ? filtered.map((l, i) => <JobCard key={l.id} listing={l} index={i} />)
+              : <EmptyState emoji="💼" title="No jobs found" subtitle="Try adjusting your filters" />
+            }
           </>
-        ) : (
+        )}
+        {activeTab === "looking" && (
           <>
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">Candidates looking for work</p>
-            {candidates.map((c, i) => <CandidateCard key={c.id} disc={c} index={i} />)}
+            <SectionLabel>People looking for work</SectionLabel>
+            {candidates.length > 0
+              ? candidates.map((c, i) => <CandidateCard key={c.id} disc={c} index={i} />)
+              : <EmptyState emoji="🙋" title="No candidates yet" subtitle="Community members will appear here" />
+            }
           </>
         )}
       </div>
