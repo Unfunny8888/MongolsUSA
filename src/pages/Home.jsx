@@ -1,169 +1,103 @@
+/**
+ * Home — unified social + discovery feed.
+ * Featured businesses → What's happening tabs → mixed community posts.
+ */
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  Loader2, Flame, MapPin, Briefcase, CalendarDays, Store, Users,
-  TrendingUp, Eye, Heart, MessageCircle, ArrowRight, Sparkles, Star, Zap, Clock
-} from "lucide-react";
-import FeedItem from "../components/feed/FeedItem";
-import CitySelector from "../components/home/CitySelector";
-import CategoryChip from "../components/cards/CategoryChip";
-import ListingCard from "../components/cards/ListingCard";
-import GroupCard from "../components/cards/GroupCard";
-import BusinessCard from "../components/cards/BusinessCard";
-import FeedSkeleton from "../components/common/FeedSkeleton";
-import SuggestedUsers from "../components/discovery/SuggestedUsers";
-import TrendingPosts from "../components/discovery/TrendingPosts";
-import ActiveNow from "../components/discovery/ActiveNow";
-import SuggestedGroups from "../components/discovery/SuggestedGroups";
-import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, MOCK_DISCUSSIONS, CATEGORIES } from "../lib/mockData";
-import DiscussionCard from "../components/feed/DiscussionCard";
-import { buildFeedSections } from "../lib/feedAlgorithm";
-import { getUserCityFromIP } from "../lib/geolocationUtils";
+import { MapPin, Bookmark, ChevronRight, MessageCircle, Heart, Clock, Store } from "lucide-react";
+import { MOCK_BUSINESSES, MOCK_DISCUSSIONS, MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
+import DiscussionCard from "../components/feed/DiscussionCard";
+import FeedItem from "../components/feed/FeedItem";
+import { getUserCityFromIP } from "../lib/geolocationUtils";
 
-// Inline section label — subtle, not loud
-function FeedLabel({ icon: Icon, label, linkTo }) {
-  const navigate = useNavigate();
-  return (
-    <div className="flex items-center justify-between px-4 pt-5 pb-2.5">
-      <div className="flex items-center gap-1.5">
-        {Icon && <Icon className="w-3.5 h-3.5 text-primary/70" strokeWidth={2.5} />}
-        <span className="text-[12px] font-bold text-foreground/70 uppercase tracking-widest">{label}</span>
-      </div>
-      {linkTo && (
-        <button
-          onClick={() => navigate(linkTo)}
-          className="flex items-center gap-0.5 text-[11px] font-semibold text-primary/70 active:text-primary transition-colors"
-        >
-          See all <ArrowRight className="w-3 h-3" />
-        </button>
-      )}
-    </div>
-  );
+function timeAgo(d) {
+  if (!d) return "";
+  const mins = Math.floor((Date.now() - new Date(d)) / 60000);
+  if (mins < 2) return "Just now";
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  return `${Math.floor(hrs / 24)}d`;
 }
 
-// Trending card — social, with engagement overlay
-function TrendingCard({ listing, rank, index }) {
+// Featured business card (horizontal scroll)
+function FeaturedBusinessCard({ business }) {
   const navigate = useNavigate();
-  const hasImg = listing.images?.length > 0;
-  const engagementScore = (listing.views || 0) + (listing.saves || 0) * 3;
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.2 }}
-      onClick={() => navigate(`/listing/${listing.id}`)}
-      className="bg-card rounded-2xl border border-border/30 overflow-hidden shadow-sm active:scale-[0.985] active:shadow-none transition-all duration-150 cursor-pointer"
-    >
-      {hasImg && (
-        <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
-          <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" loading="lazy" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-          {/* Top badges */}
-          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5">
-              <Flame className="w-3 h-3 text-orange-400" strokeWidth={2.5} />
-              <span className="text-[10px] font-bold text-white">#{rank}</span>
-            </div>
-            {engagementScore > 50 && (
-              <div className="flex items-center gap-1 bg-primary/80 backdrop-blur-sm rounded-full px-2 py-0.5">
-                <Zap className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
-                <span className="text-[10px] font-bold text-white">Hot</span>
-              </div>
-            )}
-          </div>
-          {listing.price && (
-            <div className="absolute top-2.5 right-2.5 bg-card/90 backdrop-blur rounded-lg px-2 py-0.5 text-foreground font-bold text-[13px]">
-              ${listing.price.toLocaleString()}
-            </div>
-          )}
-          {/* Bottom overlay */}
-          <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
-            <p className="text-white font-bold text-[14px] leading-snug line-clamp-2 mb-2 drop-shadow">{listing.title}</p>
-            <div className="flex items-center gap-2.5">
-              <span className="flex items-center gap-1 text-white/75 text-[11px]">
-                <Eye className="w-3 h-3" /> {listing.views || 0}
-              </span>
-              <span className="flex items-center gap-1 text-white/75 text-[11px]">
-                <Heart className="w-3 h-3" /> {listing.saves || 0}
-              </span>
-              <span className="flex items-center gap-1 text-white/75 text-[11px]">
-                <MessageCircle className="w-3 h-3" /> {listing.comment_count || 0}
-              </span>
-              {listing.location_city && (
-                <span className="ml-auto flex items-center gap-0.5 text-white/60 text-[10px]">
-                  <MapPin className="w-2.5 h-2.5" /> {listing.location_city}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-      {!hasImg && (
-        <div className="p-4">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Flame className="w-3.5 h-3.5 text-orange-400" />
-            <span className="text-[11px] font-bold text-orange-500">#{rank} Trending</span>
-          </div>
-          <p className="font-bold text-[14px] leading-snug mb-2">{listing.title}</p>
-          <div className="flex items-center gap-3 text-muted-foreground text-xs">
-            <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{listing.views || 0}</span>
-            <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{listing.saves || 0}</span>
-            <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{listing.comment_count || 0}</span>
-          </div>
-        </div>
-      )}
-    </motion.div>
-  );
-}
-
-// Compact horizontal listing tile
-function MiniListingCard({ listing }) {
-  const navigate = useNavigate();
-  const hasImg = listing.images?.length > 0;
+  const [saved, setSaved] = useState(false);
   return (
     <div
-      onClick={() => navigate(`/listing/${listing.id}`)}
-      className="flex-shrink-0 w-40 bg-card rounded-xl border border-border/30 overflow-hidden active:scale-[0.97] active:opacity-90 transition-all duration-150 cursor-pointer"
+      onClick={() => navigate(`/business/${business.id}`)}
+      className="shrink-0 w-48 bg-card rounded-2xl border border-border/20 overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
     >
-      <div className="w-full h-24 bg-secondary/50">
-        {hasImg && <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" loading="lazy" />}
+      {/* Banner */}
+      <div className="relative h-28 bg-secondary/40">
+        {business.banner && (
+          <img src={business.banner} alt={business.name} className="w-full h-full object-cover" loading="lazy" />
+        )}
+        <button
+          onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
+          className="absolute top-2 right-2 w-7 h-7 bg-white/90 dark:bg-card/90 rounded-full flex items-center justify-center shadow-sm"
+        >
+          <Bookmark className={`w-3.5 h-3.5 ${saved ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+        </button>
       </div>
-      <div className="p-2">
-        <p className="text-[11px] font-semibold line-clamp-2 leading-snug text-foreground">{listing.title}</p>
-        {listing.price ? (
-          <p className="text-primary font-bold text-[12px] mt-1">${listing.price.toLocaleString()}</p>
+      {/* Logo + info */}
+      <div className="px-2.5 pb-2.5 -mt-4 relative">
+        {business.logo ? (
+          <img src={business.logo} alt={business.name}
+            className="w-10 h-10 rounded-xl object-cover border-2 border-card shadow-sm mb-1.5" />
         ) : (
-          <p className="text-muted-foreground text-[10px] mt-1">Contact</p>
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border-2 border-card flex items-center justify-center mb-1.5">
+            <Store className="w-4 h-4 text-primary" />
+          </div>
+        )}
+        <p className="text-[13px] font-bold text-foreground leading-tight">{business.name}</p>
+        {business.rating && (
+          <p className="text-[10px] text-amber-600 font-semibold mt-0.5">★ {business.rating} · {business.city}</p>
+        )}
+        <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{business.description}</p>
+        {business.is_verified && (
+          <div className="flex items-center gap-1 mt-1.5">
+            <span className="text-[9px] text-primary font-bold flex items-center gap-0.5">
+              ✓ Verified Business
+            </span>
+          </div>
+        )}
+        {business.review_count > 0 && (
+          <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+            {business.review_count} members recently visited · Popular in {business.city}
+          </p>
         )}
       </div>
     </div>
   );
 }
 
+// Community post card — matches screenshot style
+function CommunityPost({ post, currentUser }) {
+  return <DiscussionCard post={post} currentUser={currentUser} />;
+}
+
+const FEED_TABS = [
+  { id: "all",       label: "All",       icon: "🌐" },
+  { id: "foryou",    label: "For You",   icon: null },
+  { id: "nearby",    label: "Nearby",    icon: null },
+  { id: "following", label: "Following", icon: null },
+];
+
 export default function Home() {
   const navigate = useNavigate();
-  const [listings, setListings] = useState([]);
-  const [groups, setGroups] = useState([]);
-  const [businesses, setBusinesses] = useState([]);
+  const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [currentUser, setCurrentUser] = useState(null);
-  const [ipLocation, setIpLocation] = useState(null);
-  const [pullProgress, setPullProgress] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedCity, setSelectedCity] = useState(undefined);
-  const touchStartY = useRef(0);
-  const scrolledDistance = useRef(0);
-  const scrollStartPos = useRef(0);
+  const [activeTab, setActiveTab] = useState("all");
+  const [listings, setListings] = useState(MOCK_LISTINGS);
   const containerRef = useRef(null);
 
   useEffect(() => {
-    async function loadData() {
-      setIsLoading(true);
-      const geoData = await getUserCityFromIP();
-      setIpLocation(geoData);
+    async function load() {
+      const geoData = await getUserCityFromIP().catch(() => null);
       const authed = await base44.auth.isAuthenticated();
       if (authed) {
         const me = await base44.auth.me();
@@ -171,227 +105,106 @@ export default function Home() {
         setCurrentUser(userWithLocation);
         if (!me.onboarded) navigate("/onboarding");
       }
-      setListings(MOCK_LISTINGS);
-      const [dbGroups, dbBiz] = await Promise.allSettled([
-        base44.entities.Group.list("-member_count", 10),
+      const [dbBiz] = await Promise.allSettled([
         base44.entities.Business.list("-rating", 10),
       ]);
-      setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
-      setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
-      setIsLoading(false);
+      if (dbBiz.status === "fulfilled" && dbBiz.value?.length > 0) setBusinesses(dbBiz.value);
+
+      base44.entities.Listing.filter({ status: "active" }, "-created_date", 50)
+        .then(data => { if (data?.length) setListings(data); })
+        .catch(() => {});
     }
-    loadData();
+    load();
   }, [navigate]);
 
-  const filteredListings = useMemo(
-    () => listings
-      .filter(l => !selectedCategory || l.category === selectedCategory.id)
-      .filter(l => !selectedCity || l.location_city === selectedCity),
-    [listings, selectedCategory, selectedCity]
-  );
+  // Build mixed feed: discussions + listings interspersed
+  const feedItems = useMemo(() => {
+    const d = MOCK_DISCUSSIONS;
+    const jobs = listings.filter(l => l.category === "jobs").slice(0, 4);
+    const other = listings.filter(l => l.category !== "jobs").slice(0, 6);
+    const items = [];
 
-  const feedSections = useMemo(
-    () => buildFeedSections(filteredListings, currentUser),
-    [filteredListings, currentUser]
-  );
-  const { forYou, nearby, trending, fresh, featured, jobs, events } = feedSections;
-
-  const handlePullToRefresh = useCallback(async (e) => {
-    const scrollTop = containerRef.current?.scrollTop || 0;
-    if (scrollTop !== 0) return;
-    if (e.type === "touchstart") {
-      touchStartY.current = e.touches[0].clientY;
-      scrollStartPos.current = scrollTop;
-      scrolledDistance.current = 0;
-      return;
-    }
-    if (e.type === "touchmove" && !isRefreshing) {
-      if (containerRef.current) scrolledDistance.current = Math.abs((containerRef.current.scrollTop || 0) - scrollStartPos.current);
-      const diff = e.touches[0].clientY - touchStartY.current;
-      if (diff > 0 && scrolledDistance.current < 5) setPullProgress(Math.min(diff / 80, 1));
-      return;
-    }
-    if (e.type === "touchend") {
-      if (pullProgress > 0.7) {
-        setIsRefreshing(true);
-        setPullProgress(0);
-        setTimeout(async () => {
-          setListings(MOCK_LISTINGS);
-          const [dbGroups, dbBiz] = await Promise.allSettled([
-            base44.entities.Group.list("-member_count", 10),
-            base44.entities.Business.list("-rating", 10),
-          ]);
-          setGroups(dbGroups.status === "fulfilled" && dbGroups.value.length > 0 ? dbGroups.value : MOCK_GROUPS);
-          setBusinesses(dbBiz.status === "fulfilled" && dbBiz.value.length > 0 ? dbBiz.value : MOCK_BUSINESSES);
-          setIsRefreshing(false);
-        }, 800);
-      } else {
-        setPullProgress(0);
+    // Interleave discussions + listings
+    const all = [...d];
+    let li = 0;
+    for (let i = 0; i < all.length; i++) {
+      items.push({ type: "discussion", data: all[i] });
+      if (i % 2 === 1 && li < jobs.length) {
+        items.push({ type: "listing", data: jobs[li++] });
       }
     }
-  }, [pullProgress, isRefreshing]);
+    other.forEach(l => items.push({ type: "listing", data: l }));
+    return items;
+  }, [listings]);
 
-  const cityLabel = currentUser?.city || ipLocation?.city || "your area";
+  const city = currentUser?.city || "your area";
 
   return (
-    <div
-      ref={containerRef}
-      onTouchStart={handlePullToRefresh}
-      onTouchMove={handlePullToRefresh}
-      onTouchEnd={handlePullToRefresh}
-      className="min-h-dvh feed-container"
-    >
-      {/* Pull-to-refresh indicator */}
-      {pullProgress > 0 && (
-        <motion.div className="fixed top-16 left-1/2 -translate-x-1/2 z-40" animate={{ scale: pullProgress }}>
-          <Loader2 className="w-5 h-5 text-primary animate-spin" />
-        </motion.div>
-      )}
-      {isRefreshing && (
-        <div className="sticky top-0 z-30 flex justify-center py-2.5 bg-primary/8 border-b border-primary/15">
-          <div className="flex items-center gap-2 text-xs font-semibold text-primary">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Refreshing…
-          </div>
-        </div>
-      )}
+    <div ref={containerRef} className="min-h-dvh pb-4">
 
-      {/* ── CATEGORY FILTER BAR ─────────────────────── */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
-        <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Filter</span>
-        <CitySelector city={selectedCity} onCityChange={setSelectedCity} />
-      </div>
-      <div className="pb-3">
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-4 py-0.5">
-          <CategoryChip
-            category={{ id: "all", label: "All", icon: "globe" }}
-            index={0}
-            onClick={() => setSelectedCategory(null)}
-            isSelected={selectedCategory === null}
-          />
-          {CATEGORIES.map((cat, i) => (
-            <CategoryChip
-              key={cat.id}
-              category={cat}
-              index={i + 1}
-              onClick={setSelectedCategory}
-              isSelected={selectedCategory?.id === cat.id}
-            />
+      {/* ── FEATURED BUSINESSES ── */}
+      <section className="pt-4 pb-2">
+        <div className="flex items-center justify-between px-4 mb-3">
+          <h2 className="text-[16px] font-bold text-foreground">Featured Businesses</h2>
+          <button onClick={() => navigate("/businesses")} className="text-[12px] font-semibold text-primary">See all</button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto no-scrollbar px-4">
+          {businesses.map((b, i) => (
+            <FeaturedBusinessCard key={b.id} business={b} />
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── CATEGORY FILTERED VIEW ──────────────────── */}
-      {selectedCategory && (
-        <div className="px-4 pb-8">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-lg font-bold text-foreground">{selectedCategory.label}</h2>
-              <p className="text-[11px] text-muted-foreground">{filteredListings.length} listings</p>
-            </div>
-            <button onClick={() => setSelectedCategory(null)} className="text-xs font-semibold text-primary">Clear</button>
-          </div>
-          {isLoading ? <FeedSkeleton count={3} /> : filteredListings.length > 0 ? (
-            <div className="space-y-3">
-              {filteredListings.map((l, i) => <ListingCard key={l.id} listing={l} index={i} />)}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-3xl mb-2">🔍</p>
-              <p className="text-sm font-medium text-foreground">No listings in this category</p>
-            </div>
-          )}
+      {/* ── WHAT'S HAPPENING ── */}
+      <section className="pt-4">
+        <h2 className="text-[16px] font-bold text-foreground px-4 mb-3">What's happening</h2>
+
+        {/* Feed tabs */}
+        <div className="flex gap-1 px-4 mb-3">
+          {FEED_TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-colors shrink-0 ${
+                activeTab === tab.id
+                  ? "bg-foreground text-background"
+                  : "bg-secondary/60 text-muted-foreground border border-border/20"
+              }`}
+            >
+              {tab.icon && <span className="text-[11px]">{tab.icon}</span>}
+              {tab.label}
+            </button>
+          ))}
         </div>
-      )}
 
-      {/* ── CONTINUOUS SOCIAL FEED ─────────────────── */}
-      {!selectedCategory && (
-        <div className="px-4 pb-8">
-          {isLoading ? (
-            <div className="space-y-3"><FeedSkeleton count={4} /></div>
-          ) : (() => {
-            const d = MOCK_DISCUSSIONS;
-            const sections = [];
-            const city = currentUser?.city;
-
-            // 1. Hero anchor
-            if (trending[0]) sections.push(<FeedItem key="t0" listing={trending[0]} variant="hero" userCity={city} />);
-
-            // 2. Discussion
-            if (d[0]) sections.push(<DiscussionCard key="d0" post={d[0]} />);
-
-            // 3. Jobs interleaved with discussion
-            if (jobs[0]) sections.push(<FeedItem key="j0" listing={jobs[0]} variant="compact" userCity={city} />);
-            if (jobs[1]) sections.push(<FeedItem key="j1" listing={jobs[1]} variant="compact" userCity={city} />);
-            if (d[1]) sections.push(<DiscussionCard key="d1" post={d[1]} />);
-            if (jobs[2]) sections.push(<FeedItem key="j2" listing={jobs[2]} variant="compact" userCity={city} />);
-
-            // 4. Nearby standard
-            if (nearby[0]) sections.push(<FeedItem key="nb0" listing={nearby[0]} variant="standard" userCity={city} />);
-
-            // 5. Active now
-            sections.push(<div key="active" className="-mx-4"><ActiveNow /></div>);
-
-            // 6. Discussion + variety (cars/services/housing)
-            if (d[2]) sections.push(<DiscussionCard key="d2" post={d[2]} />);
-            listings.filter(l => ["cars","services","housing"].includes(l.category)).slice(0, 3)
-              .forEach((l, i) => sections.push(<FeedItem key={`v${i}`} listing={l} variant="compact" userCity={city} />));
-
-            // 7. Events interleaved
-            if (events[0]) sections.push(<FeedItem key="ev0" listing={events[0]} variant="standard" userCity={city} />);
-            if (d[3]) sections.push(<DiscussionCard key="d3" post={d[3]} />);
-            if (events[1]) sections.push(<FeedItem key="ev1" listing={events[1]} variant="compact" userCity={city} />);
-
-            // 8. 2nd hero
-            if (trending[1]) sections.push(<FeedItem key="t1" listing={trending[1]} variant="hero" userCity={city} />);
-
-            // 9. Communities
-            sections.push(
-              <div key="groups">
-                <p className="text-[10px] font-bold text-foreground/35 uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                  <Users className="w-3 h-3" /> Communities
-                </p>
-                <div className="space-y-2">
-                  {groups.slice(0, 2).map((g, i) => <GroupCard key={g.id} group={g} index={i} />)}
-                </div>
-              </div>
+        {/* Mixed community feed */}
+        <div className="px-4 space-y-3">
+          {feedItems.map((item, i) => {
+            if (item.type === "discussion") {
+              return (
+                <motion.div
+                  key={`d-${item.data.id}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(i * 0.03, 0.3) }}
+                >
+                  <CommunityPost post={item.data} currentUser={currentUser} />
+                </motion.div>
+              );
+            }
+            return (
+              <motion.div
+                key={`l-${item.data.id}`}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(i * 0.03, 0.3) }}
+              >
+                <FeedItem listing={item.data} variant="compact" userCity={currentUser?.city} />
+              </motion.div>
             );
-
-            // 10. More discussion + jobs
-            if (d[4]) sections.push(<DiscussionCard key="d4" post={d[4]} />);
-
-            // 11. Suggested people
-            sections.push(<div key="users" className="-mx-4"><SuggestedUsers /></div>);
-
-            // 12. Fresh compact burst interleaved with discussion
-            fresh.slice(0, 6).forEach((l, i) => {
-              sections.push(<FeedItem key={`fr${i}`} listing={l} variant="compact" userCity={city} />);
-              if (i === 2 && d[5]) sections.push(<DiscussionCard key="d5" post={d[5]} />);
-            });
-
-            // 13. Businesses horizontal
-            sections.push(
-              <div key="biz">
-                <p className="text-[10px] font-bold text-foreground/35 uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                  <Store className="w-3 h-3" /> {cityLabel !== "your area" ? `Businesses in ${cityLabel}` : "Local Businesses"}
-                </p>
-                <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                  {businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i} />)}
-                </div>
-              </div>
-            );
-
-            // 14. For You tail — alternating compact/standard
-            forYou.slice(0, 8).forEach((l, i) => {
-              sections.push(<FeedItem key={`fy${i}`} listing={l} variant={i % 2 === 0 ? "compact" : "standard"} userCity={city} />);
-            });
-
-            return sections.map((s, i) => (
-              <div key={i} className="mt-3">{s}</div>
-            ));
-          })()}
+          })}
         </div>
-      )}
+      </section>
     </div>
   );
 }

@@ -1,29 +1,45 @@
-import { forwardRef, useCallback } from 'react';
+import { forwardRef, useCallback, useState, useEffect } from 'react';
 import { ArrowLeft, Bell, Search } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTabNavigation } from '@/hooks/useTabNavigation';
 import { resolveRoute, TAB_ROOTS } from '@/lib/TabNavigationContext';
+import { base44 } from '@/api/base44Client';
+
+// Tab root labels for category pages
+const ROOT_LABELS = {
+  '/jobs':     { title: 'Jobs',     icon: '💼' },
+  '/housing':  { title: 'Housing',  icon: '🏠' },
+  '/services': { title: 'Services', icon: '🔧' },
+  '/more':     { title: 'More',     icon: null  },
+};
 
 const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
   const navigate = useNavigate();
   const location = useLocation();
   const { state, goBack } = useTabNavigation();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.isAuthenticated().then(authed => {
+      if (authed) base44.auth.me().then(me => setUser(me)).catch(() => {});
+    });
+  }, []);
 
   const resolved = resolveRoute(location.pathname);
   const isRoot = resolved.isRoot;
-  const stack = state.stacks[state.activeTab] ?? [];
 
   const handleBack = useCallback(() => {
-    // Always try context goBack first
     const target = goBack();
     if (target) {
       navigate(target.path);
     } else {
-      // Fallback: navigate to current tab root (never loops)
       const tabRoot = TAB_ROOTS[state.activeTab];
       navigate(tabRoot ?? '/', { replace: true });
     }
   }, [goBack, navigate, state.activeTab]);
+
+  const rootLabel = ROOT_LABELS[location.pathname];
+  const isHome = location.pathname === '/';
 
   return (
     <div
@@ -41,43 +57,67 @@ const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
         WebkitBackfaceVisibility: 'hidden',
       }}
     >
-      <div className="px-3 max-w-lg mx-auto h-14 flex items-center justify-between gap-2">
+      <div className="px-4 max-w-lg mx-auto h-14 flex items-center justify-between gap-2">
         {isRoot ? (
           <>
-            {/* Root header: Branding + quick actions */}
+            {/* Root header */}
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-black tracking-tight leading-none">
-                <span className="text-primary">nomad</span>
-                <span className="text-foreground">link</span>
-              </h1>
-              <p className="text-[10px] text-muted-foreground font-semibold tracking-widest mt-0.5 uppercase">
-                Marketplace
-              </p>
+              {isHome ? (
+                <>
+                  <h1 className="text-[22px] font-black tracking-tight leading-none">
+                    <span className="text-primary">nomad</span>
+                    <span className="text-foreground">link</span>
+                  </h1>
+                  <p className="text-[9px] text-muted-foreground font-bold tracking-widest uppercase">
+                    Marketplace
+                  </p>
+                </>
+              ) : rootLabel ? (
+                <h1 className="text-[18px] font-bold text-foreground">
+                  {rootLabel.title}
+                </h1>
+              ) : (
+                <h1 className="text-[18px] font-bold text-foreground">{title}</h1>
+              )}
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 onClick={() => navigate('/search')}
-                className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary transition-colors flex items-center justify-center active:scale-95"
+                className="w-9 h-9 rounded-full hover:bg-secondary/80 transition-colors flex items-center justify-center"
                 aria-label="Search"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-5 h-5 text-foreground/70" />
               </button>
               <button
                 onClick={() => navigate('/notifications')}
-                className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary transition-colors flex items-center justify-center active:scale-95 relative"
+                className="w-9 h-9 rounded-full hover:bg-secondary/80 transition-colors flex items-center justify-center relative"
                 aria-label="Notifications"
               >
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-card" />
+                <Bell className="w-5 h-5 text-foreground/70" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border border-card" />
+              </button>
+              {/* Profile avatar */}
+              <button
+                onClick={() => navigate('/profile')}
+                className="w-9 h-9 rounded-full overflow-hidden border-2 border-border/30 shrink-0"
+                aria-label="Profile"
+              >
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.full_name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-primary/20 flex items-center justify-center text-[13px] font-bold text-primary">
+                    {user?.full_name?.[0] || '?'}
+                  </div>
+                )}
               </button>
             </div>
           </>
         ) : (
           <>
-            {/* Child header: Back + Title + optional action */}
+            {/* Child header */}
             <button
               onClick={handleBack}
-              className="w-10 h-10 rounded-full bg-secondary/50 hover:bg-secondary transition-colors flex items-center justify-center active:scale-90 flex-shrink-0"
+              className="w-9 h-9 rounded-full bg-secondary/50 hover:bg-secondary transition-colors flex items-center justify-center active:scale-90 flex-shrink-0"
               aria-label="Go back"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -85,7 +125,7 @@ const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
             <h2 className="flex-1 text-center text-[15px] font-semibold text-foreground truncate px-2">
               {title}
             </h2>
-            {rightAction ?? <div className="w-10 flex-shrink-0" />}
+            {rightAction ?? <div className="w-9 flex-shrink-0" />}
           </>
         )}
       </div>
