@@ -3,7 +3,8 @@
  * Listings feel like posts from real local people, not catalog entries.
  */
 import { useNavigate } from "react-router-dom";
-import { MapPin, Briefcase, CalendarDays, Heart, MessageCircle, Flame, Wrench, Clock, Home, Car, Sparkles, ChevronRight, ShieldCheck } from "lucide-react";
+import { MapPin, Briefcase, CalendarDays, Heart, MessageCircle, Flame, Wrench, Clock, Home, Car, Sparkles, ChevronRight } from "lucide-react";
+import CommunityTrustBadge from "../common/CommunityTrustBadge";
 import { useState, memo } from "react";
 
 function timeAgo(dateStr) {
@@ -49,19 +50,10 @@ function Avatar({ src, name, size = "sm" }) {
   );
 }
 
-// Subtle seller trust signal — only shown when meaningful
+// Subtle seller trust signal — one calm badge max
 function SellerTrust({ listing }) {
-  if (listing.is_verified) {
-    return (
-      <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-600/80">
-        <ShieldCheck className="w-2.5 h-2.5" strokeWidth={2.5} />
-        Verified
-      </span>
-    );
-  }
-  if ((listing.saves || 0) > 5) {
-    return <span className="text-[10px] text-muted-foreground/60">Active seller</span>;
-  }
+  if (listing.is_verified)           return <CommunityTrustBadge variant="verified_local" size="xs" />;
+  if ((listing.saves || 0) > 5)      return <CommunityTrustBadge variant="active_member" size="xs" customLabel="Active seller" />;
   return null;
 }
 
