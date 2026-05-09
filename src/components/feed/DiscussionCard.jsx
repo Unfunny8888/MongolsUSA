@@ -1,7 +1,6 @@
 /**
  * DiscussionCard — inline interactive community post.
  * Tap reply → thread expands inline. Like → optimistic toggle.
- * Feels like a group chat, not a social media page.
  */
 import { useState, useRef, useEffect, memo } from "react";
 import { MessageCircle, Heart, MapPin, Clock, Send, ChevronDown } from "lucide-react";
@@ -29,17 +28,20 @@ const TONE_ACCENT = {
 };
 
 function DiscussionCard({ post, currentUser }) {
-  const {
-    id, author_name, author_avatar, content,
-    city, reply_count = 0, likes = 0,
-    created_date, top_reply, tag, tone
-  } = post;
+  const postId        = post?.id;
+  const author_name   = post?.author_name;
+  const author_avatar = post?.author_avatar;
+  const content       = post?.content;
+  const city          = post?.city;
+  const reply_count   = post?.reply_count ?? 0;
+  const likes         = post?.likes ?? 0;
+  const created_date  = post?.created_date;
+  const top_reply     = post?.top_reply;
+  const tag           = post?.tag;
+  const tone          = post?.tone;
 
-  // Optimistic like state
   const [liked, setLiked]           = useState(false);
   const [likeCount, setLikeCount]   = useState(likes);
-
-  // Inline reply thread
   const [threadOpen, setThreadOpen] = useState(false);
   const [replies, setReplies]       = useState(top_reply && reply_count > 0 ? [top_reply] : []);
   const [replyText, setReplyText]   = useState("");
@@ -49,7 +51,6 @@ function DiscussionCard({ post, currentUser }) {
   const isQuiet   = reply_count === 0 && replies.length === 0;
   const accentCls = TONE_ACCENT[tone] || "";
 
-  // Focus input when thread opens
   useEffect(() => {
     if (threadOpen) setTimeout(() => inputRef.current?.focus(), 120);
   }, [threadOpen]);
@@ -61,21 +62,20 @@ function DiscussionCard({ post, currentUser }) {
 
   async function submitReply() {
     if (!replyText.trim()) return;
-    const name = currentUser?.full_name || "You";
+    const name   = currentUser?.full_name || "You";
     const avatar = currentUser?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=32&h=32&fit=crop&crop=face";
     const optimistic = { name, avatar, text: replyText.trim(), _local: true };
 
-    // Optimistically append
     setReplies(prev => [...prev, optimistic]);
     setReplyText("");
     setPosting(true);
 
     await base44.entities.Comment.create({
-      post_id: id || "community",
-      author_name: name,
+      post_id:      postId || "community",
+      author_name:  name,
       author_email: currentUser?.email || "",
       author_avatar: avatar,
-      content: replyText.trim(),
+      content:      replyText.trim(),
     });
 
     setPosting(false);
@@ -87,7 +87,6 @@ function DiscussionCard({ post, currentUser }) {
 
   return (
     <div className={`bg-card border border-border/20 rounded-2xl overflow-hidden ${accentCls}`}>
-      {/* Main post body */}
       <div className="px-3.5 pt-3.5 pb-2.5">
         {/* Author */}
         <div className="flex items-center gap-2.5 mb-2.5">
@@ -116,9 +115,8 @@ function DiscussionCard({ post, currentUser }) {
         {/* Content */}
         <p className="text-[13.5px] text-foreground leading-relaxed mb-3">{content}</p>
 
-        {/* Footer actions */}
+        {/* Actions */}
         <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
-          {/* Reply toggle */}
           <button
             onClick={() => setThreadOpen(o => !o)}
             className="flex items-center gap-1 active:text-foreground transition-colors duration-100"
@@ -134,7 +132,6 @@ function DiscussionCard({ post, currentUser }) {
             )}
           </button>
 
-          {/* Like */}
           <button
             onClick={toggleLike}
             className={`flex items-center gap-1 transition-colors duration-100 ${liked ? "text-rose-500" : ""}`}
@@ -156,7 +153,6 @@ function DiscussionCard({ post, currentUser }) {
             className="overflow-hidden"
           >
             <div className="border-t border-border/15 bg-secondary/20 px-3.5 pt-3 pb-3 space-y-3">
-              {/* Existing replies */}
               {replies.map((r, i) => (
                 <motion.div
                   key={i}
@@ -177,7 +173,6 @@ function DiscussionCard({ post, currentUser }) {
                 </motion.div>
               ))}
 
-              {/* Reply input */}
               <div className="flex items-center gap-2.5">
                 <img
                   src={currentUser?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=32&h=32&fit=crop&crop=face"}
