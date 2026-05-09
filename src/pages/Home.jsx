@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Loader2, Flame, MapPin, Briefcase, CalendarDays, Store, Users,
-  TrendingUp, Eye, Heart, MessageCircle, ArrowRight, Sparkles, Star, Zap
+  TrendingUp, Eye, Heart, MessageCircle, ArrowRight, Sparkles, Star, Zap, Clock
 } from "lucide-react";
+import FeedItem from "../components/feed/FeedItem";
 import CitySelector from "../components/home/CitySelector";
 import CategoryChip from "../components/cards/CategoryChip";
 import ListingCard from "../components/cards/ListingCard";
@@ -14,6 +15,7 @@ import FeedSkeleton from "../components/common/FeedSkeleton";
 import SuggestedUsers from "../components/discovery/SuggestedUsers";
 import TrendingPosts from "../components/discovery/TrendingPosts";
 import ActiveNow from "../components/discovery/ActiveNow";
+import SuggestedGroups from "../components/discovery/SuggestedGroups";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES, CATEGORIES } from "../lib/mockData";
 import { buildFeedSections } from "../lib/feedAlgorithm";
 import { getUserCityFromIP } from "../lib/geolocationUtils";
@@ -301,119 +303,54 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── SOCIAL FEED ─────────────────────────────── */}
+      {/* ── CONTINUOUS SOCIAL FEED ─────────────────── */}
       {!selectedCategory && (
-        <div className="pb-6">
-
-          {/* SECTION: Trending Now — large social cards */}
+        <div className="px-4 pb-8 space-y-3">
           {isLoading ? (
-            <div className="px-4 space-y-3"><FeedSkeleton count={2} /></div>
-          ) : trending.length > 0 && (
-            <>
-              <FeedLabel icon={Flame} label="Trending Now" linkTo="/explore" />
-              <div className="px-4 space-y-3">
-                {trending.slice(0, 3).map((l, i) => (
-                  <TrendingCard key={l.id} listing={l} rank={i + 1} index={i} />
-                ))}
-              </div>
-            </>
-          )}
+            <FeedSkeleton count={4} />
+          ) : (() => {
+            const feedItems = [];
+            if (trending[0]) feedItems.push({ type: "trending", data: trending[0], key: "t0" });
+            feedItems.push({ type: "widget_active", key: "active" });
+            feedItems.push({ type: "widget_trending_posts", key: "tp" });
+            if (trending[1]) feedItems.push({ type: "trending", data: trending[1], key: "t1" });
+            nearby.slice(0, 2).forEach((l, i) => feedItems.push({ type: "listing", data: l, key: `nb${i}` }));
+            if (jobs.length > 0) feedItems.push({ type: "row_jobs", key: "jobs" });
+            feedItems.push({ type: "row_groups", key: "groups" });
+            feedItems.push({ type: "widget_users", key: "users" });
+            fresh.slice(0, 2).forEach((l, i) => feedItems.push({ type: "listing", data: l, key: `fr${i}` }));
+            if (trending[2]) feedItems.push({ type: "trending", data: trending[2], key: "t2" });
+            events.slice(0, 2).forEach((l, i) => feedItems.push({ type: "listing", data: l, key: `ev${i}` }));
+            feedItems.push({ type: "row_businesses", key: "biz" });
+            forYou.slice(0, 4).forEach((l, i) => feedItems.push({ type: "listing", data: l, key: `fy${i}` }));
 
-          {/* SECTION: Active community */}
-          <div className="mt-1">
-            <ActiveNow />
-          </div>
-
-          {/* SECTION: Near You — horizontal scroll tiles */}
-          {nearby.length > 0 && (
-            <>
-              <FeedLabel icon={MapPin} label={`Near ${cityLabel}`} linkTo="/explore" />
-              <div className="px-4">
-                <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-                  {nearby.map(l => <MiniListingCard key={l.id} listing={l} />)}
+            return feedItems.map(item => {
+              if (item.type === "trending") return <FeedItem key={item.key} listing={item.data} isTrending />;
+              if (item.type === "listing") return <FeedItem key={item.key} listing={item.data} />;
+              if (item.type === "widget_active") return <div key={item.key} className="-mx-4"><ActiveNow /></div>;
+              if (item.type === "widget_trending_posts") return <div key={item.key} className="-mx-4"><TrendingPosts /></div>;
+              if (item.type === "widget_users") return <div key={item.key} className="-mx-4"><SuggestedUsers /></div>;
+              if (item.type === "row_jobs") return (
+                <div key={item.key}>
+                  <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Briefcase className="w-3 h-3" /> Jobs</p>
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar">{jobs.map(l => <MiniListingCard key={l.id} listing={l} />)}</div>
                 </div>
-              </div>
-            </>
-          )}
-
-          {/* SECTION: Trending Posts / discussions */}
-          <div className="mt-1">
-            <TrendingPosts />
-          </div>
-
-          {/* SECTION: Featured spotlight — full width cards */}
-          {featured.length > 0 && (
-            <>
-              <FeedLabel icon={Sparkles} label="Spotlight" linkTo="/explore?featured=true" />
-              <div className="px-4 space-y-3">
-                {featured.slice(0, 2).map((l, i) => <ListingCard key={l.id} listing={l} index={i} />)}
-              </div>
-            </>
-          )}
-
-          {/* SECTION: Jobs */}
-          {jobs.length > 0 && (
-            <>
-              <FeedLabel icon={Briefcase} label="Jobs" linkTo="/explore?category=jobs" />
-              <div className="px-4">
-                <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-                  {jobs.map(l => <MiniListingCard key={l.id} listing={l} />)}
+              );
+              if (item.type === "row_groups") return (
+                <div key={item.key}>
+                  <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Users className="w-3 h-3" /> Communities</p>
+                  <div className="space-y-2.5">{groups.slice(0, 2).map((g, i) => <GroupCard key={g.id} group={g} index={i} />)}</div>
                 </div>
-              </div>
-            </>
-          )}
-
-          {/* SECTION: Communities */}
-          <FeedLabel icon={Users} label="Communities" linkTo="/groups" />
-          <div className="px-4 space-y-3">
-            {isLoading ? <FeedSkeleton count={2} /> : groups.slice(0, 3).map((g, i) => <GroupCard key={g.id} group={g} index={i} />)}
-          </div>
-
-          {/* SECTION: Suggested users */}
-          <div className="mt-1">
-            <SuggestedUsers />
-          </div>
-
-          {/* SECTION: Fresh listings — just posted */}
-          {fresh.length > 0 && (
-            <>
-              <FeedLabel icon={Star} label="Just Listed" linkTo="/explore" />
-              <div className="px-4">
-                <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-                  {fresh.map(l => <MiniListingCard key={l.id} listing={l} />)}
+              );
+              if (item.type === "row_businesses") return (
+                <div key={item.key}>
+                  <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Store className="w-3 h-3" /> Businesses</p>
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar">{businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i} />)}</div>
                 </div>
-              </div>
-            </>
-          )}
-
-          {/* SECTION: Events */}
-          {events.length > 0 && (
-            <>
-              <FeedLabel icon={CalendarDays} label="Events" linkTo="/explore?category=events" />
-              <div className="px-4 space-y-3">
-                {events.slice(0, 2).map((l, i) => <ListingCard key={l.id} listing={l} index={i} />)}
-              </div>
-            </>
-          )}
-
-          {/* SECTION: Businesses */}
-          <FeedLabel icon={Store} label="Businesses" linkTo="/businesses" />
-          <div className="px-4">
-            <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-              {businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i} />)}
-            </div>
-          </div>
-
-          {/* For You — vertical feed at the bottom */}
-          {forYou.length > 0 && (
-            <>
-              <FeedLabel icon={TrendingUp} label="For You" linkTo="/explore" />
-              <div className="px-4 space-y-3">
-                {forYou.slice(0, 4).map((l, i) => <ListingCard key={l.id} listing={l} index={i} />)}
-              </div>
-            </>
-          )}
-
+              );
+              return null;
+            });
+          })()}
         </div>
       )}
     </div>
