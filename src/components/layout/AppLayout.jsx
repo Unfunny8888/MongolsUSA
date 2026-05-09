@@ -33,8 +33,11 @@ export default function AppLayout() {
       const saved = getScrollPosition(state.activeTab);
       mainRef.current.scrollTop = saved;
     } else {
-      // Child page → start from top
+      // Child page → always start from top, deferred to after paint
       mainRef.current.scrollTop = 0;
+      requestAnimationFrame(() => {
+        if (mainRef.current) mainRef.current.scrollTop = 0;
+      });
     }
   }, [location.pathname]);
 

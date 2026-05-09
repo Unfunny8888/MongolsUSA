@@ -18,22 +18,24 @@ export default function CategoryChip({ category, index = 0, onClick, isSelected 
   const Icon = ICON_MAP[category.icon] || Globe;
   return (
     <motion.button
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.2 }}
-      whileTap={{ scale: 0.94 }}
+      transition={{ delay: index * 0.03, duration: 0.18 }}
+      whileTap={{ scale: 0.93 }}
       onClick={() => onClick?.(category)}
-      className={`flex items-center gap-2 px-5 py-2.5 rounded-full border whitespace-nowrap transition-all duration-200 active:scale-95 ${
+      className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all duration-200 min-h-[36px] ${
         isSelected
-          ? "bg-primary text-primary-foreground border-primary shadow-sm"
-          : "bg-card border-border/50 text-foreground hover:bg-secondary/60"
+          ? "bg-primary text-primary-foreground shadow-sm"
+          : "bg-secondary/60 text-muted-foreground hover:bg-secondary active:bg-secondary"
       }`}
     >
-      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-primary-foreground' : 'text-primary'}`} strokeWidth={2} />
-      <div className="text-left">
-        <p className="text-[13px] font-semibold leading-tight">{category.label}</p>
-        <p className={`text-[10px] leading-tight ${isSelected ? 'opacity-75' : 'text-muted-foreground'}`}>{category.labelMn}</p>
-      </div>
+      <Icon
+        className={`w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-primary-foreground' : 'text-foreground/60'}`}
+        strokeWidth={2}
+      />
+      <span className={`text-[12px] font-semibold tracking-tight ${isSelected ? 'text-primary-foreground' : 'text-foreground/80'}`}>
+        {category.label}
+      </span>
     </motion.button>
   );
 }
