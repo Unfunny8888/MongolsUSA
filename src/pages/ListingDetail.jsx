@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo } from "react";
-import { useParams } from "react-router-dom";
-import { MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home, MessageCircle, Zap, ImageOff } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
+import { MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home, MessageCircle, Zap, ImageOff, CheckCircle2, AlertCircle, Send, Heart, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import ChildPageLayout from "../components/layout/ChildPageLayout";
@@ -134,8 +134,103 @@ const EventDetails = memo(function EventDetails({ listing }) {
   );
 });
 
+// Status badge config
+const STATUS_CONFIG = {
+  active:   { label: "Available",  color: "text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40" },
+  pending:  { label: "Pending",     color: "text-amber-700  bg-amber-50  border-amber-200  dark:bg-amber-950/40"  },
+  sold:     { label: "Sold",        color: "text-rose-700   bg-rose-50   border-rose-200   dark:bg-rose-950/40"   },
+  expired:  { label: "Closed",      color: "text-slate-500  bg-slate-100 border-slate-200  dark:bg-slate-800/40"  },
+  flagged:  { label: "Under Review",color: "text-orange-700 bg-orange-50 border-orange-200 dark:bg-orange-950/40" },
+};
+
+function StatusBadge({ status }) {
+  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.active;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full border ${cfg.color}`}>
+      {status === "active" && <CheckCircle2 className="w-3 h-3" />}
+      {(status === "sold" || status === "expired") && <AlertCircle className="w-3 h-3" />}
+      {cfg.label}
+    </span>
+  );
+}
+
+// Inline quick-ask panel with chips + text
+function InlineContactPanel({ listing, user }) {
+  const navigate = useNavigate();
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const CHIPS = listing.category === "jobs"
+    ? ["Is this position still open?", "Can I apply?", "What are the hours?"]
+    : listing.category === "housing"
+    ? ["Is this still available?", "Can I schedule a viewing?", "Is the price negotiable?"]
+    : listing.category === "cars"
+    ? ["Is this still available?", "Can we meet to see it?", "Is the price negotiable?"]
+    : ["Is this still available?", "Can we meet this week?", "Is the price negotiable?"];
+
+  async function send(msg) {
+    const content = (msg || text).trim();
+    if (!content || sending || !user) return;
+    setSending(true);
+    const sellerEmail = listing.contact_email || listing.created_by || "";
+    const convId = [user.email, sellerEmail].sort().join("_") + "_" + listing.id;
+    await base44.entities.Message.create({
+      conversation_id: convId,
+      from_user: user.email,
+      from_name: user.full_name,
+      to_user: sellerEmail,
+      to_name: listing.poster_name || "Seller",
+      content,
+      listing_id: listing.id,
+      listing_title: listing.title,
+      is_read: false,
+    });
+    setSending(false);
+    setSent(true);
+    setTimeout(() => {
+      navigate(`/conversation/${encodeURIComponent(convId)}?other=${encodeURIComponent(listing.poster_name || "Seller")}&listing=${encodeURIComponent(listing.title)}`);
+    }, 400);
+  }
+
+  if (sent) {
+    return (
+      <div className="flex items-center gap-2 py-3 text-sm font-semibold text-emerald-600">
+        <CheckCircle2 className="w-4 h-4" /> Message sent! Opening conversation…
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        {CHIPS.map(c => (
+          <button key={c} disabled={sending} onClick={() => send(c)}
+            className="text-[12px] font-medium text-foreground/75 bg-secondary/60 rounded-full px-3 py-1.5 border border-border/25 active:bg-secondary transition-colors">
+            {c}
+          </button>
+        ))}
+      </div>
+      <div className="flex items-center gap-2 bg-secondary/40 rounded-xl px-3 py-2 border border-border/20">
+        <input
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && send()}
+          placeholder="Ask the seller something…"
+          className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground/50 outline-none min-h-[28px]"
+        />
+        <button onClick={() => send()} disabled={!text.trim() || sending}
+          className="text-primary font-semibold text-[12px] shrink-0 disabled:opacity-30">
+          <Send className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ListingDetail() {
   const { listingId } = useParams();
+  const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
@@ -212,7 +307,10 @@ export default function ListingDetail() {
           className="bg-card rounded-3xl p-5 shadow-xl border border-border/50"
         >
           <div className="mb-4">
-            <p className="text-2xl font-extrabold text-primary">{formatPrice()}</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-2xl font-extrabold text-primary">{formatPrice()}</p>
+              <StatusBadge status={listing.status || "active"} />
+            </div>
             <h1 className="text-lg font-bold text-foreground mt-1 leading-tight">{listing.title}</h1>
             <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
               {listing.location_city && (
@@ -275,13 +373,24 @@ export default function ListingDetail() {
             />
           </div>
 
-          {isLoggedIn && listing.created_by && listing.created_by !== user?.email && (
-            <button
-              className="mt-4 w-full py-3.5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2"
-            >
-              <MessageCircle className="w-4 h-4" />
-              Message Seller
-            </button>
+          {/* Marketplace actions — contact seller */}
+          {listing.status !== "sold" && listing.status !== "expired" && (
+            <div className="mt-5 pt-5 border-t border-border/30">
+              <div className="flex items-center gap-2 mb-3">
+                <MessageCircle className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-bold">Contact Seller</h3>
+              </div>
+              {isLoggedIn && user && listing.created_by !== user?.email ? (
+                <InlineContactPanel listing={listing} user={user} />
+              ) : !isLoggedIn ? (
+                <button
+                  onClick={() => base44.auth.redirectToLogin()}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" /> Sign in to contact seller
+                </button>
+              ) : null}
+            </div>
           )}
 
           {isLoggedIn && (
