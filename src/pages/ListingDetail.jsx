@@ -276,94 +276,96 @@ export default function ListingDetail() {
 
   return (
     <ChildPageLayout>
+      {/* Image */}
       <div className="relative">
         {listing.images?.[0] ? (
           <img
             src={listing.images[0]}
             alt={listing.title}
-            className="w-full aspect-[4/3] object-cover bg-secondary"
-            onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+            className="w-full aspect-video object-cover bg-secondary"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
-        ) : null}
-        {(!listing.images?.[0]) && (
-          <div className="w-full aspect-[4/3] bg-secondary flex items-center justify-center">
-            <ImageOff className="w-12 h-12 text-muted-foreground/30" />
+        ) : (
+          <div className="w-full aspect-video bg-secondary flex items-center justify-center">
+            <ImageOff className="w-10 h-10 text-muted-foreground/30" />
           </div>
         )}
-        <div style={{ display: 'none' }} className="w-full aspect-[4/3] bg-secondary flex items-center justify-center">
-          <ImageOff className="w-12 h-12 text-muted-foreground/30" />
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-4 right-4 flex gap-2">
-          <ShareButton title={listing.title} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
-          <SaveButton listing={listing} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
+          <ShareButton title={listing.title} className="w-9 h-9 rounded-xl glass flex items-center justify-center" />
+          <SaveButton listing={listing} className="w-9 h-9 rounded-xl glass flex items-center justify-center" />
         </div>
       </div>
 
-      <div className="px-4 -mt-4 relative z-10">
+      <div className="px-4 pt-4 pb-10">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-3xl p-5 shadow-xl border border-border/50"
+          className="space-y-4"
         >
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-2xl font-extrabold text-primary">{formatPrice()}</p>
-              <StatusBadge status={listing.status || "active"} />
-            </div>
-            <h1 className="text-lg font-bold text-foreground mt-1 leading-tight">{listing.title}</h1>
-            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-              {listing.location_city && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {listing.location_city}, {listing.location_state}
-                </span>
-              )}
-              <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> {listing.views} views</span>
-              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {timeAgo(listing.created_date)}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-secondary/50">
+          {/* Seller identity */}
+          <div className="flex items-center gap-3">
             <img
-              src={listing.poster_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"}
+              src={listing.poster_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
               alt={listing.poster_name}
-              className="w-10 h-10 rounded-xl object-cover"
+              className="w-9 h-9 rounded-full object-cover border border-border/20 shrink-0"
             />
-            <div className="flex-1">
-              <p className="text-sm font-semibold">{listing.poster_name || "Anonymous"}</p>
-              <p className="text-[10px] text-muted-foreground">Posted {timeAgo(listing.created_date)}</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-[13px] font-semibold text-foreground">{listing.poster_name || "Anonymous"}</p>
+                <StatusBadge status={listing.status || "active"} />
+              </div>
+              <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-0.5">
+                <Clock className="w-3 h-3" />
+                <span>{timeAgo(listing.created_date)}</span>
+                {listing.location_city && (
+                  <><span>·</span><MapPin className="w-3 h-3" /><span>{listing.location_city}{listing.location_state ? `, ${listing.location_state}` : ""}</span></>
+                )}
+                {listing.views > 0 && <><span>·</span><Eye className="w-3 h-3" /><span>{listing.views}</span></>}
+              </div>
             </div>
           </div>
 
+          {/* Title + price */}
+          <div>
+            <h1 className="text-[17px] font-bold text-foreground leading-snug">{listing.title}</h1>
+            {formatPrice() && (
+              <p className="text-[22px] font-extrabold text-primary mt-1">{formatPrice()}</p>
+            )}
+          </div>
+
+          {/* Category specs — compact chips */}
           {listing.category === "cars" && <CarDetails listing={listing} />}
           {listing.category === "jobs" && <JobDetails listing={listing} />}
           {listing.category === "housing" && <HousingDetails listing={listing} />}
           {listing.category === "events" && <EventDetails listing={listing} />}
           {listing.category === "events" && <EventRSVPButton eventId={listing.id} eventTitle={listing.title} />}
 
-          <div className="mt-5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold">Description</h3>
-              {listing.description && (
+          {/* Description */}
+          {listing.description && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">About</p>
                 <TranslateButton text={listing.description} onTranslated={setTranslatedDesc} />
-              )}
+              </div>
+              <p className="text-[13.5px] text-foreground/80 leading-relaxed whitespace-pre-line">
+                {translatedDesc || listing.description}
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-              {translatedDesc || listing.description}
-            </p>
-          </div>
+          )}
 
+          {/* Tags */}
           {listing.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-4">
+            <div className="flex flex-wrap gap-1.5">
               {listing.tags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="text-[10px]">#{tag}</Badge>
               ))}
             </div>
           )}
 
-          <div className="mt-6 pt-5 border-t border-border">
-            <h3 className="text-sm font-bold mb-3">Contact Information</h3>
+          {/* Contact info */}
+          <div className="pt-3 border-t border-border/20">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Contact</p>
             <ContactMask
               phone={listing.contact_phone}
               email={listing.contact_email}
@@ -373,13 +375,9 @@ export default function ListingDetail() {
             />
           </div>
 
-          {/* Marketplace actions — contact seller */}
+          {/* Inline messaging */}
           {listing.status !== "sold" && listing.status !== "expired" && (
-            <div className="mt-5 pt-5 border-t border-border/30">
-              <div className="flex items-center gap-2 mb-3">
-                <MessageCircle className="w-4 h-4 text-primary" />
-                <h3 className="text-sm font-bold">Contact Seller</h3>
-              </div>
+            <div className="pt-3 border-t border-border/20">
               {isLoggedIn && user && listing.created_by !== user?.email ? (
                 <InlineContactPanel listing={listing} user={user} />
               ) : !isLoggedIn ? (
@@ -387,22 +385,24 @@ export default function ListingDetail() {
                   onClick={() => base44.auth.redirectToLogin()}
                   className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center gap-2"
                 >
-                  <MessageCircle className="w-4 h-4" /> Sign in to contact seller
+                  <MessageCircle className="w-4 h-4" /> Sign in to message seller
                 </button>
               ) : null}
             </div>
           )}
 
+          {/* Flag */}
           {isLoggedIn && (
-            <div className="mt-4 pt-4 border-t border-border/30">
+            <div className="pt-3 border-t border-border/20">
               <SpamFlagButton listingId={listing.id} />
             </div>
           )}
 
+          {/* Boost */}
           {isLoggedIn && user?.email === listing.created_by && (
             <button
               onClick={() => setShowBoost(true)}
-              className="mt-3 w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold shadow-lg flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold flex items-center justify-center gap-2"
             >
               <Zap className="w-4 h-4" />
               Boost This Listing
