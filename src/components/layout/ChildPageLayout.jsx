@@ -10,15 +10,12 @@ import { forwardRef } from 'react';
  * - Full safe-area support (iPhone notch, Android status bar)
  */
 const ChildPageLayout = forwardRef(function ChildPageLayout({ children, className = '' }, ref) {
+  // AppLayout already provides paddingTop (header) and paddingBottom (bottom nav)
+  // ChildPageLayout is just a semantic wrapper — no extra padding.
   return (
     <div
       ref={ref}
-      className={`min-h-dvh bg-background pb-24 ${className}`}
-      data-scrollable="true"
-      style={{
-        paddingTop: 'calc(3.5rem + env(safe-area-inset-top))',
-        scrollBehavior: 'smooth',
-      }}
+      className={`bg-background ${className}`}
     >
       {children}
     </div>

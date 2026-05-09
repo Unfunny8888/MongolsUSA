@@ -81,8 +81,13 @@ export default function GroupDetail() {
   return (
     <ChildPageLayout>
       <div className="relative">
-        <img src={group.cover_image} alt={group.name} className="w-full h-48 object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <img
+          src={group.cover_image}
+          alt={group.name}
+          className="w-full h-48 object-cover bg-secondary"
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
       </div>
 
       <div className="px-4 -mt-8 relative z-10">
@@ -124,7 +129,7 @@ export default function GroupDetail() {
             onClick={() => setJoined(!joined)}
             className={`w-full rounded-xl ${joined ? "bg-secondary text-foreground hover:bg-secondary/80" : "bg-primary text-white hover:bg-primary/90"}`}
           >
-            {joined ? "Joined ✓" : "Join Community"}
+            {joined ? "✓ Joined" : "Join Community"}
           </Button>
 
           <div className="mt-6 pt-5 border-t border-border space-y-4">

@@ -28,7 +28,7 @@ export default function AppLayout() {
     if (!mainRef.current) return;
 
     // Going to a tab root → restore that tab's saved scroll
-    const isRoot = ['/','explore','/groups','/notifications','/profile'].some(r => nextPath === r || nextPath === r + '/');
+    const isRoot = ['/', '/explore', '/groups', '/notifications', '/profile'].includes(nextPath);
     if (isRoot) {
       const saved = getScrollPosition(state.activeTab);
       mainRef.current.scrollTop = saved;

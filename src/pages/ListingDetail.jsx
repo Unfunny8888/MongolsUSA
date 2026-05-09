@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo } from "react";
 import { useParams } from "react-router-dom";
-import { MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home } from "lucide-react";
+import { MapPin, Clock, Eye, Shield, Car, Fuel, Gauge, Calendar, Building2, DollarSign, Bed, Bath, Home, MessageCircle, Zap, ImageOff } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import ChildPageLayout from "../components/layout/ChildPageLayout";
@@ -182,12 +182,23 @@ export default function ListingDetail() {
   return (
     <ChildPageLayout>
       <div className="relative">
-        <img
-          src={listing.images?.[0] || "https://images.unsplash.com/photo-1557683316-973673baf926?w=800"}
-          alt={listing.title}
-          className="w-full aspect-[4/3] object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
+        {listing.images?.[0] ? (
+          <img
+            src={listing.images[0]}
+            alt={listing.title}
+            className="w-full aspect-[4/3] object-cover bg-secondary"
+            onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+          />
+        ) : null}
+        {(!listing.images?.[0]) && (
+          <div className="w-full aspect-[4/3] bg-secondary flex items-center justify-center">
+            <ImageOff className="w-12 h-12 text-muted-foreground/30" />
+          </div>
+        )}
+        <div style={{ display: 'none' }} className="w-full aspect-[4/3] bg-secondary flex items-center justify-center">
+          <ImageOff className="w-12 h-12 text-muted-foreground/30" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
         <div className="absolute top-4 right-4 flex gap-2">
           <ShareButton title={listing.title} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
           <SaveButton listing={listing} className="w-10 h-10 rounded-xl glass flex items-center justify-center" />
@@ -266,9 +277,10 @@ export default function ListingDetail() {
 
           {isLoggedIn && listing.created_by && listing.created_by !== user?.email && (
             <button
-              className="mt-4 w-full py-3 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-smooth"
+              className="mt-4 w-full py-3.5 rounded-xl bg-secondary text-foreground text-sm font-semibold hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2"
             >
-              💬 Message Seller
+              <MessageCircle className="w-4 h-4" />
+              Message Seller
             </button>
           )}
 
@@ -281,8 +293,9 @@ export default function ListingDetail() {
           {isLoggedIn && user?.email === listing.created_by && (
             <button
               onClick={() => setShowBoost(true)}
-              className="mt-3 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold shadow-lg"
+              className="mt-3 w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold shadow-lg flex items-center justify-center gap-2"
             >
+              <Zap className="w-4 h-4" />
               Boost This Listing
             </button>
           )}

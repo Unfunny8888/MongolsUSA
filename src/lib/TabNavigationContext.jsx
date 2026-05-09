@@ -74,30 +74,23 @@ function navigationReducer(state, action) {
     // Unified navigate: atomically sets activeTab + updates correct stack
     case 'NAVIGATE': {
       const { path, tab, label, isRoot } = action.payload;
-      const stack = state.stacks[tab];
+      const currentStack = state.stacks[tab] ?? [];
+
+      // Full no-op: already on this exact path in this tab
+      if (state.activeTab === tab && currentStack.slice(-1)[0]?.path === path) return state;
 
       if (isRoot) {
-        // Tab root — reset that tab's stack to just the root
+        // Tab root — reset that tab's stack to just the root entry
         return {
           ...state,
           activeTab: tab,
-          stacks: {
-            ...state.stacks,
-            [tab]: [{ path, label, tab }],
-          },
+          stacks: { ...state.stacks, [tab]: [{ path, label, tab }] },
         };
       }
 
-      // Child page within a tab
-      // If we're switching tabs, reset destination tab first then push
-      const baseStack = state.activeTab !== tab
-        ? [makeRootEntry(tab)]
-        : stack;
-
-      // Already at this path — no-op (prevents duplicate pushes)
-      if (baseStack[baseStack.length - 1]?.path === path) {
-        return { ...state, activeTab: tab };
-      }
+      // Child page: build base stack
+      // If switching tabs, start fresh from that tab's root
+      const baseStack = state.activeTab !== tab ? [makeRootEntry(tab)] : currentStack;
 
       // If path already exists earlier in the stack, pop back to it
       const existingIndex = baseStack.findIndex(r => r.path === path);
@@ -105,21 +98,15 @@ function navigationReducer(state, action) {
         return {
           ...state,
           activeTab: tab,
-          stacks: {
-            ...state.stacks,
-            [tab]: baseStack.slice(0, existingIndex + 1),
-          },
+          stacks: { ...state.stacks, [tab]: baseStack.slice(0, existingIndex + 1) },
         };
       }
 
-      // Push new route onto the stack
+      // Push new route
       return {
         ...state,
         activeTab: tab,
-        stacks: {
-          ...state.stacks,
-          [tab]: [...baseStack, { path, label, tab }],
-        },
+        stacks: { ...state.stacks, [tab]: [...baseStack, { path, label, tab }] },
       };
     }
 

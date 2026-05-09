@@ -25,7 +25,19 @@ export default function LazyImage({ src, alt = "", className = "", width = 800, 
   const optimized = optimizeImageUrl(src, { width, quality });
   const ss = srcSet(src);
 
-  if (error && fallback) return <>{fallback}</>;
+  // Always show a fallback — never the browser broken-image icon
+  if (error) {
+    if (fallback) return <>{fallback}</>;
+    return (
+      <div className={`relative overflow-hidden bg-secondary flex items-center justify-center ${className}`}>
+        <svg className="w-8 h-8 text-muted-foreground/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="1.5" />
+          <circle cx="8.5" cy="8.5" r="1.5" strokeWidth="1.5" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 15l-5-5L5 21" />
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div ref={ref} className={`relative overflow-hidden ${className}`}>

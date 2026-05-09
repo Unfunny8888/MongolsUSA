@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useParams } from "react-router-dom";
 import { Send, Image, Check, CheckCheck, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import ChildPageLayout from "../components/layout/ChildPageLayout";
 import TranslateButton from "../components/common/TranslateButton";
 import { base44 } from "@/api/base44Client";
 
@@ -13,7 +12,12 @@ const MsgBubble = memo(function MsgBubble({ msg, isMe }) {
       isMe ? "bg-primary text-white rounded-br-sm" : "bg-card border border-border/50 rounded-bl-sm"
     }`}>
       {msg.image_url ? (
-        <img src={msg.image_url} alt="Shared image" className="max-w-full rounded-2xl" />
+        <img
+          src={msg.image_url}
+          alt="Shared image"
+          className="max-w-full rounded-2xl"
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
       ) : (
         <div className="px-4 pt-2.5 pb-1">{translated || msg.content}</div>
       )}
@@ -122,8 +126,9 @@ export default function Conversation() {
   }, [user, conversationId, otherName, listingTitle, getOtherUser]);
 
   return (
-    <ChildPageLayout className="!pt-0 flex flex-col">
-      <div className="flex-1 px-4 py-4 space-y-3 pb-4 overflow-y-auto overscroll-contain">
+    <div className="flex flex-col">
+      {/* Message list — scrolls inside AppLayout's main scroller */}
+      <div className="flex-1 px-4 py-4 space-y-3">
         {messages.map((msg, i) => {
           const isMe = msg.from_user === user?.email;
           return (
@@ -156,12 +161,19 @@ export default function Conversation() {
         <div ref={bottomRef} />
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && sendImage(e.target.files[0])} />
-      <div className="glass border-t border-border/30 px-4 py-3 flex gap-2 items-center pb-[env(safe-area-inset-bottom)] shrink-0">
+      {/* Sticky input bar */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => e.target.files?.[0] && sendImage(e.target.files[0])}
+      />
+      <div className="sticky bottom-0 bg-card/98 backdrop-blur-xl border-t border-border/30 px-4 py-3 flex gap-2 items-center">
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadingImage}
-          className="w-10 h-10 rounded-xl bg-secondary text-foreground flex items-center justify-center shrink-0 min-h-[44px] min-w-[44px]"
+          className="w-10 h-10 rounded-xl bg-secondary text-foreground flex items-center justify-center shrink-0"
         >
           {uploadingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Image className="w-4 h-4" />}
         </button>
@@ -175,11 +187,11 @@ export default function Conversation() {
         <button
           onClick={send}
           disabled={!text.trim() || sending}
-          className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center disabled:opacity-40 shrink-0 min-h-[44px] min-w-[44px]"
+          className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center disabled:opacity-40 shrink-0"
         >
           <Send className="w-4 h-4" />
         </button>
       </div>
-    </ChildPageLayout>
+    </div>
   );
 }

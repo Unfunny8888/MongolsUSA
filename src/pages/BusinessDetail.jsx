@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Star, MapPin, Phone, Clock, Globe, Shield, Crown, Lock } from "lucide-react";
+import { useParams } from "react-router-dom";
+import { Star, MapPin, Clock, Globe, Shield, Crown } from "lucide-react";
 import ContactMask from "../components/common/ContactMask";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,6 @@ import { base44 } from "@/api/base44Client";
 
 export default function BusinessDetail() {
   const { businessId } = useParams();
-  const navigate = useNavigate();
   const [business, setBusiness] = useState(null);
   const [translatedDesc, setTranslatedDesc] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -40,16 +39,15 @@ export default function BusinessDetail() {
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <div>
       <div className="relative">
-        <img src={business.banner} alt={business.name} className="w-full h-52 object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-xl glass flex items-center justify-center"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+        <img
+          src={business.banner}
+          alt={business.name}
+          className="w-full h-52 object-cover bg-secondary"
+          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
         {business.is_premium && (
           <div className="absolute top-4 right-4">
             <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1">
