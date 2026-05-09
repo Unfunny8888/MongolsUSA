@@ -14,73 +14,177 @@
  */
 
 import { useState } from "react";
-import { MapPin, ChevronDown, List, Map } from "lucide-react";
+import { MapPin, ChevronDown, List, Map, Search, X } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+
+// ─── CITY SELECTOR SHEET ─────────────────────────────────────────────────────
+const SUGGESTED_CITIES = [
+  { label: "Near Me", value: null, icon: "📍" },
+  { label: "Chicago, IL", value: "Chicago, IL", icon: null },
+  { label: "New York, NY", value: "New York, NY", icon: null },
+  { label: "Los Angeles, CA", value: "Los Angeles, CA", icon: null },
+  { label: "Houston, TX", value: "Houston, TX", icon: null },
+  { label: "Miami, FL", value: "Miami, FL", icon: null },
+  { label: "Dallas, TX", value: "Dallas, TX", icon: null },
+  { label: "Atlanta, GA", value: "Atlanta, GA", icon: null },
+  { label: "San Francisco, CA", value: "San Francisco, CA", icon: null },
+];
+
+function CitySheet({ currentCity, onSelect, onClose }) {
+  const [query, setQuery] = useState("");
+  const filtered = query.trim()
+    ? SUGGESTED_CITIES.filter(c => c.label.toLowerCase().includes(query.toLowerCase()))
+    : SUGGESTED_CITIES;
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col" onClick={onClose}>
+      {/* Backdrop */}
+      <div className="flex-1 bg-black/30 backdrop-blur-sm" />
+      {/* Sheet */}
+      <div
+        className="bg-card rounded-t-3xl shadow-2xl max-h-[70vh] flex flex-col"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-border/50" />
+        </div>
+        <div className="px-4 pb-2 pt-1">
+          <p className="text-[15px] font-bold text-foreground mb-3">Choose a city</p>
+          {/* Search */}
+          <div className="flex items-center gap-2 bg-secondary/50 rounded-xl px-3 py-2 mb-3">
+            <Search className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <input
+              autoFocus
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search cities…"
+              className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground/50 outline-none"
+            />
+            {query && (
+              <button onClick={() => setQuery("")}>
+                <X className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
+          {/* All Cities option */}
+          <button
+            onClick={() => { onSelect(null); onClose(); }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-colors ${
+              !currentCity ? "bg-primary/10 text-primary" : "hover:bg-secondary/50 text-muted-foreground"
+            }`}
+          >
+            <span className="text-[16px]">🌐</span>
+            <span className="text-[13px] font-semibold">All Cities</span>
+            {!currentCity && <span className="ml-auto text-[10px] font-bold text-primary">Active</span>}
+          </button>
+        </div>
+        {/* City list */}
+        <div className="overflow-y-auto px-4 pb-8 space-y-0.5">
+          {filtered.filter(c => c.value !== null).map(c => (
+            <button
+              key={c.label}
+              onClick={() => { onSelect(c.value); onClose(); }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${
+                currentCity === c.value ? "bg-primary/10 text-primary" : "hover:bg-secondary/50 text-foreground"
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <span className="text-[13px] font-medium">{c.label}</span>
+              {currentCity === c.value && <span className="ml-auto text-[10px] font-bold text-primary">Active</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── DISCOVERY BAR ──────────────────────────────────────────────────────────
 /**
- * DiscoveryBar — replaces old LocationBar + FilterBar.
- * A single compact row: [City ▼] [filter chips...] [Map toggle]
+ * TWO-ROW discovery area:
+ *   Row 1: [ All Cities / City ▼ ]          [ 🗺 Check on map ]
+ *   Row 2: scrollable suggestion pills
  *
  * props:
- *   city          string          e.g. "Chicago, IL"
- *   onCityClick   fn
- *   filters       string[]
- *   activeFilter  string
- *   onFilter      fn(filter)
+ *   city          string | null   null = "All Cities" (soft rank), string = hard filter
+ *   onCityChange  fn(city | null)
+ *   suggestions   string[]        e.g. ["Nearby", "Top Rated", "Open Now"]
+ *   activeSug     string
+ *   onSuggest     fn(sug)
  *   viewMode      "list" | "map"
  *   onToggleView  fn
  */
-export function DiscoveryBar({ city, onCityClick, filters, activeFilter, onFilter, viewMode, onToggleView }) {
+export function DiscoveryBar({ city, onCityChange, suggestions, activeSug, onSuggest, viewMode, onToggleView,
+  // legacy compat aliases
+  filters, activeFilter, onFilter, onCityClick,
+}) {
+  const [showCitySheet, setShowCitySheet] = useState(false);
+
+  // Support legacy prop names
+  const chips = suggestions || filters || [];
+  const activeChip = activeSug ?? activeFilter;
+  const handleChip = onSuggest || onFilter || (() => {});
+  const handleCityChange = onCityChange || (() => {});
+
+  const cityLabel = city || "All Cities";
+  const isAllCities = !city;
+
   return (
-    <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-xl border-b border-border/10">
-      <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
-
-        {/* City pill */}
-        <button
-          onClick={onCityClick}
-          className="shrink-0 flex items-center gap-1 bg-card border border-border/25 rounded-full px-3 py-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] active:scale-[0.97] transition-all duration-150"
-        >
-          <MapPin className="w-3 h-3 text-primary" />
-          <span className="text-[12px] font-semibold text-foreground whitespace-nowrap">{city}</span>
-          <ChevronDown className="w-3 h-3 text-muted-foreground" />
-        </button>
-
-        {/* Divider */}
-        <div className="shrink-0 w-px h-4 bg-border/30" />
-
-        {/* Filter chips */}
-        {(filters || []).map(f => (
+    <>
+      <div className="sticky top-0 z-20 bg-background/97 backdrop-blur-xl border-b border-border/10">
+        {/* ROW 1 — location + map toggle */}
+        <div className="flex items-center justify-between px-4 pt-2.5 pb-2">
           <button
-            key={f}
-            onClick={() => onFilter(f)}
-            className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-semibold whitespace-nowrap transition-all duration-150 active:scale-[0.96] ${
-              activeFilter === f
-                ? "bg-foreground text-background shadow-[0_1px_4px_rgba(0,0,0,0.12)]"
-                : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
-            }`}
+            onClick={() => setShowCitySheet(true)}
+            className="flex items-center gap-1.5 active:opacity-70 transition-opacity"
           >
-            {f}
+            <MapPin className={`w-3.5 h-3.5 shrink-0 ${isAllCities ? "text-muted-foreground" : "text-primary"}`} />
+            <span className={`text-[14px] font-semibold ${isAllCities ? "text-muted-foreground" : "text-foreground"}`}>
+              {cityLabel}
+            </span>
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
           </button>
-        ))}
 
-        {/* Map / List toggle — pinned right */}
-        {onToggleView && (
-          <>
-            <div className="shrink-0 w-px h-4 bg-border/30" />
+          {onToggleView && viewMode !== "map" && (
             <button
               onClick={onToggleView}
-              className="shrink-0 flex items-center gap-1 bg-card border border-border/25 rounded-full px-3 py-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] active:scale-[0.97] transition-all duration-150"
+              className="flex items-center gap-1.5 bg-card border border-border/25 rounded-full px-3 py-1.5 shadow-[0_1px_3px_rgba(0,0,0,0.06)] active:scale-[0.96] transition-all duration-150"
             >
-              {viewMode === "map"
-                ? <><List className="w-3 h-3 text-primary" /><span className="text-[12px] font-semibold text-foreground">List</span></>
-                : <><Map className="w-3 h-3 text-primary" /><span className="text-[12px] font-semibold text-foreground">Map</span></>
-              }
+              <Map className="w-3 h-3 text-primary" />
+              <span className="text-[12px] font-semibold text-foreground">Check on map</span>
             </button>
-          </>
+          )}
+        </div>
+
+        {/* ROW 2 — suggestion pills */}
+        {chips.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto no-scrollbar px-4 pb-2.5">
+            {chips.map(f => (
+              <button
+                key={f}
+                onClick={() => handleChip(f)}
+                className={`shrink-0 px-3 py-1 rounded-full text-[12px] font-medium whitespace-nowrap transition-all duration-150 active:scale-[0.96] ${
+                  activeChip === f
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground border border-border/20 bg-transparent"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         )}
       </div>
-    </div>
+
+      {showCitySheet && (
+        <CitySheet
+          currentCity={city}
+          onSelect={handleCityChange}
+          onClose={() => setShowCitySheet(false)}
+        />
+      )}
+    </>
   );
 }
 
@@ -178,17 +282,16 @@ export function ImageCard({ imageSrc, imageAlt, imageFallback, priceOverlay, tit
 
 // ─── MAP VIEW ────────────────────────────────────────────────────────────────
 /**
- * MapDiscovery — Leaflet map with pins + floating bottom card strip.
+ * MapDiscovery — full map mode with floating List button + pin preview card.
  * listings: array of { id, title, price, location_city, images, lat?, lng? }
- * onSelect: fn(listing)
+ * onSelect: fn(listing)   — navigate to detail
+ * onBackToList: fn        — return to list mode
  */
-export function MapDiscovery({ listings, onSelect, defaultCenter = [41.8781, -87.6298] }) {
+export function MapDiscovery({ listings, onSelect, onBackToList, defaultCenter = [41.8781, -87.6298] }) {
   const [selected, setSelected] = useState(null);
 
-  // Scatter pins around center for items without real coordinates
   function pinPosition(listing, i) {
     if (listing.lat && listing.lng) return [listing.lat, listing.lng];
-    const seed = i * 0.008;
     return [
       defaultCenter[0] + (Math.sin(i * 2.3) * 0.04),
       defaultCenter[1] + (Math.cos(i * 1.7) * 0.06),
@@ -196,7 +299,7 @@ export function MapDiscovery({ listings, onSelect, defaultCenter = [41.8781, -87
   }
 
   return (
-    <div className="relative flex-1" style={{ height: "calc(100dvh - 180px)" }}>
+    <div className="relative" style={{ height: "calc(100dvh - 160px)" }}>
       <MapContainer
         center={defaultCenter}
         zoom={13}
@@ -218,17 +321,30 @@ export function MapDiscovery({ listings, onSelect, defaultCenter = [41.8781, -87
             >
               <Popup>
                 <div className="text-[12px] font-semibold">{l.title}</div>
-                {l.price && <div className="text-primary font-bold">${l.price.toLocaleString()}</div>}
+                {l.price && <div className="font-bold">${l.price.toLocaleString()}</div>}
               </Popup>
             </Marker>
           );
         })}
       </MapContainer>
 
-      {/* Floating card strip at bottom */}
-      {selected && (
+      {/* Floating LIST button — top center */}
+      {onBackToList && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000]">
+          <button
+            onClick={onBackToList}
+            className="flex items-center gap-1.5 bg-card/95 backdrop-blur-md border border-border/20 rounded-full px-4 py-2 shadow-lg active:scale-[0.96] transition-all duration-150"
+          >
+            <List className="w-3.5 h-3.5 text-foreground" />
+            <span className="text-[13px] font-semibold text-foreground">List</span>
+          </button>
+        </div>
+      )}
+
+      {/* Floating preview card — bottom */}
+      {selected ? (
         <div
-          className="absolute bottom-4 left-4 right-4 bg-card rounded-2xl border border-border/20 shadow-lg p-3 cursor-pointer active:scale-[0.99] transition-all z-[1000]"
+          className="absolute bottom-4 left-4 right-4 bg-card rounded-2xl border border-border/15 shadow-xl p-3 cursor-pointer active:scale-[0.99] transition-all z-[1000]"
           onClick={() => onSelect(selected)}
         >
           <div className="flex items-center gap-3">
@@ -250,18 +366,15 @@ export function MapDiscovery({ listings, onSelect, defaultCenter = [41.8781, -87
             </div>
             <button
               onClick={e => { e.stopPropagation(); setSelected(null); }}
-              className="text-[11px] text-muted-foreground shrink-0 px-2"
+              className="shrink-0 w-7 h-7 rounded-full bg-secondary/60 flex items-center justify-center"
             >
-              ✕
+              <X className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           </div>
         </div>
-      )}
-
-      {/* Tap anywhere on map to dismiss */}
-      {!selected && listings.length > 0 && (
-        <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
-          <p className="text-center text-[11px] text-muted-foreground/60 bg-card/80 backdrop-blur-sm rounded-full py-1.5 px-4 w-fit mx-auto">
+      ) : (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[1000] pointer-events-none">
+          <p className="text-[11px] text-muted-foreground/70 bg-card/80 backdrop-blur-sm rounded-full py-1.5 px-4 whitespace-nowrap shadow-sm">
             Tap a pin to preview
           </p>
         </div>

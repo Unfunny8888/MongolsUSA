@@ -9,7 +9,7 @@ import {
   EmptyState, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
-const FILTERS = ["All", "Home", "Auto", "Legal", "Cleaning", "Tax", "Beauty"];
+const SUGGESTIONS = ["Nearby", "Top Rated", "Open Now", "Home", "Auto", "Legal", "Cleaning", "Tax", "Beauty"];
 const TABS = [["businesses", "Businesses"], ["freelancers", "Freelancers"], ["recommended", "Recommended"]];
 
 function BusinessRow({ business, index }) {
@@ -103,12 +103,12 @@ function FreelancerCard({ listing, index }) {
 
 export default function ServicesPage() {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("businesses");
   const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "services"));
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
-  const [city, setCity] = useState("Chicago, IL");
+  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Business.list("-rating", 20)
@@ -120,12 +120,13 @@ export default function ServicesPage() {
   }, []);
 
   const filteredBiz = useMemo(() => {
-    if (activeFilter === "All") return businesses;
-    return businesses.filter(b =>
-      b.category?.toLowerCase().includes(activeFilter.toLowerCase()) ||
-      b.tags?.some(t => t.toLowerCase().includes(activeFilter.toLowerCase()))
+    let result = city ? businesses.filter(b => b.city === city) : businesses;
+    if (!activeSug || ["Nearby", "Top Rated", "Open Now"].includes(activeSug)) return result;
+    return result.filter(b =>
+      b.category?.toLowerCase().includes(activeSug.toLowerCase()) ||
+      b.tags?.some(t => t.toLowerCase().includes(activeSug.toLowerCase()))
     );
-  }, [businesses, activeFilter]);
+  }, [businesses, activeSug, city]);
 
   // For map: combine businesses + listings
   const mapItems = useMemo(() =>
@@ -138,17 +139,17 @@ export default function ServicesPage() {
     <div className="min-h-dvh">
       <DiscoveryBar
         city={city}
-        onCityClick={() => {}}
-        filters={FILTERS}
-        activeFilter={activeFilter}
-        onFilter={setActiveFilter}
+        onCityChange={setCity}
+        suggestions={SUGGESTIONS}
+        activeSug={activeSug}
+        onSuggest={setActiveSug}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+        onToggleView={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={mapItems} onSelect={item => {
+        <MapDiscovery listings={mapItems} onBackToList={() => setViewMode("list")} onSelect={item => {
           if (filteredBiz.find(b => b.id === item.id)) navigate(`/business/${item.id}`);
           else navigate(`/listing/${item.id}`);
         }} />

@@ -8,7 +8,7 @@ import {
   DiscoveryBar, SubTabs, SectionLabel, EmptyState,
 } from "../components/shared/CategoryPageLayout";
 
-const FILTERS = ["All", "Electronics", "Furniture", "Clothing", "Books", "Free", "Under $50"];
+const SUGGESTIONS = ["Nearby", "Recently Posted", "Free", "Electronics", "Furniture", "Clothing", "Books", "Under $50"];
 const TABS = [["buy", "Buy"], ["sell", "Sell"], ["free", "Free Items"]];
 
 function ItemCard({ listing, index }) {
@@ -53,10 +53,10 @@ function ItemCard({ listing, index }) {
 }
 
 export default function Marketplace() {
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("buy");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => ["electronics", "community"].includes(l.category)));
-  const [city, setCity] = useState("Chicago, IL");
+  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Listing.filter({ status: "active" }, "-created_date", 80)
@@ -68,22 +68,22 @@ export default function Marketplace() {
   }, []);
 
   const filtered = useMemo(() => {
-    let result = listings;
+    let result = city ? listings.filter(l => l.location_city === city) : listings;
     if (activeTab === "free") return result.filter(l => l.price_type === "free" || l.price === 0);
-    if (activeFilter === "Free") return result.filter(l => l.price_type === "free" || l.price === 0);
-    if (activeFilter === "Under $50") return result.filter(l => l.price && l.price <= 50);
-    if (activeFilter === "Electronics") return result.filter(l => l.category === "electronics");
+    if (activeSug === "Free") return result.filter(l => l.price_type === "free" || l.price === 0);
+    if (activeSug === "Under $50") return result.filter(l => l.price && l.price <= 50);
+    if (activeSug === "Electronics") return result.filter(l => l.category === "electronics");
     return result;
-  }, [listings, activeFilter, activeTab]);
+  }, [listings, activeSug, activeTab, city]);
 
   return (
     <div className="min-h-dvh">
       <DiscoveryBar
         city={city}
-        onCityClick={() => {}}
-        filters={FILTERS}
-        activeFilter={activeFilter}
-        onFilter={setActiveFilter}
+        onCityChange={setCity}
+        suggestions={SUGGESTIONS}
+        activeSug={activeSug}
+        onSuggest={setActiveSug}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 

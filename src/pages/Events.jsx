@@ -9,7 +9,7 @@ import {
   EmptyState, ImageCard, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
-const FILTERS = ["All", "This Week", "Free", "Concerts", "Community", "Sports"];
+const SUGGESTIONS = ["Nearby", "This Week", "Free", "Popular", "Concerts", "Community", "Sports"];
 const TABS = [["upcoming", "Upcoming"], ["past", "Past"], ["hosting", "Hosting"]];
 
 function EventCard({ listing, index }) {
@@ -51,11 +51,11 @@ function EventCard({ listing, index }) {
 
 export default function Events() {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("upcoming");
   const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "events"));
-  const [city, setCity] = useState("Chicago, IL");
+  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "events", status: "active" }, "-created_date", 50)
@@ -64,26 +64,26 @@ export default function Events() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (activeFilter === "All") return listings;
-    if (activeFilter === "Free") return listings.filter(l => !l.event_ticket_price || l.event_ticket_price === 0);
-    return listings;
-  }, [listings, activeFilter]);
+    let result = city ? listings.filter(l => l.location_city === city) : listings;
+    if (activeSug === "Free") return result.filter(l => !l.event_ticket_price || l.event_ticket_price === 0);
+    return result;
+  }, [listings, activeSug, city]);
 
   return (
     <div className="min-h-dvh">
       <DiscoveryBar
         city={city}
-        onCityClick={() => {}}
-        filters={FILTERS}
-        activeFilter={activeFilter}
-        onFilter={setActiveFilter}
+        onCityChange={setCity}
+        suggestions={SUGGESTIONS}
+        activeSug={activeSug}
+        onSuggest={setActiveSug}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+        onToggleView={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} />
+        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} onBackToList={() => setViewMode("list")} />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "upcoming" && (

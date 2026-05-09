@@ -9,7 +9,7 @@ import {
   EmptyState, ImageCard, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
-const FILTERS = ["All", "Apartments", "Houses", "Rooms", "Short-term", "Furnished"];
+const SUGGESTIONS = ["Nearby", "Apartments", "Houses", "Rooms", "Short-term", "Furnished", "Popular"];
 const TABS = [["rentals", "Rentals"], ["roommates", "Roommates"], ["help", "Housing Help"]];
 
 function HousingCard({ listing, index }) {
@@ -87,11 +87,11 @@ function RoommateCard({ listing, index }) {
 
 export default function Housing() {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("rentals");
   const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "housing"));
-  const [city, setCity] = useState("Chicago, IL");
+  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "housing", status: "active" }, "-created_date", 50)
@@ -100,13 +100,13 @@ export default function Housing() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (activeFilter === "All") return listings;
+    let result = city ? listings.filter(l => l.location_city === city) : listings;
     const map = { Apartments: "apartment", Houses: "house", Rooms: "room", "Short-term": "studio" };
-    const type = map[activeFilter];
-    if (type) return listings.filter(l => l.housing_type === type);
-    if (activeFilter === "Furnished") return listings.filter(l => l.housing_furnished);
-    return listings;
-  }, [listings, activeFilter]);
+    const type = map[activeSug];
+    if (type) return result.filter(l => l.housing_type === type);
+    if (activeSug === "Furnished") return result.filter(l => l.housing_furnished);
+    return result;
+  }, [listings, activeSug, city]);
 
   const roommates = listings.filter(l =>
     l.housing_type === "room" ||
@@ -118,17 +118,17 @@ export default function Housing() {
     <div className="min-h-dvh">
       <DiscoveryBar
         city={city}
-        onCityClick={() => {}}
-        filters={FILTERS}
-        activeFilter={activeFilter}
-        onFilter={setActiveFilter}
+        onCityChange={setCity}
+        suggestions={SUGGESTIONS}
+        activeSug={activeSug}
+        onSuggest={setActiveSug}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+        onToggleView={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} />
+        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} onBackToList={() => setViewMode("list")} />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "rentals" && (

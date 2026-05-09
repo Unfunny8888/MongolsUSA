@@ -9,7 +9,7 @@ import {
   EmptyState, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
-const FILTERS = ["All", "Today", "This Week", "Airport", "Long Distance"];
+const SUGGESTIONS = ["Nearby", "Today", "This Week", "Airport", "Long Distance"];
 const TABS = [["find", "Find a Ride"], ["offer", "Offer a Ride"], ["travel", "Travel Buddy"]];
 
 function RideCard({ item, index }) {
@@ -46,10 +46,10 @@ function RideCard({ item, index }) {
 
 export default function RideShare() {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("find");
   const [viewMode, setViewMode] = useState("list");
-  const [city, setCity] = useState("Chicago, IL");
+  const [city, setCity] = useState(null);
 
   const rides = MOCK_DISCUSSIONS.filter(d => d.tag === "Ride Share");
 
@@ -63,17 +63,17 @@ export default function RideShare() {
     <div className="min-h-dvh">
       <DiscoveryBar
         city={city}
-        onCityClick={() => {}}
-        filters={FILTERS}
-        activeFilter={activeFilter}
-        onFilter={setActiveFilter}
+        onCityChange={setCity}
+        suggestions={SUGGESTIONS}
+        activeSug={activeSug}
+        onSuggest={setActiveSug}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+        onToggleView={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={rideListings} onSelect={() => {}} />
+        <MapDiscovery listings={rideListings} onSelect={() => {}} onBackToList={() => setViewMode("list")} />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "find" && (

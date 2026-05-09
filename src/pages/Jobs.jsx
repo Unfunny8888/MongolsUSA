@@ -9,7 +9,7 @@ import {
   EmptyState, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
-const FILTERS = ["All", "Full-time", "Part-time", "Remote", "CDL", "Restaurant", "Cash"];
+const SUGGESTIONS = ["Nearby", "Full-time", "Part-time", "Remote", "Top Rated", "CDL", "Cash"];
 const TABS = [["hiring", "Hiring"], ["looking", "Looking for Work"]];
 
 function timeAgo(d) {
@@ -100,11 +100,11 @@ function CandidateCard({ disc, index }) {
 
 export default function Jobs() {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("hiring");
   const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "jobs"));
-  const [city, setCity] = useState("Chicago, IL");
+  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "jobs", status: "active" }, "-created_date", 50)
@@ -113,16 +113,19 @@ export default function Jobs() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (activeFilter === "All") return listings;
+    let result = city ? listings.filter(l => l.location_city === city) : listings;
     const map = { "Full-time": "full-time", "Part-time": "part-time", "Remote": "remote", "CDL": "cdl", "Cash": "cash" };
-    const key = map[activeFilter] || activeFilter.toLowerCase();
-    return listings.filter(l =>
-      l.job_type === key ||
-      l.tags?.some(t => t.toLowerCase().includes(key)) ||
-      l.title.toLowerCase().includes(key) ||
-      l.description?.toLowerCase().includes(key)
-    );
-  }, [listings, activeFilter]);
+    const key = map[activeSug] || activeSug?.toLowerCase();
+    if (key && !["nearby", "top rated"].includes(key)) {
+      result = result.filter(l =>
+        l.job_type === key ||
+        l.tags?.some(t => t.toLowerCase().includes(key)) ||
+        l.title.toLowerCase().includes(key) ||
+        l.description?.toLowerCase().includes(key)
+      );
+    }
+    return result;
+  }, [listings, activeSug, city]);
 
   const candidates = MOCK_DISCUSSIONS.filter(d => ["Ride Share", "CDL", "Roommate"].includes(d.tag));
 
@@ -130,17 +133,17 @@ export default function Jobs() {
     <div className="min-h-dvh">
       <DiscoveryBar
         city={city}
-        onCityClick={() => {}}
-        filters={FILTERS}
-        activeFilter={activeFilter}
-        onFilter={setActiveFilter}
+        onCityChange={setCity}
+        suggestions={SUGGESTIONS}
+        activeSug={activeSug}
+        onSuggest={setActiveSug}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+        onToggleView={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} />
+        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} onBackToList={() => setViewMode("list")} />
       ) : (
         <div className="px-4 py-4 space-y-2.5">
           {activeTab === "hiring" && (

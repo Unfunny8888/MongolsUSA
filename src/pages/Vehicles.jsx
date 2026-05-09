@@ -9,7 +9,7 @@ import {
   EmptyState, ImageCard, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
-const FILTERS = ["All", "Under $5k", "Under $10k", "Under $20k", "Trucks", "SUVs", "Sedans"];
+const SUGGESTIONS = ["Nearby", "Under $5k", "Under $10k", "Under $20k", "Trucks", "SUVs", "Recently Posted"];
 const TABS = [["buy", "Buy"], ["sell", "Sell"], ["rent", "Rent"]];
 
 function VehicleCard({ listing, index }) {
@@ -62,11 +62,11 @@ function VehicleCard({ listing, index }) {
 
 export default function Vehicles() {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("buy");
   const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "cars"));
-  const [city, setCity] = useState("Chicago, IL");
+  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "cars", status: "active" }, "-created_date", 50)
@@ -75,28 +75,28 @@ export default function Vehicles() {
   }, []);
 
   const filtered = useMemo(() => {
-    if (activeFilter === "All") return listings;
-    if (activeFilter === "Under $5k") return listings.filter(l => l.price && l.price <= 5000);
-    if (activeFilter === "Under $10k") return listings.filter(l => l.price && l.price <= 10000);
-    if (activeFilter === "Under $20k") return listings.filter(l => l.price && l.price <= 20000);
-    return listings;
-  }, [listings, activeFilter]);
+    let result = city ? listings.filter(l => l.location_city === city) : listings;
+    if (activeSug === "Under $5k") return result.filter(l => l.price && l.price <= 5000);
+    if (activeSug === "Under $10k") return result.filter(l => l.price && l.price <= 10000);
+    if (activeSug === "Under $20k") return result.filter(l => l.price && l.price <= 20000);
+    return result;
+  }, [listings, activeSug, city]);
 
   return (
     <div className="min-h-dvh">
       <DiscoveryBar
         city={city}
-        onCityClick={() => {}}
-        filters={FILTERS}
-        activeFilter={activeFilter}
-        onFilter={setActiveFilter}
+        onCityChange={setCity}
+        suggestions={SUGGESTIONS}
+        activeSug={activeSug}
+        onSuggest={setActiveSug}
         viewMode={viewMode}
-        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+        onToggleView={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} />
+        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} onBackToList={() => setViewMode("list")} />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "buy" && (
