@@ -2,13 +2,15 @@
  * Explore — intentional discovery + opportunity browsing.
  * Home = pulse. Explore = browse with purpose.
  */
-import { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { SlidersHorizontal, X, Map, LayoutGrid, Loader2, ChevronDown,
+import { SlidersHorizontal, X, Map, LayoutGrid, ChevronDown, Star, MapPin,
          Briefcase, Home, Car, Wrench, CalendarDays, Store, Flame, Users, ShoppingBag } from "lucide-react";
+import FeedItem from "../components/feed/FeedItem";
 import ListingCard from "../components/cards/ListingCard";
-import { MOCK_LISTINGS, CATEGORIES, CITIES } from "../lib/mockData";
+import BusinessCard from "../components/cards/BusinessCard";
+import { MOCK_LISTINGS, MOCK_BUSINESSES, CATEGORIES, CITIES } from "../lib/mockData";
 import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
 import { useQueryCache } from "../hooks/useQueryCache";
 import { base44 } from "@/api/base44Client";
@@ -24,17 +26,54 @@ const BROWSE_CATS = [
   { id: "community", label: "Community", icon: Users,        color: "text-emerald-600",bg: "bg-emerald-50 dark:bg-emerald-950/40"},
 ];
 
-function CategoryCard({ cat, onClick }) {
+// Compact category pill shortcut
+function CategoryPill({ cat, onClick }) {
   const Icon = cat.icon;
   return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
+    <button
       onClick={() => onClick(cat.id)}
-      className={`flex flex-col items-center justify-center gap-2 p-4 rounded-2xl border border-border/20 ${cat.bg} active:opacity-80 transition-all`}
+      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border/20 ${cat.bg} active:opacity-70 transition-all shrink-0`}
     >
-      <Icon className={`w-6 h-6 ${cat.color}`} strokeWidth={1.8} />
-      <span className={`text-[11px] font-bold ${cat.color}`}>{cat.label}</span>
-    </motion.button>
+      <Icon className={`w-3 h-3 ${cat.color}`} strokeWidth={2} />
+      <span className={`text-[11px] font-semibold ${cat.color}`}>{cat.label}</span>
+    </button>
+  );
+}
+
+// Compact trending listing row
+function TrendingRow({ listing, index }) {
+  const navigate = useNavigate();
+  const price = listing.price ? `$${listing.price.toLocaleString()}` : null;
+  const CAT_COLOR = {
+    jobs: "text-blue-600", events: "text-violet-600", services: "text-amber-600",
+    housing: "text-rose-600", cars: "text-orange-600",
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      onClick={() => navigate(`/listing/${listing.id}`)}
+      className="flex items-center gap-3 py-2.5 border-b border-border/10 last:border-0 cursor-pointer active:opacity-70"
+    >
+      {listing.images?.[0] ? (
+        <img src={listing.images[0]} alt={listing.title} className="w-11 h-11 rounded-xl object-cover shrink-0" loading="lazy" />
+      ) : (
+        <div className="w-11 h-11 rounded-xl bg-secondary/60 shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-[13px] font-semibold text-foreground leading-snug line-clamp-1">{listing.title}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className={`text-[10px] font-semibold capitalize ${CAT_COLOR[listing.category] || "text-muted-foreground"}`}>{listing.category}</span>
+          {listing.location_city && (
+            <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+              <MapPin className="w-2.5 h-2.5" />{listing.location_city}
+            </span>
+          )}
+        </div>
+      </div>
+      {price && <span className="text-[12px] font-bold text-primary shrink-0">{price}</span>}
+    </motion.div>
   );
 }
 
@@ -51,7 +90,7 @@ export default function Explore() {
   const [dateFilter, setDateFilter] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [allListings, setAllListings] = useState(MOCK_LISTINGS);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [showCityDrawer, setShowCityDrawer] = useState(false);
   const cache = useQueryCache();
 
@@ -61,6 +100,9 @@ export default function Explore() {
     if (cached) { setAllListings(cached); return; }
     base44.entities.Listing.filter({ status: "active" }, "-created_date", 200).then(data => {
       if (data && data.length > 0) { setAllListings(data); cache.set(cacheKey, data); }
+    });
+    base44.entities.Business.list("-rating", 12).then(data => {
+      if (data && data.length > 0) setBusinesses(data);
     });
   }, []);
 
@@ -168,42 +210,62 @@ export default function Explore() {
 
       {/* ── DISCOVERY LANDING (no category selected) ── */}
       {!browsing && (
-        <div className="px-4 pt-4 pb-8 space-y-6">
-          {/* Browse by category */}
-          <div>
-            <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest mb-3">Browse by Category</p>
-            <div className="grid grid-cols-4 gap-2">
-              {BROWSE_CATS.map(cat => (
-                <CategoryCard key={cat.id} cat={cat} onClick={setCategory} />
-              ))}
-            </div>
-          </div>
+        <div className="pb-8">
 
-          {/* Trending now */}
-          <div>
-            <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-3">
-              <Flame className="w-3 h-3" /> Trending Now
-            </p>
-            <div className="space-y-3">
-              {allListings
-                .sort((a, b) => ((b.views || 0) + (b.saves || 0) * 3) - ((a.views || 0) + (a.saves || 0) * 3))
-                .slice(0, 4)
-                .map((l, i) => <ListingCard key={l.id} listing={l} index={i} />)}
-            </div>
-          </div>
-
-          {/* Local businesses */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5">
-                <Store className="w-3 h-3" /> Local Businesses
-              </p>
+          {/* 1. Featured Local Businesses */}
+          <div className="pt-4 pb-2">
+            <div className="flex items-center justify-between px-4 mb-2.5">
+              <div className="flex items-center gap-1.5">
+                <Store className="w-3.5 h-3.5 text-primary/70" />
+                <span className="text-[11px] font-bold text-foreground/60 uppercase tracking-widest">Featured Businesses</span>
+              </div>
               <button onClick={() => navigate("/businesses")} className="text-[11px] font-semibold text-primary">See all</button>
             </div>
-            <div className="space-y-2">
-              {allListings.filter(l => l.category === "services").slice(0, 3).map((l, i) => (
-                <ListingCard key={l.id} listing={l} index={i} />
+            <div className="flex gap-3 overflow-x-auto no-scrollbar px-4">
+              {businesses.map((b, i) => (
+                <div key={b.id} className="shrink-0 w-52">
+                  <BusinessCard business={b} index={i} />
+                </div>
               ))}
+            </div>
+          </div>
+
+          {/* 2. Category shortcuts — compact pills */}
+          <div className="px-4 pt-3 pb-1">
+            <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest mb-2">Browse by</p>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              {BROWSE_CATS.map(cat => (
+                <CategoryPill key={cat.id} cat={cat} onClick={setCategory} />
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Trending — jobs, services, listings mix */}
+          <div className="px-4 pt-4">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Flame className="w-3.5 h-3.5 text-orange-500" />
+              <span className="text-[11px] font-bold text-foreground/60 uppercase tracking-widest">Active Nearby</span>
+            </div>
+            <div className="bg-card border border-border/20 rounded-2xl px-3 divide-y divide-border/10">
+              {allListings
+                .filter(l => ["jobs","services","cars","housing","events"].includes(l.category))
+                .sort((a, b) => ((b.views || 0) + (b.saves || 0) * 3) - ((a.views || 0) + (a.saves || 0) * 3))
+                .slice(0, 6)
+                .map((l, i) => <TrendingRow key={l.id} listing={l} index={i} />)}
+            </div>
+          </div>
+
+          {/* 4. Community listings feed */}
+          <div className="px-4 pt-5">
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <Users className="w-3.5 h-3.5 text-primary/70" />
+              <span className="text-[11px] font-bold text-foreground/60 uppercase tracking-widest">From the Community</span>
+            </div>
+            <div className="space-y-3">
+              {allListings
+                .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                .slice(0, 5)
+                .map((l, i) => <FeedItem key={l.id} listing={l} variant={i === 0 ? "hero" : "compact"} />)}
             </div>
           </div>
         </div>
