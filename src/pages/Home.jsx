@@ -317,7 +317,7 @@ export default function Home() {
             if (d[0]) sections.push(<DiscussionCard key="d0" post={d[0]} />);
 
             // 2. HERO trending anchor
-            if (trending[0]) sections.push(<FeedItem key="t0" listing={trending[0]} variant="hero" />);
+            if (trending[0]) sections.push(<FeedItem key="t0" listing={trending[0]} variant="hero" userCity={currentUser?.city} />);
 
             // 3. Discussion #2
             if (d[1]) sections.push(<DiscussionCard key="d1" post={d[1]} />);
@@ -329,9 +329,9 @@ export default function Home() {
             if (jobs.length > 0) sections.push(
               <div key="jobs" className="space-y-1.5">
                 <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                  <Briefcase className="w-3 h-3" /> Job Opportunities
+                  <Briefcase className="w-3 h-3" /> {cityLabel !== "your area" ? `Jobs near ${cityLabel}` : "Job Opportunities"}
                 </p>
-                {jobs.slice(0, 3).map(l => <FeedItem key={l.id} listing={l} variant="compact" />)}
+                {jobs.slice(0, 3).map(l => <FeedItem key={l.id} listing={l} variant="compact" userCity={currentUser?.city} />)}
               </div>
             );
 
@@ -339,7 +339,7 @@ export default function Home() {
             if (d[2]) sections.push(<DiscussionCard key="d2" post={d[2]} />);
 
             // 7. Nearby standard listing
-            if (nearby[0]) sections.push(<FeedItem key="nb0" listing={nearby[0]} variant="standard" />);
+            if (nearby[0]) sections.push(<FeedItem key="nb0" listing={nearby[0]} variant="standard" userCity={currentUser?.city} />);
 
             // 8. Communities
             sections.push(
@@ -357,7 +357,7 @@ export default function Home() {
             if (d[3]) sections.push(<DiscussionCard key="d3" post={d[3]} />);
 
             // 10. HERO 2nd trending
-            if (trending[1]) sections.push(<FeedItem key="t1" listing={trending[1]} variant="hero" />);
+            if (trending[1]) sections.push(<FeedItem key="t1" listing={trending[1]} variant="hero" userCity={currentUser?.city} />);
 
             // 11. Suggested people
             sections.push(<div key="users" className="-mx-4"><SuggestedUsers /></div>);
@@ -369,9 +369,9 @@ export default function Home() {
             if (fresh.length > 0) sections.push(
               <div key="fresh" className="space-y-1.5">
                 <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                  <Star className="w-3 h-3" /> Just Posted
+                  <Star className="w-3 h-3" /> {cityLabel !== "your area" ? `New in ${cityLabel}` : "Just Posted"}
                 </p>
-                {fresh.slice(0, 3).map(l => <FeedItem key={l.id} listing={l} variant="compact" />)}
+                {fresh.slice(0, 3).map(l => <FeedItem key={l.id} listing={l} variant="compact" userCity={currentUser?.city} />)}
               </div>
             );
 
@@ -379,9 +379,9 @@ export default function Home() {
             if (events.length > 0) sections.push(
               <div key="events" className="space-y-3">
                 <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5">
-                  <CalendarDays className="w-3 h-3" /> Upcoming Events
+                  <CalendarDays className="w-3 h-3" /> {cityLabel !== "your area" ? `Events in ${cityLabel}` : "Upcoming Events"}
                 </p>
-                {events.slice(0, 2).map(l => <FeedItem key={l.id} listing={l} variant="standard" />)}
+                {events.slice(0, 2).map(l => <FeedItem key={l.id} listing={l} variant="standard" userCity={currentUser?.city} />)}
               </div>
             );
 
@@ -392,7 +392,7 @@ export default function Home() {
             sections.push(
               <div key="biz">
                 <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
-                  <Store className="w-3 h-3" /> Local Businesses
+                  <Store className="w-3 h-3" /> {cityLabel !== "your area" ? `Businesses in ${cityLabel}` : "Local Businesses"}
                 </p>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar">
                   {businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i} />)}
@@ -404,7 +404,7 @@ export default function Home() {
             if (forYou.length > 0) sections.push(
               <div key="forYou" className="space-y-3">
                 {forYou.slice(0, 6).map((l, i) => (
-                  <FeedItem key={l.id} listing={l} variant={i % 3 === 2 ? "compact" : "standard"} />
+                  <FeedItem key={l.id} listing={l} variant={i % 3 === 2 ? "compact" : "standard"} userCity={currentUser?.city} />
                 ))}
               </div>
             );

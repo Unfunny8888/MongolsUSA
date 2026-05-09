@@ -4,6 +4,7 @@
  */
 import { useNavigate } from "react-router-dom";
 import { MapPin, Briefcase, CalendarDays, Heart, MessageCircle, Flame, Wrench, Clock, Home, Car, Sparkles, ChevronRight } from "lucide-react";
+import LocalContextTag from "../common/LocalContextTag";
 import CommunityTrustBadge from "../common/CommunityTrustBadge";
 import { useState, memo } from "react";
 
@@ -216,7 +217,10 @@ function StandardCard({ listing, onClick }) {
               <p className="text-[11px] font-semibold text-foreground leading-none">{listing.poster_name || "Member"}</p>
               <SellerTrust listing={listing} />
             </div>
-            {listing.location_city && (
+            {listing._isNearby && (
+              <div className="mt-0.5"><LocalContextTag variant="nearby" city={listing.location_city} /></div>
+            )}
+            {!listing._isNearby && listing.location_city && (
               <p className="text-[10px] text-muted-foreground flex items-center gap-0.5 mt-0.5">
                 <MapPin className="w-2.5 h-2.5" />Posted in {listing.location_city}
               </p>
@@ -255,7 +259,9 @@ function CompactCard({ listing, onClick }) {
             <Avatar src={listing.poster_avatar} name={listing.poster_name} size="xs" />
             <span className="text-[10px] text-muted-foreground">{listing.poster_name || "Member"}</span>
             <SellerTrust listing={listing} />
-            {listing.location_city && (
+            {listing._isNearby ? (
+              <LocalContextTag variant="nearby" city={listing.location_city} />
+            ) : listing.location_city && (
               <>
                 <span className="text-muted-foreground/30">·</span>
                 <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
@@ -294,12 +300,18 @@ function CompactCard({ listing, onClick }) {
   );
 }
 
-function FeedItem({ listing, variant = "standard" }) {
+function FeedItem({ listing, variant = "standard", userCity }) {
   const navigate = useNavigate();
   const onClick = () => navigate(`/listing/${listing.id}`);
-  if (variant === "hero")    return <HeroCard listing={listing} onClick={onClick} />;
-  if (variant === "compact") return <CompactCard listing={listing} onClick={onClick} />;
-  return <StandardCard listing={listing} onClick={onClick} />;
+  const isNearby = userCity && listing.location_city &&
+    listing.location_city.toLowerCase() === userCity.toLowerCase();
+
+  // Attach local context to listing so cards can read it
+  const enriched = { ...listing, _userCity: userCity, _isNearby: isNearby };
+
+  if (variant === "hero")    return <HeroCard listing={enriched} onClick={onClick} />;
+  if (variant === "compact") return <CompactCard listing={enriched} onClick={onClick} />;
+  return <StandardCard listing={enriched} onClick={onClick} />;
 }
 
 export default memo(FeedItem);
