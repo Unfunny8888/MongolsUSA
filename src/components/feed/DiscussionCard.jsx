@@ -87,13 +87,13 @@ function DiscussionCard({ post, currentUser }) {
 
   return (
     <div className={`bg-card border border-border/20 rounded-2xl overflow-hidden ${accentCls}`}>
-      <div className="px-3.5 pt-3.5 pb-2.5">
+      <div className="px-3 pt-3 pb-2">
         {/* Author */}
-        <div className="flex items-center gap-2.5 mb-2.5">
+        <div className="flex items-center gap-2 mb-2">
           <img
             src={author_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&crop=face"}
             alt={author_name}
-            className="w-8 h-8 rounded-full object-cover shrink-0"
+            className="w-7 h-7 rounded-full object-cover shrink-0"
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -113,10 +113,10 @@ function DiscussionCard({ post, currentUser }) {
         </div>
 
         {/* Content */}
-        <p className="text-[13.5px] text-foreground leading-relaxed mb-3">{content}</p>
+        <p className="text-[13px] text-foreground leading-relaxed mb-2.5">{content}</p>
 
         {/* Actions */}
-        <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
           <button
             onClick={() => setThreadOpen(o => !o)}
             className="flex items-center gap-1 active:text-foreground transition-colors duration-100"
@@ -152,7 +152,7 @@ function DiscussionCard({ post, currentUser }) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-border/15 bg-secondary/20 px-3.5 pt-3 pb-3 space-y-3">
+            <div className="border-t border-border/15 bg-secondary/20 px-3 pt-2.5 pb-2.5 space-y-2.5">
               {replies.map((r, i) => (
                 <motion.div
                   key={i}

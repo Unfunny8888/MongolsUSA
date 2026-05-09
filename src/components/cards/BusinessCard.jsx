@@ -23,7 +23,7 @@ function BusinessCard({ business, index = 0 }) {
       <Link to={`/business/${business.id}`} className="block">
         <div className="bg-card rounded-2xl overflow-hidden border border-border/20 active:scale-[0.985] active:opacity-90 transition-all duration-200 min-w-[240px]">
           {/* Banner */}
-          <div className="relative h-28 overflow-hidden bg-secondary">
+          <div className="relative h-20 overflow-hidden bg-secondary">
             {business.banner && (
               <img
                 src={business.banner}
@@ -37,18 +37,18 @@ function BusinessCard({ business, index = 0 }) {
           </div>
 
           {/* Body */}
-          <div className="p-3 -mt-5 relative">
+          <div className="p-3 -mt-4 relative">
             <div className="flex items-end gap-3 mb-2">
               {business.logo ? (
                 <img
                   src={business.logo}
                   alt={business.name}
-                  className="w-11 h-11 rounded-xl object-cover border-2 border-card shadow-sm"
+                  className="w-9 h-9 rounded-xl object-cover border-2 border-card shadow-sm"
                   onError={e => { e.currentTarget.style.display = "none"; }}
                 />
               ) : (
-                <div className="w-11 h-11 rounded-xl bg-primary/10 border-2 border-card flex items-center justify-center">
-                  <Store className="w-5 h-5 text-primary" strokeWidth={2} />
+                <div className="w-9 h-9 rounded-xl bg-primary/10 border-2 border-card flex items-center justify-center">
+                  <Store className="w-4 h-4 text-primary" strokeWidth={2} />
                 </div>
               )}
               <div className="flex-1 min-w-0">
@@ -71,15 +71,15 @@ function BusinessCard({ business, index = 0 }) {
 
             {/* Description */}
             {business.description && (
-              <p className="text-[11px] text-muted-foreground line-clamp-2 mb-2 leading-relaxed">
+              <p className="text-[11px] text-muted-foreground line-clamp-1 mb-1.5 leading-relaxed">
                 {business.description}
               </p>
             )}
 
-            {/* Trust badges — calm, max 2 */}
+            {/* Trust badge — max 1 to keep it light */}
             {visibleBadges.length > 0 && (
               <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                {visibleBadges.map(v => (
+                {visibleBadges.slice(0, 1).map(v => (
                   <CommunityTrustBadge key={v} variant={v} />
                 ))}
               </div>

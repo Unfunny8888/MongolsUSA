@@ -52,6 +52,17 @@ function Avatar({ src, name, size = "sm" }) {
   );
 }
 
+// Calm social signal — activity without urgency
+function SocialSignal({ listing }) {
+  const views = listing.views || 0;
+  const saves = listing.saves || 0;
+  const city  = listing.location_city;
+  if (views > 20) return <span className="text-[10px] text-muted-foreground/55">{views} viewed</span>;
+  if (saves > 3)  return <span className="text-[10px] text-muted-foreground/55">{saves} saved</span>;
+  if (city && saves > 0) return <span className="text-[10px] text-muted-foreground/55">Popular in {city}</span>;
+  return null;
+}
+
 // Subtle seller trust signal — one calm badge max
 function SellerTrust({ listing }) {
   if (listing.is_verified)           return <CommunityTrustBadge variant="verified_local" size="xs" />;
@@ -90,11 +101,11 @@ function SocialBar({ listing, onAsk }) {
         <Heart className={`w-3 h-3 ${saved ? "fill-rose-500" : ""}`} strokeWidth={2.5} />
         Save
       </button>
-      {interested > 0 && (
-        <span className="ml-auto text-[10px] text-muted-foreground/70">
-          {interested} {interested === 1 ? "person" : "people"} interested
-        </span>
-      )}
+      <span className="ml-auto">
+        {interested > 0
+          ? <span className="text-[10px] text-muted-foreground/55">{interested} interested</span>
+          : <SocialSignal listing={listing} />}
+      </span>
     </div>
   );
 }
@@ -309,6 +320,7 @@ function CompactCard({ listing, onClick }) {
               </>
             )}
             {price && <span className="ml-auto text-[12px] font-bold text-primary">{price}</span>}
+            {!price && <span className="ml-auto"><SocialSignal listing={listing} /></span>}
           </div>
         </div>
         {hasImg && (
