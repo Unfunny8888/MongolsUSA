@@ -3,6 +3,7 @@
  * Listings feel like posts from real local people, not catalog entries.
  */
 import { useNavigate } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 import { MapPin, Briefcase, CalendarDays, Heart, MessageCircle, Flame, Wrench, Clock, Home, Car, Sparkles, ChevronRight } from "lucide-react";
 import LocalContextTag from "../common/LocalContextTag";
 import CommunityTrustBadge from "../common/CommunityTrustBadge";
@@ -98,22 +99,60 @@ function SocialBar({ listing, onAsk }) {
   );
 }
 
-// Inline ask input
-function InlineAsk({ onClose }) {
+// Inline ask input — sends a real message and navigates to conversation
+function InlineAsk({ listing, onClose }) {
+  const navigate = useNavigate();
   const [text, setText] = useState("");
-  function submit(e) { e.stopPropagation(); if (text.trim()) onClose(); }
+  const [sending, setSending] = useState(false);
+
+  const QUICK_CHIPS = [
+    "Is this still available?",
+    "Can we meet this week?",
+    "Is the price negotiable?",
+  ];
+
+  async function submit(msg) {
+    const content = (msg || text).trim();
+    if (!content || sending) return;
+    setSending(true);
+    const me = await base44.auth.me().catch(() => null);
+    if (!me) { base44.auth.redirectToLogin(); return; }
+    const convId = [me.email, listing.contact_email || listing.created_by || "seller"].sort().join("_") + "_" + listing.id;
+    await base44.entities.Message.create({
+      conversation_id: convId,
+      from_user: me.email,
+      from_name: me.full_name,
+      to_user: listing.contact_email || listing.created_by || "",
+      to_name: listing.poster_name || "Seller",
+      content,
+      listing_id: listing.id,
+      listing_title: listing.title,
+      is_read: false,
+    });
+    navigate(`/conversation/${encodeURIComponent(convId)}?other=${encodeURIComponent(listing.poster_name || "Seller")}&listing=${encodeURIComponent(listing.title)}`);
+  }
+
   return (
-    <div onClick={e => e.stopPropagation()} className="pt-2 border-t border-border/10">
+    <div onClick={e => e.stopPropagation()} className="pt-2 border-t border-border/10 space-y-2">
+      <div className="flex gap-1.5 flex-wrap">
+        {QUICK_CHIPS.map(c => (
+          <button key={c} disabled={sending} onClick={() => submit(c)}
+            className="text-[11px] font-medium text-foreground/75 bg-secondary/60 rounded-full px-2.5 py-1 border border-border/20 active:bg-secondary transition-colors">
+            {c}
+          </button>
+        ))}
+      </div>
       <div className="flex items-center gap-2 bg-secondary/40 rounded-xl px-3 py-1.5">
         <input
           autoFocus
           value={text}
           onChange={e => setText(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && submit(e)}
-          placeholder="Ask about this…"
+          onKeyDown={e => e.key === "Enter" && submit()}
+          placeholder="Type your question…"
           className="flex-1 bg-transparent text-[13px] text-foreground placeholder:text-muted-foreground/50 outline-none min-h-[28px]"
         />
-        <button onClick={submit} className="text-primary text-[11px] font-semibold shrink-0 disabled:opacity-30" disabled={!text.trim()}>
+        <button onClick={() => submit()} disabled={!text.trim() || sending}
+          className="text-primary text-[11px] font-semibold shrink-0 disabled:opacity-30">
           Send
         </button>
       </div>
@@ -167,7 +206,7 @@ function HeroCard({ listing, onClick }) {
       </div>
       <div className="px-3.5 pb-3 pt-2.5">
         {asking
-          ? <InlineAsk onClose={() => setAsking(false)} />
+          ? <InlineAsk listing={listing} onClose={() => setAsking(false)} />
           : <SocialBar listing={listing} onAsk={() => setAsking(true)} />
         }
       </div>
@@ -230,7 +269,7 @@ function StandardCard({ listing, onClick }) {
           <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
         </div>
         {asking
-          ? <InlineAsk onClose={() => setAsking(false)} />
+          ? <InlineAsk listing={listing} onClose={() => setAsking(false)} />
           : <SocialBar listing={listing} onAsk={() => setAsking(true)} />
         }
       </div>
@@ -283,7 +322,7 @@ function CompactCard({ listing, onClick }) {
       </div>
       <div className="px-3 pb-2.5">
         {asking ? (
-          <InlineAsk onClose={() => setAsking(false)} />
+          <InlineAsk listing={listing} onClose={() => setAsking(false)} />
         ) : (
           <div className="flex items-center gap-2">
             <button

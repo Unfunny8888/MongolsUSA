@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageSquare, User } from "lucide-react";
+import { MessageSquare, User, Circle } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import EmptyState from "../components/common/EmptyState";
@@ -58,10 +58,16 @@ export default function Inbox() {
     );
   }
 
+  const unreadCount = conversations.filter(c => !c.is_read && c.to_user === user?.email).length;
+
   return (
     <div className="min-h-dvh">
-
-
+      {unreadCount > 0 && (
+        <div className="mx-4 mt-3 mb-1 px-3 py-2 bg-primary/8 rounded-xl flex items-center gap-2">
+          <Circle className="w-2 h-2 text-primary fill-primary shrink-0" />
+          <p className="text-[12px] font-semibold text-primary">{unreadCount} unread {unreadCount === 1 ? "message" : "messages"}</p>
+        </div>
+      )}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />

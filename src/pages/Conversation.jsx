@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useParams } from "react-router-dom";
-import { Send, Image, Check, CheckCheck, Loader2 } from "lucide-react";
+import { Send, Image, Check, CheckCheck, Loader2, ArrowLeft } from "lucide-react";
+import QuickReplies from "../components/messaging/QuickReplies";
 import { motion } from "framer-motion";
 import TranslateButton from "../components/common/TranslateButton";
 import { base44 } from "@/api/base44Client";
@@ -47,6 +48,7 @@ export default function Conversation() {
   const [sending, setSending] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
   const bottomRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -127,6 +129,20 @@ export default function Conversation() {
 
   return (
     <div className="flex flex-col">
+      {/* Listing context banner */}
+      {listingTitle && (
+        <div className="px-4 py-2.5 bg-primary/5 border-b border-primary/10 flex items-center gap-2">
+          <span className="text-[11px] text-primary font-medium flex-1 truncate">Re: {listingTitle}</span>
+          {messages.length === 0 && (
+            <button onClick={() => setShowQuickReplies(v => !v)} className="text-[11px] font-semibold text-primary/70">
+              {showQuickReplies ? "Hide" : "Quick questions"}
+            </button>
+          )}
+        </div>
+      )}
+      {showQuickReplies && messages.length === 0 && (
+        <QuickReplies listingTitle={listingTitle} onSelect={(chip) => { setText(chip); setShowQuickReplies(false); }} />
+      )}
       {/* Message list — scrolls inside AppLayout's main scroller */}
       <div className="flex-1 px-4 py-4 space-y-3">
         {messages.map((msg, i) => {
