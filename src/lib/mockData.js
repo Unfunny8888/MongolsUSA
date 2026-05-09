@@ -378,15 +378,16 @@ export const CATEGORIES = [
   { id: "community", label: "Community", labelMn: "Нийгэмлэг", icon: "Users" }
 ];
 
-// Authentic community discussion posts — varied engagement, natural/imperfect wording
+// Authentic community discussions — emotionally varied: urgent, quiet, helpful, lonely, active
 export const MOCK_DISCUSSIONS = [
   {
     id: "disc-1",
     author_name: "Мөнхбаяр О.",
     author_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
-    content: "Чикагоос Денвер явах хүн байна уу энэ 7-р сарын 4нд? Хойр хүн, тэшүүр байна. Бензиний мөнгийг хуваана.",
+    content: "Маргааш 7 цагт Чикагоос Денвер явах хүн байна уу? Хойр хүн, тэшүүр байна. Бензиний мөнгийг хуваана.",
     city: "Chicago",
     tag: "Ride Share",
+    tone: "urgent",
     reply_count: 3,
     views: 61,
     likes: 4,
@@ -399,28 +400,48 @@ export const MOCK_DISCUSSIONS = [
   },
   {
     id: "disc-2",
+    author_name: "Түмэнбаяр Ц.",
+    author_avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=80&h=80&fit=crop&crop=face",
+    content: "Сая сар Шикаго ирсэн. Ямар монгол хүн танилцтай байна. Канад газар, ямар сайхан уу? Учраас гээр байна 🙏",
+    city: "Chicago",
+    tag: "New Here",
+    tone: "lonely",
+    reply_count: 8,
+    views: 143,
+    likes: 14,
+    created_date: new Date(Date.now() - 1.5 * 3600000).toISOString(),
+    top_reply: {
+      name: "Дашдъямба О.",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&fit=crop&crop=face",
+      text: "Харагтай! Бид ч Pilsen дуур оросин. DM хийгээрэй, цай ууужия."
+    }
+  },
+  {
+    id: "disc-3",
     author_name: "Ариунаа С.",
     author_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
-    content: "Арлингтоны ойролцоо өрөөний нөхөр хайж байна. Эмэгтэй, ажилтай, тамхи татдаггүй. $700-800/mo budget.",
+    content: "Арлингтоны ойролцоо өрөөний нөхөр хайж байна. Эмэгтэй, ажилтай, тамхи татдаггүй. $750/mo хуртал.",
     city: "Virginia",
     tag: "Roommate",
+    tone: "practical",
     reply_count: 11,
     views: 209,
     likes: 19,
     created_date: new Date(Date.now() - 2.5 * 3600000).toISOString(),
     top_reply: {
       name: "Номин Г.",
-      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&fit=crop&crop=face",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=32&fit=crop&crop=face",
       text: "Манайд нэг өрөө гарна Мэй сүүлд. DM хийгээрэй!"
     }
   },
   {
-    id: "disc-3",
+    id: "disc-4",
     author_name: "Ганзориг Б.",
     author_avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
-    content: "Чикагод хамгийн амттай монгол хоол заадаг газар аль вэ? Айлчлагч найздаа зориулж захиалга хийх гэж байна 🥩",
+    content: "Чикагод хамгийн амттай монгол хоол заадаг газар аль вэ? Аилчлагч найздаа зориулж захиалга хийх гэж байна 🥩",
     city: "Chicago",
-    tag: "Ask",
+    tag: "Food",
+    tone: "active",
     reply_count: 18,
     views: 374,
     likes: 29,
@@ -428,16 +449,17 @@ export const MOCK_DISCUSSIONS = [
     top_reply: {
       name: "Хаан's Kitchen",
       avatar: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=32&fit=crop",
-      text: "Манай ресторан буузаараа алдартай! Урьдчилж захиалаарай: (312) 555-8888"
+      text: "Манай ресторан буузаараа алдартай! (312) 555-8888"
     }
   },
   {
-    id: "disc-4",
+    id: "disc-5",
     author_name: "Пүрэвсүрэн Д.",
     author_avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face",
     content: "Монголоос хүн ирэх гэж байна — JFK дамжна. Нислэгийн хоорондох 6 цаг зав байна. Хотоор аялж болох уу? Зааж өгч чадах хүн бий юу?",
     city: "New York",
     tag: "Help",
+    tone: "lonely",
     reply_count: 0,
     views: 47,
     likes: 2,
@@ -445,12 +467,13 @@ export const MOCK_DISCUSSIONS = [
     top_reply: null
   },
   {
-    id: "disc-5",
+    id: "disc-6",
     author_name: "Оюунцэцэг Л.",
     author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face",
     content: "CDL авах сургалтанд хамрагдсан хүн бэй? Ямар сургуульд сурав, ямар компани эхлэх нь дээр вэ? Туршлагаасаа хуваалцаарай 🙏",
     city: "Chicago",
     tag: "CDL",
+    tone: "active",
     reply_count: 26,
     views: 512,
     likes: 41,
@@ -458,16 +481,17 @@ export const MOCK_DISCUSSIONS = [
     top_reply: {
       name: "NomadTruck LLC",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&fit=crop&crop=face",
-      text: "Бид CDL дадлагад олгодог! Манай сургалт 8 долоо хоног. Холбоо бариарай."
+      text: "Бид CDL дадлагад олгодог! Холбоо бариарай."
     }
   },
   {
-    id: "disc-6",
+    id: "disc-7",
     author_name: "Мөнхтуяа В.",
     author_avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=80&h=80&fit=crop&crop=face",
-    content: "Сиэтлд энэ долоо хоногт хаана яваа сонин зүйл болж байна? 🌲 Тэгш нийтийн арга хэмжээ мэдэх хүн бий юу?",
+    content: "Сиэтлд энэ долоо хоногт хаана яваа сонин зүйл болж байна? 🌲 Тэгш нийтийн арга хэмжээ мэдэх хӯн бий юу?",
     city: "Seattle",
     tag: "Events",
+    tone: "quiet",
     reply_count: 2,
     views: 88,
     likes: 7,
@@ -475,20 +499,21 @@ export const MOCK_DISCUSSIONS = [
     top_reply: {
       name: "Seattle Mongols",
       avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=32&fit=crop",
-      text: "Нямдугаар Woodland Park-т BBQ болно. Ирээрэй!"
+      text: "Нямдугаар Woodland Park-т BBQ болно."
     }
   },
   {
-    id: "disc-7",
+    id: "disc-8",
     author_name: "Батболд Т.",
     author_avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face",
     content: "LA-д монгол эмч эсвэл монгол хэлтэй эмнэлэг байдаг уу? Даатгалгүй ч болно.",
     city: "Los Angeles",
     tag: "Ask",
+    tone: "lonely",
     reply_count: 0,
     views: 33,
-    likes: 1,
-    created_date: new Date(Date.now() - 20 * 3600000).toISOString(),
+    likes: 0,
+    created_date: new Date(Date.now() - 22 * 3600000).toISOString(),
     top_reply: null
   }
 ];
