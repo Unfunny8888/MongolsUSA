@@ -313,19 +313,13 @@ export default function Home() {
             const d = MOCK_DISCUSSIONS;
             const sections = [];
 
-            // 1. Opening discussion — immediately social
-            if (d[0]) sections.push(<DiscussionCard key="d0" post={d[0]} />);
-
-            // 2. HERO trending anchor
+            // 1. Hero trending — lead with opportunity
             if (trending[0]) sections.push(<FeedItem key="t0" listing={trending[0]} variant="hero" userCity={currentUser?.city} />);
 
-            // 3. Discussion #2
-            if (d[1]) sections.push(<DiscussionCard key="d1" post={d[1]} />);
+            // 2. One opening discussion
+            if (d[0]) sections.push(<DiscussionCard key="d0" post={d[0]} />);
 
-            // 4. Active community pulse
-            sections.push(<div key="active" className="-mx-4"><ActiveNow /></div>);
-
-            // 5. Compact jobs row
+            // 3. Jobs compact row
             if (jobs.length > 0) sections.push(
               <div key="jobs" className="space-y-1.5">
                 <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
@@ -335,13 +329,40 @@ export default function Home() {
               </div>
             );
 
-            // 6. Discussion #3 — recommendation style
-            if (d[2]) sections.push(<DiscussionCard key="d2" post={d[2]} />);
+            // 4. Nearby or fresh standard listing
+            const slot4 = nearby[0] || fresh[0];
+            if (slot4) sections.push(<FeedItem key="slot4" listing={slot4} variant="standard" userCity={currentUser?.city} />);
 
-            // 7. Nearby standard listing
-            if (nearby[0]) sections.push(<FeedItem key="nb0" listing={nearby[0]} variant="standard" userCity={currentUser?.city} />);
+            // 5. Active community pulse
+            sections.push(<div key="active" className="-mx-4"><ActiveNow /></div>);
 
-            // 8. Communities
+            // 6. Cars / services / housing compact row (variety)
+            const variety = [...(listings || [])]
+              .filter(l => ["cars","services","housing"].includes(l.category))
+              .slice(0, 3);
+            if (variety.length > 0) sections.push(
+              <div key="variety" className="space-y-1.5">
+                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                  <Sparkles className="w-3 h-3" /> Marketplace
+                </p>
+                {variety.map(l => <FeedItem key={l.id} listing={l} variant="compact" userCity={currentUser?.city} />)}
+              </div>
+            );
+
+            // 7. Discussion #2
+            if (d[1]) sections.push(<DiscussionCard key="d1" post={d[1]} />);
+
+            // 8. Events
+            if (events.length > 0) sections.push(
+              <div key="events" className="space-y-3">
+                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5">
+                  <CalendarDays className="w-3 h-3" /> {cityLabel !== "your area" ? `Events in ${cityLabel}` : "Upcoming Events"}
+                </p>
+                {events.slice(0, 2).map(l => <FeedItem key={l.id} listing={l} variant="standard" userCity={currentUser?.city} />)}
+              </div>
+            );
+
+            // 9. Communities
             sections.push(
               <div key="groups">
                 <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
@@ -353,17 +374,14 @@ export default function Home() {
               </div>
             );
 
-            // 9. Discussion #4
-            if (d[3]) sections.push(<DiscussionCard key="d3" post={d[3]} />);
-
-            // 10. HERO 2nd trending
+            // 10. 2nd hero listing
             if (trending[1]) sections.push(<FeedItem key="t1" listing={trending[1]} variant="hero" userCity={currentUser?.city} />);
 
-            // 11. Suggested people
-            sections.push(<div key="users" className="-mx-4"><SuggestedUsers /></div>);
+            // 11. Discussion #3
+            if (d[2]) sections.push(<DiscussionCard key="d2" post={d[2]} />);
 
-            // 12. Discussion #5 — CDL / practical
-            if (d[4]) sections.push(<DiscussionCard key="d4" post={d[4]} />);
+            // 12. Suggested people
+            sections.push(<div key="users" className="-mx-4"><SuggestedUsers /></div>);
 
             // 13. Fresh compact listings
             if (fresh.length > 0) sections.push(
@@ -371,24 +389,11 @@ export default function Home() {
                 <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
                   <Star className="w-3 h-3" /> {cityLabel !== "your area" ? `New in ${cityLabel}` : "Just Posted"}
                 </p>
-                {fresh.slice(0, 3).map(l => <FeedItem key={l.id} listing={l} variant="compact" userCity={currentUser?.city} />)}
+                {fresh.slice(0, 4).map(l => <FeedItem key={l.id} listing={l} variant="compact" userCity={currentUser?.city} />)}
               </div>
             );
 
-            // 14. Events
-            if (events.length > 0) sections.push(
-              <div key="events" className="space-y-3">
-                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5">
-                  <CalendarDays className="w-3 h-3" /> {cityLabel !== "your area" ? `Events in ${cityLabel}` : "Upcoming Events"}
-                </p>
-                {events.slice(0, 2).map(l => <FeedItem key={l.id} listing={l} variant="standard" userCity={currentUser?.city} />)}
-              </div>
-            );
-
-            // 15. Discussion #6
-            if (d[5]) sections.push(<DiscussionCard key="d5" post={d[5]} />);
-
-            // 16. Businesses horizontal
+            // 14. Businesses horizontal
             sections.push(
               <div key="biz">
                 <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
@@ -400,7 +405,7 @@ export default function Home() {
               </div>
             );
 
-            // 17. For You tail
+            // 15. For You tail
             if (forYou.length > 0) sections.push(
               <div key="forYou" className="space-y-3">
                 {forYou.slice(0, 6).map((l, i) => (
