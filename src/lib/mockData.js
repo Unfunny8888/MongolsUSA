@@ -378,6 +378,112 @@ export const CATEGORIES = [
   { id: "community", label: "Community", labelMn: "Нийгэмлэг", icon: "Users" }
 ];
 
+// Authentic community discussion posts
+export const MOCK_DISCUSSIONS = [
+  {
+    id: "disc-1",
+    author_name: "Мөнхбаяр О.",
+    author_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
+    content: "Чикагоос Денвер явах хүн байна уу энэ ням? Хоёр хүн, тэшүүр байна. Бензиний мөнгийг хуваана.",
+    city: "Chicago",
+    tag: "Ride Share",
+    reply_count: 7,
+    views: 143,
+    likes: 12,
+    created_date: new Date(Date.now() - 25 * 60000).toISOString(),
+    top_reply: {
+      name: "Батхүү Д.",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=32&fit=crop&crop=face",
+      text: "Бид хоёр явна! DM илгээгээрэй."
+    }
+  },
+  {
+    id: "disc-2",
+    author_name: "Ариунаа С.",
+    author_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
+    content: "Арлингтоны ойролцоо өрөөний нөхөр хайж байна. Эмэгтэй, ажилтай, тамхи татдаггүй. $700-800/mo budget.",
+    city: "Virginia",
+    tag: "Roommate",
+    reply_count: 14,
+    views: 287,
+    likes: 23,
+    created_date: new Date(Date.now() - 2 * 3600000).toISOString(),
+    top_reply: {
+      name: "Номин Г.",
+      avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&fit=crop&crop=face",
+      text: "Манайд нэг өрөө гарна Мэй сүүлд. DM хийгээрэй!"
+    }
+  },
+  {
+    id: "disc-3",
+    author_name: "Ганзориг Б.",
+    author_avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face",
+    content: "Чикагод хамгийн амттай Монгол хоол заадаг газар аль вэ? Айлчлагч найздаа зориулж захиалга хийх гэж байна 🥩",
+    city: "Chicago",
+    tag: "Recommendation",
+    reply_count: 22,
+    views: 418,
+    likes: 34,
+    created_date: new Date(Date.now() - 4 * 3600000).toISOString(),
+    top_reply: {
+      name: "Хан'с Kitchen",
+      avatar: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=32&fit=crop",
+      text: "Манай ресторан буузаараа алдартай! Урьдчилж захиалаарай: (312) 555-8888"
+    }
+  },
+  {
+    id: "disc-4",
+    author_name: "Пүрэвсүрэн Д.",
+    author_avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=80&h=80&fit=crop&crop=face",
+    content: "Монголоос хүн ирэх гэж байна — JFK дамжна. Нислэгийн хооронд 6 цаг завтай. Хотоор аялж болох уу? Зааж өгч чадах хүн байна уу?",
+    city: "New York",
+    tag: "Help Needed",
+    reply_count: 9,
+    views: 201,
+    likes: 18,
+    created_date: new Date(Date.now() - 6 * 3600000).toISOString(),
+    top_reply: {
+      name: "Батбаяр Н.",
+      avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=32&fit=crop&crop=face",
+      text: "6 цагт Manhattan-ийн гол газруудыг үзэж амжна. Таксиг Midtown руу аваарай."
+    }
+  },
+  {
+    id: "disc-5",
+    author_name: "Оюунцэцэг Л.",
+    author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=80&h=80&fit=crop&crop=face",
+    content: "CDL авах сургалтанд хамрагдсан хүн байна уу? Ямар сургуульд сурав, ямар компаниас эхлэх нь дээр вэ? Туршлагаасаа хуваалцаарай 🙏",
+    city: "Chicago",
+    tag: "CDL Tips",
+    reply_count: 31,
+    views: 589,
+    likes: 47,
+    created_date: new Date(Date.now() - 10 * 3600000).toISOString(),
+    top_reply: {
+      name: "NomadTruck LLC",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&fit=crop&crop=face",
+      text: "Бид CDL дадлага олгодог! Манай сургалт 8 долоо хоног. Холбоо барина уу."
+    }
+  },
+  {
+    id: "disc-6",
+    author_name: "Мөнхтуяа В.",
+    author_avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=80&h=80&fit=crop&crop=face",
+    content: "Сиэтлд энэ долоо хоногт хаана ямар сонин зүйл болж байна? 🌲 Тэгш нийтийн арга хэмжээ мэдэх хүн бий юу?",
+    city: "Seattle",
+    tag: "Events",
+    reply_count: 6,
+    views: 134,
+    likes: 11,
+    created_date: new Date(Date.now() - 14 * 3600000).toISOString(),
+    top_reply: {
+      name: "Seattle Mongols",
+      avatar: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=32&fit=crop",
+      text: "Ням гарагт Woodland Park-т BBQ болно. Ирээрэй!"
+    }
+  }
+];
+
 export const ICONS = {
   Car: "🚗",
   Briefcase: "💼",
