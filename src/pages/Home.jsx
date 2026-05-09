@@ -20,18 +20,18 @@ import { getUserCityFromIP } from "../lib/geolocationUtils";
 import { base44 } from "@/api/base44Client";
 
 // Inline section label — subtle, not loud
-function FeedLabel({ icon: Icon, label, linkTo, onPress }) {
+function FeedLabel({ icon: Icon, label, linkTo }) {
   const navigate = useNavigate();
   return (
-    <div className="flex items-center justify-between px-4 pt-5 pb-2">
-      <div className="flex items-center gap-2">
-        {Icon && <Icon className="w-4 h-4 text-primary" strokeWidth={2} />}
-        <span className="text-[13px] font-bold text-foreground tracking-tight">{label}</span>
+    <div className="flex items-center justify-between px-4 pt-5 pb-2.5">
+      <div className="flex items-center gap-1.5">
+        {Icon && <Icon className="w-3.5 h-3.5 text-primary/70" strokeWidth={2.5} />}
+        <span className="text-[12px] font-bold text-foreground/70 uppercase tracking-widest">{label}</span>
       </div>
       {linkTo && (
         <button
           onClick={() => navigate(linkTo)}
-          className="flex items-center gap-1 text-[12px] font-semibold text-primary/80 active:text-primary transition-colors"
+          className="flex items-center gap-0.5 text-[11px] font-semibold text-primary/70 active:text-primary transition-colors"
         >
           See all <ArrowRight className="w-3 h-3" />
         </button>
@@ -40,47 +40,57 @@ function FeedLabel({ icon: Icon, label, linkTo, onPress }) {
   );
 }
 
-// Trending card — large, social, with engagement stats
+// Trending card — social, with engagement overlay
 function TrendingCard({ listing, rank, index }) {
   const navigate = useNavigate();
   const hasImg = listing.images?.length > 0;
+  const engagementScore = (listing.views || 0) + (listing.saves || 0) * 3;
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06, duration: 0.22 }}
+      transition={{ delay: index * 0.05, duration: 0.2 }}
       onClick={() => navigate(`/listing/${listing.id}`)}
-      className="bg-card rounded-2xl border border-border/30 overflow-hidden shadow-sm active:scale-[0.985] active:shadow-none transition-all duration-200 cursor-pointer"
+      className="bg-card rounded-2xl border border-border/30 overflow-hidden shadow-sm active:scale-[0.985] active:shadow-none transition-all duration-150 cursor-pointer"
     >
       {hasImg && (
         <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
           <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" loading="lazy" />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-          {/* Rank badge */}
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/50 backdrop-blur rounded-full px-2.5 py-1">
-            <Flame className="w-3 h-3 text-orange-400" strokeWidth={2.5} />
-            <span className="text-[11px] font-bold text-white">#{rank} Trending</span>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+          {/* Top badges */}
+          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5">
+              <Flame className="w-3 h-3 text-orange-400" strokeWidth={2.5} />
+              <span className="text-[10px] font-bold text-white">#{rank}</span>
+            </div>
+            {engagementScore > 50 && (
+              <div className="flex items-center gap-1 bg-primary/80 backdrop-blur-sm rounded-full px-2 py-0.5">
+                <Zap className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
+                <span className="text-[10px] font-bold text-white">Hot</span>
+              </div>
+            )}
           </div>
-          {/* Price */}
           {listing.price && (
-            <div className="absolute top-3 right-3 bg-primary/90 backdrop-blur rounded-lg px-2.5 py-1 text-primary-foreground font-bold text-sm">
+            <div className="absolute top-2.5 right-2.5 bg-card/90 backdrop-blur rounded-lg px-2 py-0.5 text-foreground font-bold text-[13px]">
               ${listing.price.toLocaleString()}
             </div>
           )}
-          {/* Bottom overlay — title + stats */}
-          <div className="absolute bottom-0 left-0 right-0 p-3">
-            <p className="text-white font-bold text-[15px] leading-snug line-clamp-2 mb-2">{listing.title}</p>
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1 text-white/80 text-[11px] font-semibold">
+          {/* Bottom overlay */}
+          <div className="absolute bottom-0 left-0 right-0 px-3 pb-3">
+            <p className="text-white font-bold text-[14px] leading-snug line-clamp-2 mb-2 drop-shadow">{listing.title}</p>
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center gap-1 text-white/75 text-[11px]">
                 <Eye className="w-3 h-3" /> {listing.views || 0}
               </span>
-              <span className="flex items-center gap-1 text-white/80 text-[11px] font-semibold">
+              <span className="flex items-center gap-1 text-white/75 text-[11px]">
                 <Heart className="w-3 h-3" /> {listing.saves || 0}
               </span>
+              <span className="flex items-center gap-1 text-white/75 text-[11px]">
+                <MessageCircle className="w-3 h-3" /> {listing.comment_count || 0}
+              </span>
               {listing.location_city && (
-                <span className="flex items-center gap-1 text-white/70 text-[11px]">
-                  <MapPin className="w-3 h-3" /> {listing.location_city}
+                <span className="ml-auto flex items-center gap-0.5 text-white/60 text-[10px]">
+                  <MapPin className="w-2.5 h-2.5" /> {listing.location_city}
                 </span>
               )}
             </div>
@@ -93,10 +103,11 @@ function TrendingCard({ listing, rank, index }) {
             <Flame className="w-3.5 h-3.5 text-orange-400" />
             <span className="text-[11px] font-bold text-orange-500">#{rank} Trending</span>
           </div>
-          <p className="font-bold text-[15px] leading-snug mb-2">{listing.title}</p>
+          <p className="font-bold text-[14px] leading-snug mb-2">{listing.title}</p>
           <div className="flex items-center gap-3 text-muted-foreground text-xs">
             <span className="flex items-center gap-1"><Eye className="w-3 h-3" />{listing.views || 0}</span>
             <span className="flex items-center gap-1"><Heart className="w-3 h-3" />{listing.saves || 0}</span>
+            <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" />{listing.comment_count || 0}</span>
           </div>
         </div>
       )}
@@ -111,17 +122,17 @@ function MiniListingCard({ listing }) {
   return (
     <div
       onClick={() => navigate(`/listing/${listing.id}`)}
-      className="flex-shrink-0 w-44 bg-card rounded-xl border border-border/30 overflow-hidden shadow-sm active:scale-[0.97] transition-all duration-150 cursor-pointer"
+      className="flex-shrink-0 w-40 bg-card rounded-xl border border-border/30 overflow-hidden active:scale-[0.97] active:opacity-90 transition-all duration-150 cursor-pointer"
     >
-      <div className="w-full h-28 bg-secondary/40">
+      <div className="w-full h-24 bg-secondary/50">
         {hasImg && <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" loading="lazy" />}
       </div>
-      <div className="p-2.5">
-        <p className="text-[12px] font-semibold line-clamp-2 leading-snug text-foreground">{listing.title}</p>
+      <div className="p-2">
+        <p className="text-[11px] font-semibold line-clamp-2 leading-snug text-foreground">{listing.title}</p>
         {listing.price ? (
-          <p className="text-primary font-bold text-[13px] mt-1">${listing.price.toLocaleString()}</p>
+          <p className="text-primary font-bold text-[12px] mt-1">${listing.price.toLocaleString()}</p>
         ) : (
-          <p className="text-muted-foreground text-[11px] mt-1">Contact</p>
+          <p className="text-muted-foreground text-[10px] mt-1">Contact</p>
         )}
       </div>
     </div>
@@ -243,12 +254,12 @@ export default function Home() {
       )}
 
       {/* ── CATEGORY FILTER BAR ─────────────────────── */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <p className="text-[13px] font-bold text-foreground tracking-tight">Browse</p>
+      <div className="flex items-center justify-between px-4 pt-3 pb-2">
+        <p className="text-[11px] font-bold text-foreground/50 uppercase tracking-widest">Browse</p>
         <CitySelector city={selectedCity} onCityChange={setSelectedCity} />
       </div>
-      <div className="px-4 pb-4">
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-0.5">
+      <div className="px-4 pb-3">
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
           <CategoryChip
             category={{ id: "all", label: "All", icon: "globe" }}
             index={0}
