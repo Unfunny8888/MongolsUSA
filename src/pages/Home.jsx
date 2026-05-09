@@ -257,12 +257,12 @@ export default function Home() {
       )}
 
       {/* ── CATEGORY FILTER BAR ─────────────────────── */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-2">
-        <p className="text-[11px] font-bold text-foreground/50 uppercase tracking-widest">Browse</p>
+      <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
+        <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-widest">Filter</span>
         <CitySelector city={selectedCity} onCityChange={setSelectedCity} />
       </div>
-      <div className="px-4 pb-3">
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+      <div className="pb-3">
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar px-4 py-0.5">
           <CategoryChip
             category={{ id: "all", label: "All", icon: "globe" }}
             index={0}
