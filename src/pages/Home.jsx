@@ -312,91 +312,67 @@ export default function Home() {
           ) : (() => {
             const d = MOCK_DISCUSSIONS;
             const sections = [];
+            const city = currentUser?.city;
 
-            // 1. Hero trending — lead with opportunity
-            if (trending[0]) sections.push(<FeedItem key="t0" listing={trending[0]} variant="hero" userCity={currentUser?.city} />);
+            // 1. Hero anchor
+            if (trending[0]) sections.push(<FeedItem key="t0" listing={trending[0]} variant="hero" userCity={city} />);
 
-            // 2. One opening discussion
+            // 2. Discussion
             if (d[0]) sections.push(<DiscussionCard key="d0" post={d[0]} />);
 
-            // 3. Jobs compact row
-            if (jobs.length > 0) sections.push(
-              <div key="jobs" className="space-y-1.5">
-                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                  <Briefcase className="w-3 h-3" /> {cityLabel !== "your area" ? `Jobs near ${cityLabel}` : "Job Opportunities"}
-                </p>
-                {jobs.slice(0, 3).map(l => <FeedItem key={l.id} listing={l} variant="compact" userCity={currentUser?.city} />)}
-              </div>
-            );
+            // 3. Jobs interleaved with discussion
+            if (jobs[0]) sections.push(<FeedItem key="j0" listing={jobs[0]} variant="compact" userCity={city} />);
+            if (jobs[1]) sections.push(<FeedItem key="j1" listing={jobs[1]} variant="compact" userCity={city} />);
+            if (d[1]) sections.push(<DiscussionCard key="d1" post={d[1]} />);
+            if (jobs[2]) sections.push(<FeedItem key="j2" listing={jobs[2]} variant="compact" userCity={city} />);
 
-            // 4. Nearby or fresh standard listing
-            const slot4 = nearby[0] || fresh[0];
-            if (slot4) sections.push(<FeedItem key="slot4" listing={slot4} variant="standard" userCity={currentUser?.city} />);
+            // 4. Nearby standard
+            if (nearby[0]) sections.push(<FeedItem key="nb0" listing={nearby[0]} variant="standard" userCity={city} />);
 
-            // 5. Active community pulse
+            // 5. Active now
             sections.push(<div key="active" className="-mx-4"><ActiveNow /></div>);
 
-            // 6. Cars / services / housing compact row (variety)
-            const variety = [...(listings || [])]
-              .filter(l => ["cars","services","housing"].includes(l.category))
-              .slice(0, 3);
-            if (variety.length > 0) sections.push(
-              <div key="variety" className="space-y-1.5">
-                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                  <Sparkles className="w-3 h-3" /> Marketplace
-                </p>
-                {variety.map(l => <FeedItem key={l.id} listing={l} variant="compact" userCity={currentUser?.city} />)}
-              </div>
-            );
+            // 6. Discussion + variety (cars/services/housing)
+            if (d[2]) sections.push(<DiscussionCard key="d2" post={d[2]} />);
+            listings.filter(l => ["cars","services","housing"].includes(l.category)).slice(0, 3)
+              .forEach((l, i) => sections.push(<FeedItem key={`v${i}`} listing={l} variant="compact" userCity={city} />));
 
-            // 7. Discussion #2
-            if (d[1]) sections.push(<DiscussionCard key="d1" post={d[1]} />);
+            // 7. Events interleaved
+            if (events[0]) sections.push(<FeedItem key="ev0" listing={events[0]} variant="standard" userCity={city} />);
+            if (d[3]) sections.push(<DiscussionCard key="d3" post={d[3]} />);
+            if (events[1]) sections.push(<FeedItem key="ev1" listing={events[1]} variant="compact" userCity={city} />);
 
-            // 8. Events
-            if (events.length > 0) sections.push(
-              <div key="events" className="space-y-3">
-                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5">
-                  <CalendarDays className="w-3 h-3" /> {cityLabel !== "your area" ? `Events in ${cityLabel}` : "Upcoming Events"}
-                </p>
-                {events.slice(0, 2).map(l => <FeedItem key={l.id} listing={l} variant="standard" userCity={currentUser?.city} />)}
-              </div>
-            );
+            // 8. 2nd hero
+            if (trending[1]) sections.push(<FeedItem key="t1" listing={trending[1]} variant="hero" userCity={city} />);
 
             // 9. Communities
             sections.push(
               <div key="groups">
-                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
+                <p className="text-[10px] font-bold text-foreground/35 uppercase tracking-widest flex items-center gap-1.5 mb-2">
                   <Users className="w-3 h-3" /> Communities
                 </p>
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {groups.slice(0, 2).map((g, i) => <GroupCard key={g.id} group={g} index={i} />)}
                 </div>
               </div>
             );
 
-            // 10. 2nd hero listing
-            if (trending[1]) sections.push(<FeedItem key="t1" listing={trending[1]} variant="hero" userCity={currentUser?.city} />);
+            // 10. More discussion + jobs
+            if (d[4]) sections.push(<DiscussionCard key="d4" post={d[4]} />);
 
-            // 11. Discussion #3
-            if (d[2]) sections.push(<DiscussionCard key="d2" post={d[2]} />);
-
-            // 12. Suggested people
+            // 11. Suggested people
             sections.push(<div key="users" className="-mx-4"><SuggestedUsers /></div>);
 
-            // 13. Fresh compact listings
-            if (fresh.length > 0) sections.push(
-              <div key="fresh" className="space-y-1.5">
-                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
-                  <Star className="w-3 h-3" /> {cityLabel !== "your area" ? `New in ${cityLabel}` : "Just Posted"}
-                </p>
-                {fresh.slice(0, 4).map(l => <FeedItem key={l.id} listing={l} variant="compact" userCity={currentUser?.city} />)}
-              </div>
-            );
+            // 12. Fresh compact burst interleaved with discussion
+            fresh.slice(0, 6).forEach((l, i) => {
+              sections.push(<FeedItem key={`fr${i}`} listing={l} variant="compact" userCity={city} />);
+              if (i === 2 && d[5]) sections.push(<DiscussionCard key="d5" post={d[5]} />);
+            });
 
-            // 14. Businesses horizontal
+            // 13. Businesses horizontal
             sections.push(
               <div key="biz">
-                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
+                <p className="text-[10px] font-bold text-foreground/35 uppercase tracking-widest flex items-center gap-1.5 mb-2">
                   <Store className="w-3 h-3" /> {cityLabel !== "your area" ? `Businesses in ${cityLabel}` : "Local Businesses"}
                 </p>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar">
@@ -405,14 +381,10 @@ export default function Home() {
               </div>
             );
 
-            // 15. For You tail
-            if (forYou.length > 0) sections.push(
-              <div key="forYou" className="space-y-3">
-                {forYou.slice(0, 6).map((l, i) => (
-                  <FeedItem key={l.id} listing={l} variant={i % 3 === 2 ? "compact" : "standard"} userCity={currentUser?.city} />
-                ))}
-              </div>
-            );
+            // 14. For You tail — alternating compact/standard
+            forYou.slice(0, 8).forEach((l, i) => {
+              sections.push(<FeedItem key={`fy${i}`} listing={l} variant={i % 2 === 0 ? "compact" : "standard"} userCity={city} />);
+            });
 
             return sections.map((s, i) => (
               <div key={i} className="mt-3">{s}</div>

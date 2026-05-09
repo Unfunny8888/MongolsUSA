@@ -236,7 +236,7 @@ function StandardCard({ listing, onClick }) {
           )}
         </div>
       )}
-      <div className="px-3.5 pt-3 pb-3 space-y-2">
+      <div className="px-3 pt-2.5 pb-2.5 space-y-1.5">
         <div onClick={onClick} className="flex items-center justify-between cursor-pointer">
           <TypePill category={listing.category} />
           <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
@@ -244,7 +244,7 @@ function StandardCard({ listing, onClick }) {
           </span>
         </div>
         <div onClick={onClick} className="cursor-pointer">
-          <p className="text-[14px] font-bold leading-snug line-clamp-2 text-foreground">{listing.title}</p>
+          <p className="text-[13.5px] font-bold leading-snug line-clamp-2 text-foreground">{listing.title}</p>
           {listing.description && (
             <p className="text-[12px] text-muted-foreground leading-relaxed line-clamp-2 mt-1">{listing.description}</p>
           )}
@@ -285,7 +285,7 @@ function CompactCard({ listing, onClick }) {
   const interested = (listing.saves || 0) + (listing.comment_count || 0);
   return (
     <div className="bg-card rounded-xl border border-border/15 transition-all duration-150">
-      <div onClick={onClick} className="flex items-start gap-3 px-3 pt-3 pb-2 cursor-pointer active:opacity-80">
+      <div onClick={onClick} className="flex items-start gap-2.5 px-3 pt-2.5 pb-2 cursor-pointer active:opacity-80">
         <div className="flex-1 min-w-0 space-y-1">
           <div className="flex items-center gap-2">
             <TypePill category={listing.category} />
@@ -293,7 +293,7 @@ function CompactCard({ listing, onClick }) {
               <Clock className="w-2.5 h-2.5" />{timeAgo(listing.created_date)}
             </span>
           </div>
-          <p className="text-[13px] font-bold leading-snug line-clamp-2 text-foreground">{listing.title}</p>
+          <p className="text-[12.5px] font-bold leading-snug line-clamp-2 text-foreground">{listing.title}</p>
           <div className="flex items-center gap-1.5 flex-wrap">
             <Avatar src={listing.poster_avatar} name={listing.poster_name} size="xs" />
             <span className="text-[10px] text-muted-foreground">{listing.poster_name || "Member"}</span>
@@ -316,11 +316,11 @@ function CompactCard({ listing, onClick }) {
             src={listing.images[0]}
             alt={listing.title}
             loading="lazy"
-            className="w-16 h-16 rounded-lg object-cover shrink-0 border border-border/15"
+            className="w-14 h-14 rounded-lg object-cover shrink-0 border border-border/15"
           />
         )}
       </div>
-      <div className="px-3 pb-2.5">
+      <div className="px-3 pb-2">
         {asking ? (
           <InlineAsk listing={listing} onClose={() => setAsking(false)} />
         ) : (
