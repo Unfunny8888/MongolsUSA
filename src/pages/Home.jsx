@@ -305,51 +305,114 @@ export default function Home() {
 
       {/* ── CONTINUOUS SOCIAL FEED ─────────────────── */}
       {!selectedCategory && (
-        <div className="px-4 pb-8 space-y-3">
+        <div className="px-4 pb-8">
           {isLoading ? (
-            <FeedSkeleton count={4} />
+            <div className="space-y-3"><FeedSkeleton count={4} /></div>
           ) : (() => {
-            const feedItems = [];
-            if (trending[0]) feedItems.push({ type: "trending", data: trending[0], key: "t0" });
-            feedItems.push({ type: "widget_active", key: "active" });
-            feedItems.push({ type: "widget_trending_posts", key: "tp" });
-            if (trending[1]) feedItems.push({ type: "trending", data: trending[1], key: "t1" });
-            nearby.slice(0, 2).forEach((l, i) => feedItems.push({ type: "listing", data: l, key: `nb${i}` }));
-            if (jobs.length > 0) feedItems.push({ type: "row_jobs", key: "jobs" });
-            feedItems.push({ type: "row_groups", key: "groups" });
-            feedItems.push({ type: "widget_users", key: "users" });
-            fresh.slice(0, 2).forEach((l, i) => feedItems.push({ type: "listing", data: l, key: `fr${i}` }));
-            if (trending[2]) feedItems.push({ type: "trending", data: trending[2], key: "t2" });
-            events.slice(0, 2).forEach((l, i) => feedItems.push({ type: "listing", data: l, key: `ev${i}` }));
-            feedItems.push({ type: "row_businesses", key: "biz" });
-            forYou.slice(0, 4).forEach((l, i) => feedItems.push({ type: "listing", data: l, key: `fy${i}` }));
+            /**
+             * Feed rhythm:
+             *   hero (trending anchor) → active widget → discussions →
+             *   standard listing → compact jobs row → communities →
+             *   standard → standard → users widget → compact fresh →
+             *   hero (2nd trending) → events → businesses → for-you tail
+             */
+            const sections = [];
 
-            return feedItems.map(item => {
-              if (item.type === "trending") return <FeedItem key={item.key} listing={item.data} isTrending />;
-              if (item.type === "listing") return <FeedItem key={item.key} listing={item.data} />;
-              if (item.type === "widget_active") return <div key={item.key} className="-mx-4"><ActiveNow /></div>;
-              if (item.type === "widget_trending_posts") return <div key={item.key} className="-mx-4"><TrendingPosts /></div>;
-              if (item.type === "widget_users") return <div key={item.key} className="-mx-4"><SuggestedUsers /></div>;
-              if (item.type === "row_jobs") return (
-                <div key={item.key}>
-                  <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Briefcase className="w-3 h-3" /> Jobs</p>
-                  <div className="flex gap-2 overflow-x-auto no-scrollbar">{jobs.map(l => <MiniListingCard key={l.id} listing={l} />)}</div>
-                </div>
+            // 1. HERO anchor — establishes social energy immediately
+            if (trending[0]) {
+              sections.push(
+                <FeedItem key="t0" listing={trending[0]} variant="hero" />
               );
-              if (item.type === "row_groups") return (
-                <div key={item.key}>
-                  <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Users className="w-3 h-3" /> Communities</p>
-                  <div className="space-y-2.5">{groups.slice(0, 2).map((g, i) => <GroupCard key={g.id} group={g} index={i} />)}</div>
+            }
+
+            // 2. Active community pulse
+            sections.push(<div key="active" className="-mx-4"><ActiveNow /></div>);
+
+            // 3. Trending discussions — social energy
+            sections.push(<div key="tp" className="-mx-4"><TrendingPosts /></div>);
+
+            // 4. Nearby listing — standard weight
+            if (nearby[0]) sections.push(<FeedItem key="nb0" listing={nearby[0]} variant="standard" />);
+
+            // 5. COMPACT JOBS ROW — practical, scannable
+            if (jobs.length > 0) sections.push(
+              <div key="jobs" className="space-y-1.5">
+                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                  <Briefcase className="w-3 h-3" /> Job Opportunities
+                </p>
+                {jobs.slice(0, 3).map(l => <FeedItem key={l.id} listing={l} variant="compact" />)}
+              </div>
+            );
+
+            // 6. Communities — trust + belonging
+            sections.push(
+              <div key="groups">
+                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
+                  <Users className="w-3 h-3" /> Communities
+                </p>
+                <div className="space-y-2.5">
+                  {groups.slice(0, 2).map((g, i) => <GroupCard key={g.id} group={g} index={i} />)}
                 </div>
-              );
-              if (item.type === "row_businesses") return (
-                <div key={item.key}>
-                  <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mb-2 flex items-center gap-1.5"><Store className="w-3 h-3" /> Businesses</p>
-                  <div className="flex gap-2 overflow-x-auto no-scrollbar">{businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i} />)}</div>
+              </div>
+            );
+
+            // 7. Second nearby — standard
+            if (nearby[1]) sections.push(<FeedItem key="nb1" listing={nearby[1]} variant="standard" />);
+
+            // 8. Suggested people — social graph
+            sections.push(<div key="users" className="-mx-4"><SuggestedUsers /></div>);
+
+            // 9. Fresh listings — compact scannable row
+            if (fresh.length > 0) sections.push(
+              <div key="fresh" className="space-y-1.5">
+                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2">
+                  <Star className="w-3 h-3" /> Just Posted
+                </p>
+                {fresh.slice(0, 3).map(l => <FeedItem key={l.id} listing={l} variant="compact" />)}
+              </div>
+            );
+
+            // 10. HERO — 2nd trending anchor (re-energizes mid-scroll)
+            if (trending[1]) sections.push(<FeedItem key="t1" listing={trending[1]} variant="hero" />);
+
+            // 11. Events — standard weight, time-sensitive feel
+            if (events.length > 0) sections.push(
+              <div key="events" className="space-y-3">
+                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5">
+                  <CalendarDays className="w-3 h-3" /> Upcoming Events
+                </p>
+                {events.slice(0, 2).map(l => <FeedItem key={l.id} listing={l} variant="standard" />)}
+              </div>
+            );
+
+            // 12. Businesses — horizontal trusted row
+            sections.push(
+              <div key="biz">
+                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest flex items-center gap-1.5 mb-2.5">
+                  <Store className="w-3 h-3" /> Local Businesses
+                </p>
+                <div className="flex gap-2 overflow-x-auto no-scrollbar">
+                  {businesses.map((b, i) => <BusinessCard key={b.id} business={b} index={i} />)}
                 </div>
-              );
-              return null;
-            });
+              </div>
+            );
+
+            // 13. For You tail — mixed standard + compact for rhythm variety
+            if (forYou.length > 0) sections.push(
+              <div key="forYou" className="space-y-3">
+                {forYou.slice(0, 6).map((l, i) => (
+                  <FeedItem key={l.id} listing={l} variant={i % 3 === 2 ? "compact" : "standard"} />
+                ))}
+              </div>
+            );
+
+            // 3rd trending anchor at tail if available
+            if (trending[2]) sections.push(<FeedItem key="t2" listing={trending[2]} variant="hero" />);
+
+            // Wrap each section with consistent spacing
+            return sections.map((s, i) => (
+              <div key={i} className="mt-3">{s}</div>
+            ));
           })()}
         </div>
       )}
