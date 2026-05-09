@@ -1,93 +1,82 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, Compass, Users, Bell, User, Plus } from "lucide-react";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
-import { useRef, useCallback, useEffect } from "react";
+import { useCallback, useRef } from "react";
 import { motion } from "framer-motion";
+import { resolveRoute, TAB_ROOTS } from "@/lib/TabNavigationContext";
 
 const TABS = [
-  { id: 'home', label: 'Home', icon: Home, root: '/' },
-  { id: 'marketplace', label: 'Marketplace', icon: Compass, root: '/explore' },
-  { id: 'community', label: 'Community', icon: Users, root: '/groups' },
-  { id: 'notifications', label: 'Notifications', icon: Bell, root: '/notifications' },
-  { id: 'profile', label: 'Profile', icon: User, root: '/profile' },
+  { id: 'home',          label: 'Home',         icon: Home,    root: '/'              },
+  { id: 'marketplace',   label: 'Explore',      icon: Compass, root: '/explore'       },
+  { id: 'community',     label: 'Community',    icon: Users,   root: '/groups'        },
+  { id: 'notifications', label: 'Alerts',       icon: Bell,    root: '/notifications' },
+  { id: 'profile',       label: 'Profile',      icon: User,    root: '/profile'       },
 ];
 
 export default function BottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state, switchTab, getCurrentRoute, getTabRoot } = useTabNavigation();
-  const navRef = useRef(null);
+  const { state, contextNavigate } = useTabNavigation();
+  const tapTimestamps = useRef({});
 
-  // Determine current tab
-  const getCurrentTab = useCallback(() => {
-    const path = location.pathname;
-    
-    // Exact matches first
-    for (const tab of TABS) {
-      if (path === tab.root) return tab.id;
-    }
-    
-    // Child page matches
-    if (path.startsWith('/listing') || path.startsWith('/business') || path.startsWith('/explore')) return 'marketplace';
-    if (path.startsWith('/group') || path.startsWith('/groups')) return 'community';
-    if (path.startsWith('/conversation') || path.startsWith('/inbox')) return 'profile';
-    if (path.startsWith('/notifications')) return 'notifications';
-    if (path.startsWith('/edit-profile') || path.startsWith('/my-listings') || 
-        path.startsWith('/saved') || path.startsWith('/ai-assistant') || 
-        path.startsWith('/vip') || path.startsWith('/business-dashboard') || 
-        path.startsWith('/recruiter') || path === '/profile') return 'profile';
-    
-    return 'home';
-  }, [location.pathname]);
+  // Active tab derived from URL — always accurate, no stale state
+  const currentTab = resolveRoute(location.pathname).tab;
 
-  const currentTab = getCurrentTab();
+  const handleTabPress = useCallback((tab) => {
+    // Debounce rapid taps (100ms) to prevent stack corruption
+    const now = Date.now();
+    if (now - (tapTimestamps.current[tab.id] ?? 0) < 100) return;
+    tapTimestamps.current[tab.id] = now;
 
-  // Handle tab switching
-  const handleTabSwitch = useCallback((tab) => {
     if (tab.id === currentTab) {
-      // Scroll to top if already on tab
+      // Same tab: scroll to top
       const main = document.querySelector('[data-scrollable="true"]');
-      if (main) {
-        main.scrollTo({ top: 0, behavior: 'smooth' });
+      if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // If we're on a child page, also navigate back to root
+      if (location.pathname !== tab.root) {
+        navigate(tab.root, { replace: true });
       }
     } else {
-      // Switch to different tab
-      switchTab(tab.id);
+      // Different tab: navigate to root, clearing child stack
       navigate(tab.root);
     }
-  }, [currentTab, navigate, switchTab]);
+  }, [currentTab, location.pathname, navigate]);
 
-  // Handle create button
   const handleCreate = useCallback(() => {
     navigate('/create');
   }, [navigate]);
 
   return (
     <>
-      {/* Floating Action Button */}
+      {/* Floating create button — above bottom nav */}
       <motion.button
         onClick={handleCreate}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed bottom-28 right-4 z-40 bg-primary text-primary-foreground rounded-full p-4 shadow-lg hover:shadow-xl transition-shadow"
+        whileHover={{ scale: 1.06 }}
+        whileTap={{ scale: 0.92 }}
+        className="fixed z-40 bg-primary text-primary-foreground rounded-full shadow-lg flex items-center justify-center"
         style={{
-          marginBottom: 'env(safe-area-inset-bottom)',
-          transform: 'translateZ(0)',
+          width: 52,
+          height: 52,
+          bottom: `calc(5.5rem + env(safe-area-inset-bottom))`,
+          right: '1rem',
+          willChange: 'transform',
         }}
       >
         <Plus className="w-6 h-6" />
       </motion.button>
 
-      {/* Bottom Navigation */}
+      {/* Bottom navigation bar */}
       <nav
-        ref={navRef}
-        className="fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto bg-card/95 backdrop-blur-xl border-t border-border/40 shadow-2xl"
+        className="fixed bottom-0 left-0 right-0 z-50 max-w-lg mx-auto bg-card/98 backdrop-blur-2xl border-t border-border/30"
         style={{
           paddingBottom: 'env(safe-area-inset-bottom)',
+          boxShadow: '0 -4px 24px rgba(0,0,0,0.08), 0 -1px 0 rgba(0,0,0,0.05)',
+          willChange: 'transform',
           transform: 'translateZ(0)',
         }}
       >
-        <div className="flex items-center justify-around h-20">
+        <div className="flex items-stretch justify-around h-16">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = tab.id === currentTab;
@@ -95,23 +84,25 @@ export default function BottomNav() {
             return (
               <motion.button
                 key={tab.id}
-                onClick={() => handleTabSwitch(tab)}
-                className={`flex flex-col items-center justify-center w-full h-full gap-1 relative transition-colors duration-200 ${
-                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                onClick={() => handleTabPress(tab)}
+                whileTap={{ scale: 0.88 }}
+                className={`flex flex-col items-center justify-center flex-1 gap-0.5 relative min-h-[44px] transition-colors duration-150 ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
                 }`}
-                whileTap={{ scale: 0.9 }}
               >
-                <div className="relative">
-                  <Icon className="w-6 h-6" />
-                  {isActive && (
-                    <motion.div
-                      layoutId="bottomNavActive"
-                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-primary rounded-full"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                    />
-                  )}
-                </div>
-                <span className="text-[10px] font-medium truncate">{tab.label}</span>
+                {/* Active indicator pill behind icon */}
+                {isActive && (
+                  <motion.div
+                    layoutId="tabActivePill"
+                    className="absolute top-1.5 rounded-full bg-primary/10"
+                    style={{ width: 40, height: 26 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                  />
+                )}
+                <Icon className="w-5 h-5 relative z-10" strokeWidth={isActive ? 2.5 : 2} />
+                <span className={`text-[10px] font-medium relative z-10 ${isActive ? 'font-semibold' : ''}`}>
+                  {tab.label}
+                </span>
               </motion.button>
             );
           })}

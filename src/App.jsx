@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { createContext } from 'react';
+
 import { useSystemTheme } from '@/hooks/useSystemTheme';
 import { useEffect } from 'react';
 import { initializeGestureHandler } from '@/lib/gestureHandler';
@@ -74,33 +74,32 @@ const AuthenticatedApp = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/onboarding" element={<OnboardingProfile />} />
       <Route element={<AppLayout />}>
-      <Route path="/" element={<Home />} />
-      <Route path="/search" element={<Search />} />
-      <Route path="/explore" element={<Explore />} />
-      <Route path="/listing/:listingId" element={<ListingDetail />} />
-      <Route path="/groups" element={<Groups />} />
-      <Route path="/group/:groupId" element={<GroupDetail />} />
-      <Route path="/businesses" element={<Businesses />} />
-      <Route path="/business/:businessId" element={<BusinessDetail />} />
-      <Route path="/create" element={<CreateListing />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/inbox" element={<Inbox />} />
-      <Route path="/conversation/:conversationId" element={<Conversation />} />
-      <Route path="/notifications" element={<Notifications />} />
-      <Route path="/admin" element={<Admin />} />
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/vip" element={<VIPMembership />} />
-      <Route path="/saved" element={<SavedListings />} />
-      <Route path="/edit-profile" element={<EditProfile />} />
-      <Route path="/my-listings" element={<MyListings />} />
-      <Route path="/ai-assistant" element={<AIAssistant />} />
-      <Route path="/saved-searches" element={<SavedSearches />} />
-      <Route path="/business-dashboard" element={<BusinessDashboard />} />
-      <Route path="/recruiter" element={<RecruiterDashboard />} />
-      <Route path="/services" element={<Services />} />
-      <Route path="/emergency" element={<Emergency />} />
-      <Route path="/recommendations" element={<Recommendations />} />
-      <Route path="*" element={<PageNotFound />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/listing/:listingId" element={<ListingDetail />} />
+        <Route path="/groups" element={<Groups />} />
+        <Route path="/group/:groupId" element={<GroupDetail />} />
+        <Route path="/businesses" element={<Businesses />} />
+        <Route path="/business/:businessId" element={<BusinessDetail />} />
+        <Route path="/create" element={<CreateListing />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/inbox" element={<Inbox />} />
+        <Route path="/conversation/:conversationId" element={<Conversation />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/vip" element={<VIPMembership />} />
+        <Route path="/saved" element={<SavedListings />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/my-listings" element={<MyListings />} />
+        <Route path="/ai-assistant" element={<AIAssistant />} />
+        <Route path="/saved-searches" element={<SavedSearches />} />
+        <Route path="/business-dashboard" element={<BusinessDashboard />} />
+        <Route path="/recruiter" element={<RecruiterDashboard />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/emergency" element={<Emergency />} />
+        <Route path="/recommendations" element={<Recommendations />} />
+        <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
   );
@@ -111,17 +110,15 @@ function App() {
   return (
     <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
-        <TabNavigationProvider>
-          <Router>
+        <Router>
+          <TabNavigationProvider>
             <AuthenticatedApp />
-          </Router>
-          <Toaster />
-        </TabNavigationProvider>
+            <Toaster />
+          </TabNavigationProvider>
+        </Router>
       </AuthProvider>
     </QueryClientProvider>
   )
 }
-
-export const NavigationContext = createContext(null);
 
 export default App

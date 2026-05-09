@@ -1,102 +1,91 @@
-import { forwardRef } from 'react';
+import { forwardRef, useCallback } from 'react';
 import { ArrowLeft, Bell, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTabNavigation } from '@/hooks/useTabNavigation';
+import { resolveRoute, TAB_ROOTS } from '@/lib/TabNavigationContext';
 
-/**
- * PageHeader - Unified header component for all pages
- * 
- * 56px fixed height on all pages
- * 14px top padding (included in height)
- * 12px horizontal padding
- * Centered title with back button left, actions right
- * Native mobile app appearance
- * 
- * Props:
- * - title: string (auto-hidden for root pages)
- * - onBack: function (custom back behavior, defaults to navigate(-1))
- * - rightAction: React element (optional right action)
- * - isRoot: boolean (shows branding instead of back button)
- */
-const PageHeader = forwardRef(function PageHeader(
-  { title, onBack, rightAction },
-  ref
-) {
+const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { state, goBack } = useTabNavigation();
-  const stack = state.stacks[state.activeTab];
-  const isRoot = stack.length <= 1;
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
+  const resolved = resolveRoute(location.pathname);
+  const isRoot = resolved.isRoot;
+  const stack = state.stacks[state.activeTab] ?? [];
+
+  const handleBack = useCallback(() => {
+    // Always try context goBack first
+    const target = goBack();
+    if (target) {
+      navigate(target.path);
     } else {
-      const prevRoute = goBack();
-      if (prevRoute) {
-        navigate(prevRoute.path);
-      }
+      // Fallback: navigate to current tab root (never loops)
+      const tabRoot = TAB_ROOTS[state.activeTab];
+      navigate(tabRoot ?? '/', { replace: true });
     }
-  };
+  }, [goBack, navigate, state.activeTab]);
 
   return (
     <div
       ref={ref}
       data-header
-      className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-background/90 border-b border-border/20 shadow-sm"
+      className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-2xl border-b border-border/20"
       style={{
         height: 'calc(3.5rem + env(safe-area-inset-top))',
         paddingTop: 'env(safe-area-inset-top)',
-        transform: 'translateZ(0) translateY(0)',
+        boxShadow: '0 1px 0 rgba(0,0,0,0.04), 0 2px 12px rgba(0,0,0,0.04)',
         willChange: 'transform',
-        transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        transform: 'translateZ(0) translateY(0)',
+        transition: 'transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)',
         backfaceVisibility: 'hidden',
         WebkitBackfaceVisibility: 'hidden',
       }}
     >
-      <div className="px-3 max-w-lg mx-auto h-14 flex items-center justify-between">
+      <div className="px-3 max-w-lg mx-auto h-14 flex items-center justify-between gap-2">
         {isRoot ? (
-          // Root: Logo + Action buttons (width-constrained)
           <>
-            <div className="flex-1">
+            {/* Root header: Branding + quick actions */}
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-black tracking-tight leading-none">
                 <span className="text-primary">nomad</span>
                 <span className="text-foreground">link</span>
               </h1>
-              <p className="text-[10px] text-muted-foreground font-medium tracking-wide mt-0.5">MARKETPLACE</p>
+              <p className="text-[10px] text-muted-foreground font-semibold tracking-widest mt-0.5 uppercase">
+                Marketplace
+              </p>
             </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 onClick={() => navigate('/search')}
-                className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary/80 transition-all flex items-center justify-center active:scale-95 min-h-[44px] min-w-[44px]"
-                title="Search"
+                className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary transition-colors flex items-center justify-center active:scale-95"
+                aria-label="Search"
               >
-                <Search className="w-5 h-5 text-foreground" />
+                <Search className="w-5 h-5" />
               </button>
               <button
                 onClick={() => navigate('/notifications')}
-                className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary/80 transition-all flex items-center justify-center active:scale-95 relative min-h-[44px] min-w-[44px]"
-                title="Notifications"
+                className="w-10 h-10 rounded-full bg-secondary/60 hover:bg-secondary transition-colors flex items-center justify-center active:scale-95 relative"
+                aria-label="Notifications"
               >
-                <Bell className="w-5 h-5 text-foreground" />
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full" />
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-card" />
               </button>
             </div>
           </>
         ) : (
-          // Child: Back button - Title (centered) - Action button
           <>
+            {/* Child header: Back + Title + optional action */}
             <button
               onClick={handleBack}
-              className="w-10 h-10 rounded-full bg-secondary/40 hover:bg-secondary/60 transition-all flex items-center justify-center active:scale-95 flex-shrink-0 min-h-[44px] min-w-[44px]"
-              title="Back"
+              className="w-10 h-10 rounded-full bg-secondary/50 hover:bg-secondary transition-colors flex items-center justify-center active:scale-90 flex-shrink-0"
               aria-label="Go back"
             >
-              <ArrowLeft className="w-5 h-5 text-foreground" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
-            <div className="flex-1 min-w-0 text-center px-3">
-              <h2 className="text-base font-semibold text-foreground truncate">{title}</h2>
-            </div>
-            {rightAction ? rightAction : <div className="w-10 flex-shrink-0" />}
+            <h2 className="flex-1 text-center text-[15px] font-semibold text-foreground truncate px-2">
+              {title}
+            </h2>
+            {rightAction ?? <div className="w-10 flex-shrink-0" />}
           </>
         )}
       </div>
