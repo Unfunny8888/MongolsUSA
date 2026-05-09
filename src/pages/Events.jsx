@@ -5,9 +5,10 @@ import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  DiscoveryBar, SubTabs, SectionLabel,
-  EmptyState, ImageCard, MapDiscovery,
+  SubTabs, SectionLabel, EmptyState, ImageCard, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "This Week", "Free", "Popular", "Concerts", "Community", "Sports"];
 const TABS = [["upcoming", "Upcoming"], ["past", "Past"], ["hosting", "Hosting"]];
@@ -51,11 +52,11 @@ function EventCard({ listing, index }) {
 
 export default function Events() {
   const navigate = useNavigate();
+  const { city } = useDiscovery();
   const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("upcoming");
   const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "events"));
-  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "events", status: "active" }, "-created_date", 50)
@@ -71,14 +72,12 @@ export default function Events() {
 
   return (
     <div className="min-h-dvh">
-      <DiscoveryBar
-        city={city}
-        onCityChange={setCity}
+      <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
         onSuggest={setActiveSug}
-        viewMode={viewMode}
-        onToggleView={() => setViewMode("map")}
+        showMapToggle={viewMode === "list"}
+        onMapToggle={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 

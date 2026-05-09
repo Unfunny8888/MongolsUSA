@@ -5,9 +5,10 @@ import { MOCK_LISTINGS, MOCK_BUSINESSES } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  DiscoveryBar, SubTabs, SectionLabel,
-  EmptyState, MapDiscovery,
+  SubTabs, SectionLabel, EmptyState, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "Top Rated", "Open Now", "Home", "Auto", "Legal", "Cleaning", "Tax", "Beauty"];
 const TABS = [["businesses", "Businesses"], ["freelancers", "Freelancers"], ["recommended", "Recommended"]];
@@ -103,12 +104,12 @@ function FreelancerCard({ listing, index }) {
 
 export default function ServicesPage() {
   const navigate = useNavigate();
+  const { city } = useDiscovery();
   const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("businesses");
   const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "services"));
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
-  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Business.list("-rating", 20)
@@ -137,14 +138,12 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-dvh">
-      <DiscoveryBar
-        city={city}
-        onCityChange={setCity}
+      <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
         onSuggest={setActiveSug}
-        viewMode={viewMode}
-        onToggleView={() => setViewMode("map")}
+        showMapToggle={viewMode === "list"}
+        onMapToggle={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 

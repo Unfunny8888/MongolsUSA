@@ -7,8 +7,10 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Bookmark, ChevronRight, MessageCircle, Heart, Clock, Store } from "lucide-react";
 import { MOCK_BUSINESSES, MOCK_DISCUSSIONS, MOCK_LISTINGS } from "../lib/mockData";
+import { useDiscovery } from "@/lib/DiscoveryContext";
 import { base44 } from "@/api/base44Client";
 import DiscussionCard from "../components/feed/DiscussionCard";
+import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
 import FeedItem from "../components/feed/FeedItem";
 import { getUserCityFromIP } from "../lib/geolocationUtils";
 
@@ -89,6 +91,7 @@ const FEED_TABS = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const { city } = useDiscovery();
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
@@ -137,10 +140,14 @@ export default function Home() {
     return items;
   }, [listings]);
 
-  const city = currentUser?.city || "your area";
+  // city from global discovery context (or user's detected city as fallback)
+  const displayCity = city || currentUser?.city || "your area";
 
   return (
     <div ref={containerRef} className="min-h-dvh pb-4">
+
+      {/* ── GLOBAL DISCOVERY BAR ── */}
+      <GlobalDiscoveryBar suggestions={["Nearby", "For You", "Following", "Top Rated", "Free Items"]} activeSug="Nearby" />
 
       {/* ── FEATURED BUSINESSES ── */}
       <section className="pt-4 pb-2">

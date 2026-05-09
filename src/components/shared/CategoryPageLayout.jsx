@@ -191,7 +191,7 @@ export function DiscoveryBar({ city, onCityChange, suggestions, activeSug, onSug
 // ─── SUB-TABS ────────────────────────────────────────────────────────────────
 export function SubTabs({ tabs, active, onSelect }) {
   return (
-    <div className="flex border-b border-border/15 px-4 bg-card/60">
+    <div className="flex border-b border-border/10 px-4 bg-background">
       {tabs.map(([id, label]) => (
         <button
           key={id}

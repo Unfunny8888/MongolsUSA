@@ -9,6 +9,7 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { TabNavigationProvider } from '@/lib/TabNavigationContext';
+import { DiscoveryProvider } from '@/lib/DiscoveryContext';
 import AppLayout from './components/layout/AppLayout';
 
 // Core pages
@@ -126,8 +127,10 @@ function App() {
       <AuthProvider>
         <Router>
           <TabNavigationProvider>
-            <AuthenticatedApp />
-            <Toaster />
+            <DiscoveryProvider>
+              <AuthenticatedApp />
+              <Toaster />
+            </DiscoveryProvider>
           </TabNavigationProvider>
         </Router>
       </AuthProvider>

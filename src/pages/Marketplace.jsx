@@ -5,8 +5,10 @@ import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  DiscoveryBar, SubTabs, SectionLabel, EmptyState,
+  SubTabs, SectionLabel, EmptyState,
 } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "Recently Posted", "Free", "Electronics", "Furniture", "Clothing", "Books", "Under $50"];
 const TABS = [["buy", "Buy"], ["sell", "Sell"], ["free", "Free Items"]];
@@ -53,10 +55,10 @@ function ItemCard({ listing, index }) {
 }
 
 export default function Marketplace() {
+  const { city } = useDiscovery();
   const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("buy");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => ["electronics", "community"].includes(l.category)));
-  const [city, setCity] = useState(null);
 
   useEffect(() => {
     base44.entities.Listing.filter({ status: "active" }, "-created_date", 80)
@@ -78,9 +80,7 @@ export default function Marketplace() {
 
   return (
     <div className="min-h-dvh">
-      <DiscoveryBar
-        city={city}
-        onCityChange={setCity}
+      <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
         onSuggest={setActiveSug}

@@ -5,9 +5,10 @@ import { MOCK_DISCUSSIONS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  DiscoveryBar, SubTabs, SectionLabel,
-  EmptyState, MapDiscovery,
+  SubTabs, SectionLabel, EmptyState, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "Today", "This Week", "Airport", "Long Distance"];
 const TABS = [["find", "Find a Ride"], ["offer", "Offer a Ride"], ["travel", "Travel Buddy"]];
@@ -46,10 +47,10 @@ function RideCard({ item, index }) {
 
 export default function RideShare() {
   const navigate = useNavigate();
+  const { city } = useDiscovery();
   const [activeSug, setActiveSug] = useState("Nearby");
   const [activeTab, setActiveTab] = useState("find");
   const [viewMode, setViewMode] = useState("list");
-  const [city, setCity] = useState(null);
 
   const rides = MOCK_DISCUSSIONS.filter(d => d.tag === "Ride Share");
 
@@ -61,14 +62,12 @@ export default function RideShare() {
 
   return (
     <div className="min-h-dvh">
-      <DiscoveryBar
-        city={city}
-        onCityChange={setCity}
+      <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
         onSuggest={setActiveSug}
-        viewMode={viewMode}
-        onToggleView={() => setViewMode("map")}
+        showMapToggle={viewMode === "list"}
+        onMapToggle={() => setViewMode("map")}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
