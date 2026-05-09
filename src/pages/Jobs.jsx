@@ -1,6 +1,3 @@
-/**
- * Jobs — dedicated hiring + job seekers ecosystem.
- */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, Briefcase, Heart, Clock } from "lucide-react";
@@ -8,8 +5,8 @@ import { MOCK_LISTINGS, MOCK_DISCUSSIONS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  LocationBar, FilterBar, SubTabs,
-  SectionLabel, EmptyState,
+  DiscoveryBar, SubTabs, SectionLabel,
+  EmptyState, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
 const FILTERS = ["All", "Full-time", "Part-time", "Remote", "CDL", "Restaurant", "Cash"];
@@ -32,26 +29,26 @@ function JobCard({ listing, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
       onClick={() => navigate(`/listing/${listing.id}`)}
-      className="flex items-center gap-3 bg-card border border-border/20 rounded-2xl px-3 py-3 active:scale-[0.99] cursor-pointer transition-transform"
+      className="flex items-center gap-3 bg-card border border-border/15 rounded-2xl px-3 py-3 active:scale-[0.98] cursor-pointer transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
     >
       {listing.images?.[0] ? (
         <img src={listing.images[0]} alt={listing.title} className="w-14 h-14 rounded-xl object-cover shrink-0" />
       ) : (
         <div className="w-14 h-14 rounded-xl bg-blue-50 dark:bg-blue-950/30 flex items-center justify-center shrink-0">
-          <Briefcase className="w-6 h-6 text-blue-600" />
+          <Briefcase className="w-6 h-6 text-blue-500" />
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-[13.5px] font-bold text-foreground leading-snug line-clamp-1">{listing.title}</p>
+        <p className="text-[13px] font-bold text-foreground leading-snug line-clamp-1">{listing.title}</p>
         <p className="text-[11px] text-muted-foreground mt-0.5">{listing.job_company || listing.poster_name}</p>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
           {listing.location_city && (
             <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
               <MapPin className="w-2.5 h-2.5" />{listing.location_city}
             </span>
           )}
           {listing.job_type && (
-            <span className="text-[10px] bg-blue-50 dark:bg-blue-950/30 text-blue-600 font-medium px-2 py-0.5 rounded-full capitalize">
+            <span className="text-[10px] bg-blue-50 dark:bg-blue-950/30 text-blue-600 font-semibold px-2 py-0.5 rounded-full capitalize">
               {listing.job_type}
             </span>
           )}
@@ -81,7 +78,7 @@ function CandidateCard({ disc, index }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="flex items-center gap-3 bg-card border border-border/20 rounded-2xl px-3 py-3"
+      className="flex items-center gap-3 bg-card border border-border/15 rounded-2xl px-3 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
     >
       <img src={disc.author_avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80"}
         alt={disc.author_name} className="w-12 h-12 rounded-full object-cover shrink-0" />
@@ -94,7 +91,7 @@ function CandidateCard({ disc, index }) {
           </span>
         )}
       </div>
-      <button className="shrink-0 bg-primary text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
+      <button className="shrink-0 bg-primary text-primary-foreground text-[11px] font-bold px-3 py-1.5 rounded-full">
         View
       </button>
     </motion.div>
@@ -102,10 +99,12 @@ function CandidateCard({ disc, index }) {
 }
 
 export default function Jobs() {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("hiring");
+  const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "jobs"));
-  const [location, setLocation] = useState("Chicago, IL");
+  const [city, setCity] = useState("Chicago, IL");
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "jobs", status: "active" }, "-created_date", 50)
@@ -129,30 +128,41 @@ export default function Jobs() {
 
   return (
     <div className="min-h-dvh">
-      <LocationBar location={location} onChangeClick={() => {}} />
-      <FilterBar filters={FILTERS} active={activeFilter} onSelect={setActiveFilter} />
+      <DiscoveryBar
+        city={city}
+        onCityClick={() => {}}
+        filters={FILTERS}
+        activeFilter={activeFilter}
+        onFilter={setActiveFilter}
+        viewMode={viewMode}
+        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+      />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
-      <div className="px-4 py-4 space-y-2.5">
-        {activeTab === "hiring" && (
-          <>
-            <SectionLabel>Jobs near you</SectionLabel>
-            {filtered.length > 0
-              ? filtered.map((l, i) => <JobCard key={l.id} listing={l} index={i} />)
-              : <EmptyState emoji="💼" title="No jobs found" subtitle="Try adjusting your filters" />
-            }
-          </>
-        )}
-        {activeTab === "looking" && (
-          <>
-            <SectionLabel>People looking for work</SectionLabel>
-            {candidates.length > 0
-              ? candidates.map((c, i) => <CandidateCard key={c.id} disc={c} index={i} />)
-              : <EmptyState emoji="🙋" title="No candidates yet" subtitle="Community members will appear here" />
-            }
-          </>
-        )}
-      </div>
+      {viewMode === "map" ? (
+        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} />
+      ) : (
+        <div className="px-4 py-4 space-y-2.5">
+          {activeTab === "hiring" && (
+            <>
+              <SectionLabel>Jobs near you</SectionLabel>
+              {filtered.length > 0
+                ? filtered.map((l, i) => <JobCard key={l.id} listing={l} index={i} />)
+                : <EmptyState emoji="💼" title="No jobs found" subtitle="Try adjusting your filters" />
+              }
+            </>
+          )}
+          {activeTab === "looking" && (
+            <>
+              <SectionLabel>People looking for work</SectionLabel>
+              {candidates.length > 0
+                ? candidates.map((c, i) => <CandidateCard key={c.id} disc={c} index={i} />)
+                : <EmptyState emoji="🙋" title="No candidates yet" subtitle="Community members will appear here" />
+              }
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

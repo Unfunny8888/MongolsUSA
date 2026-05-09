@@ -1,16 +1,12 @@
-/**
- * Events — community events ecosystem page.
- * Same architecture as Jobs / Housing / Services.
- */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, MapPin, Clock, Heart, Users } from "lucide-react";
+import { CalendarDays, MapPin, Clock, Heart } from "lucide-react";
 import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  LocationBar, FilterBar, SubTabs,
-  SectionLabel, EmptyState, ImageCard,
+  DiscoveryBar, SubTabs, SectionLabel,
+  EmptyState, ImageCard, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
 const FILTERS = ["All", "This Week", "Free", "Concerts", "Community", "Sports"];
@@ -32,13 +28,11 @@ function EventCard({ listing, index }) {
       <ImageCard
         imageSrc={listing.images?.[0]}
         imageAlt={listing.title}
-        imageFallback={<CalendarDays className="w-10 h-10 text-violet-400" />}
+        imageFallback={<CalendarDays className="w-10 h-10 text-violet-300" />}
         priceOverlay={listing.event_ticket_price ? `$${listing.event_ticket_price}` : "Free"}
         topRight={
-          <button
-            onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
-            className="w-8 h-8 bg-white/90 dark:bg-card/90 rounded-full flex items-center justify-center shadow-sm"
-          >
+          <button onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
+            className="w-8 h-8 bg-white/90 dark:bg-card/90 rounded-full flex items-center justify-center shadow-sm">
             <Heart className={`w-4 h-4 ${saved ? "fill-rose-500 text-rose-500" : "text-muted-foreground"}`} />
           </button>
         }
@@ -56,10 +50,12 @@ function EventCard({ listing, index }) {
 }
 
 export default function Events() {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("upcoming");
+  const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "events"));
-  const [location, setLocation] = useState("Chicago, IL");
+  const [city, setCity] = useState("Chicago, IL");
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "events", status: "active" }, "-created_date", 50)
@@ -75,30 +71,41 @@ export default function Events() {
 
   return (
     <div className="min-h-dvh">
-      <LocationBar location={location} onChangeClick={() => {}} />
-      <FilterBar filters={FILTERS} active={activeFilter} onSelect={setActiveFilter} />
+      <DiscoveryBar
+        city={city}
+        onCityClick={() => {}}
+        filters={FILTERS}
+        activeFilter={activeFilter}
+        onFilter={setActiveFilter}
+        viewMode={viewMode}
+        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+      />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
-      <div className="px-4 py-4">
-        {activeTab === "upcoming" && (
-          <>
-            <SectionLabel>Events near you</SectionLabel>
-            {filtered.length > 0 ? (
-              <div className="space-y-3">
-                {filtered.map((l, i) => <EventCard key={l.id} listing={l} index={i} />)}
-              </div>
-            ) : (
-              <EmptyState emoji="🎉" title="No events found" subtitle="Check back soon for local events" />
-            )}
-          </>
-        )}
-        {activeTab === "past" && (
-          <EmptyState emoji="📅" title="No past events" subtitle="Events you attended will appear here" />
-        )}
-        {activeTab === "hosting" && (
-          <EmptyState emoji="🎤" title="Not hosting any events" subtitle="Create a listing to host your own event" />
-        )}
-      </div>
+      {viewMode === "map" ? (
+        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} />
+      ) : (
+        <div className="px-4 py-4">
+          {activeTab === "upcoming" && (
+            <>
+              <SectionLabel>Events near you</SectionLabel>
+              {filtered.length > 0 ? (
+                <div className="space-y-3">
+                  {filtered.map((l, i) => <EventCard key={l.id} listing={l} index={i} />)}
+                </div>
+              ) : (
+                <EmptyState emoji="🎉" title="No events found" subtitle="Check back soon for local events" />
+              )}
+            </>
+          )}
+          {activeTab === "past" && (
+            <EmptyState emoji="📅" title="No past events" subtitle="Events you attended will appear here" />
+          )}
+          {activeTab === "hosting" && (
+            <EmptyState emoji="🎤" title="Not hosting any events" subtitle="Create a listing to host your own event" />
+          )}
+        </div>
+      )}
     </div>
   );
 }

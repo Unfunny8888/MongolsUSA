@@ -1,7 +1,3 @@
-/**
- * Vehicles — cars, trucks, motorcycles marketplace page.
- * Same architecture as all category pages.
- */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Car, MapPin, Gauge, Heart, Fuel } from "lucide-react";
@@ -9,8 +5,8 @@ import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  LocationBar, FilterBar, SubTabs,
-  SectionLabel, EmptyState, ImageCard,
+  DiscoveryBar, SubTabs, SectionLabel,
+  EmptyState, ImageCard, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
 const FILTERS = ["All", "Under $5k", "Under $10k", "Under $20k", "Trucks", "SUVs", "Sedans"];
@@ -29,13 +25,11 @@ function VehicleCard({ listing, index }) {
       <ImageCard
         imageSrc={listing.images?.[0]}
         imageAlt={listing.title}
-        imageFallback={<Car className="w-10 h-10 text-orange-400" />}
+        imageFallback={<Car className="w-10 h-10 text-orange-300" />}
         priceOverlay={listing.price ? `$${listing.price.toLocaleString()}` : null}
         topRight={
-          <button
-            onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
-            className="w-8 h-8 bg-white/90 dark:bg-card/90 rounded-full flex items-center justify-center shadow-sm"
-          >
+          <button onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
+            className="w-8 h-8 bg-white/90 dark:bg-card/90 rounded-full flex items-center justify-center shadow-sm">
             <Heart className={`w-4 h-4 ${saved ? "fill-rose-500 text-rose-500" : "text-muted-foreground"}`} />
           </button>
         }
@@ -67,10 +61,12 @@ function VehicleCard({ listing, index }) {
 }
 
 export default function Vehicles() {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("buy");
+  const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "cars"));
-  const [location, setLocation] = useState("Chicago, IL");
+  const [city, setCity] = useState("Chicago, IL");
 
   useEffect(() => {
     base44.entities.Listing.filter({ category: "cars", status: "active" }, "-created_date", 50)
@@ -88,30 +84,41 @@ export default function Vehicles() {
 
   return (
     <div className="min-h-dvh">
-      <LocationBar location={location} onChangeClick={() => {}} />
-      <FilterBar filters={FILTERS} active={activeFilter} onSelect={setActiveFilter} />
+      <DiscoveryBar
+        city={city}
+        onCityClick={() => {}}
+        filters={FILTERS}
+        activeFilter={activeFilter}
+        onFilter={setActiveFilter}
+        viewMode={viewMode}
+        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+      />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
-      <div className="px-4 py-4">
-        {activeTab === "buy" && (
-          <>
-            <SectionLabel>Vehicles near you</SectionLabel>
-            {filtered.length > 0 ? (
-              <div className="space-y-3">
-                {filtered.map((l, i) => <VehicleCard key={l.id} listing={l} index={i} />)}
-              </div>
-            ) : (
-              <EmptyState emoji="🚗" title="No vehicles found" subtitle="Try adjusting your filters" />
-            )}
-          </>
-        )}
-        {activeTab === "sell" && (
-          <EmptyState emoji="🏷️" title="List your vehicle" subtitle="Post a listing to sell your car" />
-        )}
-        {activeTab === "rent" && (
-          <EmptyState emoji="🔑" title="No rentals nearby" subtitle="Car rentals coming soon" />
-        )}
-      </div>
+      {viewMode === "map" ? (
+        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} />
+      ) : (
+        <div className="px-4 py-4">
+          {activeTab === "buy" && (
+            <>
+              <SectionLabel>Vehicles near you</SectionLabel>
+              {filtered.length > 0 ? (
+                <div className="space-y-3">
+                  {filtered.map((l, i) => <VehicleCard key={l.id} listing={l} index={i} />)}
+                </div>
+              ) : (
+                <EmptyState emoji="🚗" title="No vehicles found" subtitle="Try adjusting your filters" />
+              )}
+            </>
+          )}
+          {activeTab === "sell" && (
+            <EmptyState emoji="🏷️" title="List your vehicle" subtitle="Post a listing to sell your car" />
+          )}
+          {activeTab === "rent" && (
+            <EmptyState emoji="🔑" title="No rentals nearby" subtitle="Car rentals coming soon" />
+          )}
+        </div>
+      )}
     </div>
   );
 }

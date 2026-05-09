@@ -1,28 +1,15 @@
-/**
- * Marketplace — general buy/sell, electronics, goods.
- * Same architecture as all category pages.
- */
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShoppingBag, MapPin, Clock, Heart, Tag } from "lucide-react";
+import { ShoppingBag, MapPin, Heart } from "lucide-react";
 import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  LocationBar, FilterBar, SubTabs,
-  SectionLabel, EmptyState,
+  DiscoveryBar, SubTabs, SectionLabel, EmptyState,
 } from "../components/shared/CategoryPageLayout";
 
 const FILTERS = ["All", "Electronics", "Furniture", "Clothing", "Books", "Free", "Under $50"];
 const TABS = [["buy", "Buy"], ["sell", "Sell"], ["free", "Free Items"]];
-
-function timeAgo(d) {
-  if (!d) return "";
-  const h = Math.floor((Date.now() - new Date(d)) / 3600000);
-  if (h < 1) return "Just now";
-  if (h < 24) return `${h}h`;
-  return `${Math.floor(h / 24)}d`;
-}
 
 function ItemCard({ listing, index }) {
   const navigate = useNavigate();
@@ -35,13 +22,13 @@ function ItemCard({ listing, index }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
       onClick={() => navigate(`/listing/${listing.id}`)}
-      className="flex gap-3 bg-card border border-border/20 rounded-2xl p-3 cursor-pointer active:scale-[0.99] transition-transform"
+      className="flex gap-3 bg-card border border-border/15 rounded-2xl p-3 cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
     >
       {img ? (
         <img src={img} alt={listing.title} className="w-16 h-16 rounded-xl object-cover shrink-0" loading="lazy" />
       ) : (
-        <div className="w-16 h-16 rounded-xl bg-secondary/40 flex items-center justify-center shrink-0">
-          <ShoppingBag className="w-6 h-6 text-muted-foreground/40" />
+        <div className="w-16 h-16 rounded-xl bg-secondary/30 flex items-center justify-center shrink-0">
+          <ShoppingBag className="w-6 h-6 text-muted-foreground/30" />
         </div>
       )}
       <div className="flex-1 min-w-0">
@@ -58,10 +45,7 @@ function ItemCard({ listing, index }) {
           )}
         </div>
       </div>
-      <button
-        onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
-        className="shrink-0 self-start pt-0.5"
-      >
+      <button onClick={e => { e.stopPropagation(); setSaved(s => !s); }} className="shrink-0 self-start pt-0.5">
         <Heart className={`w-4 h-4 ${saved ? "fill-rose-500 text-rose-500" : "text-muted-foreground"}`} />
       </button>
     </motion.div>
@@ -72,7 +56,7 @@ export default function Marketplace() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("buy");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => ["electronics", "community"].includes(l.category)));
-  const [location, setLocation] = useState("Chicago, IL");
+  const [city, setCity] = useState("Chicago, IL");
 
   useEffect(() => {
     base44.entities.Listing.filter({ status: "active" }, "-created_date", 80)
@@ -94,8 +78,13 @@ export default function Marketplace() {
 
   return (
     <div className="min-h-dvh">
-      <LocationBar location={location} onChangeClick={() => {}} />
-      <FilterBar filters={FILTERS} active={activeFilter} onSelect={setActiveFilter} />
+      <DiscoveryBar
+        city={city}
+        onCityClick={() => {}}
+        filters={FILTERS}
+        activeFilter={activeFilter}
+        onFilter={setActiveFilter}
+      />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       <div className="px-4 py-4">

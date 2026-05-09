@@ -1,16 +1,12 @@
-/**
- * RideShare — carpooling, rides, travel coordination.
- * Same architecture as all category pages.
- */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Car, MapPin, Users, Calendar, Clock, ArrowRight } from "lucide-react";
+import { MapPin, Users } from "lucide-react";
 import { MOCK_DISCUSSIONS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
-  LocationBar, FilterBar, SubTabs,
-  SectionLabel, EmptyState,
+  DiscoveryBar, SubTabs, SectionLabel,
+  EmptyState, MapDiscovery,
 } from "../components/shared/CategoryPageLayout";
 
 const FILTERS = ["All", "Today", "This Week", "Airport", "Long Distance"];
@@ -22,7 +18,7 @@ function RideCard({ item, index }) {
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="bg-card border border-border/20 rounded-2xl px-3 py-3 cursor-pointer active:scale-[0.99] transition-transform"
+      className="bg-card border border-border/15 rounded-2xl px-3 py-3 cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
     >
       <div className="flex items-center gap-3">
         <img
@@ -34,7 +30,7 @@ function RideCard({ item, index }) {
           <p className="text-[13px] font-bold text-foreground">{item.author_name}</p>
           <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{item.content}</p>
         </div>
-        <button className="shrink-0 bg-primary text-white text-[11px] font-bold px-3 py-1.5 rounded-full">
+        <button className="shrink-0 bg-primary text-primary-foreground text-[11px] font-bold px-3 py-1.5 rounded-full">
           Join
         </button>
       </div>
@@ -49,38 +45,57 @@ function RideCard({ item, index }) {
 }
 
 export default function RideShare() {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeTab, setActiveTab] = useState("find");
-  const [location, setLocation] = useState("Chicago, IL");
+  const [viewMode, setViewMode] = useState("list");
+  const [city, setCity] = useState("Chicago, IL");
 
   const rides = MOCK_DISCUSSIONS.filter(d => d.tag === "Ride Share");
 
+  // Adapt rides for map
+  const rideListings = rides.map((r, i) => ({
+    id: r.id, title: r.content?.slice(0, 50), price: null,
+    location_city: r.city, images: r.author_avatar ? [r.author_avatar] : [],
+  }));
+
   return (
     <div className="min-h-dvh">
-      <LocationBar location={location} onChangeClick={() => {}} />
-      <FilterBar filters={FILTERS} active={activeFilter} onSelect={setActiveFilter} />
+      <DiscoveryBar
+        city={city}
+        onCityClick={() => {}}
+        filters={FILTERS}
+        activeFilter={activeFilter}
+        onFilter={setActiveFilter}
+        viewMode={viewMode}
+        onToggleView={() => setViewMode(v => v === "list" ? "map" : "list")}
+      />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
-      <div className="px-4 py-4">
-        {activeTab === "find" && (
-          <>
-            <SectionLabel>Available rides</SectionLabel>
-            {rides.length > 0 ? (
-              <div className="space-y-2.5">
-                {rides.map((r, i) => <RideCard key={r.id} item={r} index={i} />)}
-              </div>
-            ) : (
-              <EmptyState emoji="🚗" title="No rides posted yet" subtitle="Check back soon or post your own" />
-            )}
-          </>
-        )}
-        {activeTab === "offer" && (
-          <EmptyState emoji="🙋" title="Offer a ride" subtitle="Post your route to help others get around" />
-        )}
-        {activeTab === "travel" && (
-          <EmptyState emoji="✈️" title="Find a travel buddy" subtitle="Connect with others headed the same way" />
-        )}
-      </div>
+      {viewMode === "map" ? (
+        <MapDiscovery listings={rideListings} onSelect={() => {}} />
+      ) : (
+        <div className="px-4 py-4">
+          {activeTab === "find" && (
+            <>
+              <SectionLabel>Available rides</SectionLabel>
+              {rides.length > 0 ? (
+                <div className="space-y-2.5">
+                  {rides.map((r, i) => <RideCard key={r.id} item={r} index={i} />)}
+                </div>
+              ) : (
+                <EmptyState emoji="🚗" title="No rides posted yet" subtitle="Check back soon or post your own" />
+              )}
+            </>
+          )}
+          {activeTab === "offer" && (
+            <EmptyState emoji="🙋" title="Offer a ride" subtitle="Post your route to help others get around" />
+          )}
+          {activeTab === "travel" && (
+            <EmptyState emoji="✈️" title="Find a travel buddy" subtitle="Connect with others headed the same way" />
+          )}
+        </div>
+      )}
     </div>
   );
 }
