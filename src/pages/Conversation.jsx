@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Send, Image, Check, CheckCheck, Loader2, ArrowLeft } from "lucide-react";
 import QuickReplies from "../components/messaging/QuickReplies";
 import { motion } from "framer-motion";
@@ -38,6 +38,7 @@ const MsgBubble = memo(function MsgBubble({ msg, isMe }) {
 });
 
 export default function Conversation() {
+  const navigate = useNavigate();
   const { conversationId } = useParams();
   const urlParams = new URLSearchParams(window.location.search);
   const otherName = urlParams.get("other") || "User";
@@ -152,8 +153,21 @@ export default function Conversation() {
               key={msg.id || i}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
+              className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}
             >
+              {!isMe && (
+                <button
+                  onClick={() => navigate(`/profile?email=${encodeURIComponent(msg.from_user)}`)}
+                  className="shrink-0 mb-1"
+                  title={`View ${msg.from_name || "profile"}`}
+                >
+                  <img
+                    src={msg.from_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(msg.from_name || "U")}&size=32&background=e2f0eb&color=1a7a50`}
+                    alt={msg.from_name}
+                    className="w-7 h-7 rounded-full object-cover border border-border/30"
+                  />
+                </button>
+              )}
               <MsgBubble msg={msg} isMe={isMe} />
             </motion.div>
           );
