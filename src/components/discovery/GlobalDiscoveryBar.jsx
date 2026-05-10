@@ -20,7 +20,7 @@ export default function GlobalDiscoveryBar({
   if (!suggestions.length && !showMapToggle && !searchAreaViewport) return null;
 
   return (
-    <div className="sticky top-0 z-40 bg-background/98 backdrop-blur-md border-b border-border/10">
+    <div className="bg-background border-b border-border/10">
       <div className="flex items-center gap-2 px-4 py-2.5 overflow-x-auto no-scrollbar">
         {/* Area active badge */}
         {searchAreaViewport && (

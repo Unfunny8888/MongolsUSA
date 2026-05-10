@@ -1,11 +1,10 @@
-import { forwardRef, useCallback, useState, useEffect } from 'react';
+import { forwardRef, useCallback, useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Bell, MapPin, ChevronDown, Sparkles } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTabNavigation } from '@/hooks/useTabNavigation';
 import { resolveRoute, TAB_ROOTS } from '@/lib/TabNavigationContext';
 import { base44 } from '@/api/base44Client';
 import { useDiscovery } from '@/lib/DiscoveryContext';
-import CitySheet from '@/components/discovery/CitySheet';
 
 const ROOT_LABELS = {
   '/jobs':        'Jobs',
@@ -25,9 +24,10 @@ const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
   const navigate = useNavigate();
   const location = useLocation();
   const { state, goBack } = useTabNavigation();
-  const { city, setCity, recentCities } = useDiscovery();
+  const { city, setCity } = useDiscovery();
   const [user, setUser] = useState(null);
-  const [showCitySheet, setShowCitySheet] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     base44.auth.isAuthenticated().then(authed => {
@@ -54,12 +54,26 @@ const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
   const cityLabel = city ? city.split(',')[0] : 'All Cities';
   const isAllCities = !city;
 
+  const CITIES = ['All Cities', 'Chicago', 'New York', 'Los Angeles', 'Houston', 'Detroit', 'Minneapolis', 'Columbus'];
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showCityDropdown) return;
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowCityDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('touchstart', handler);
+    return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('touchstart', handler); };
+  }, [showCityDropdown]);
+
   return (
-    <>
-      <div
+    <div
         ref={ref}
         data-header
-        className="fixed top-0 left-0 right-0 z-50 bg-card/97 backdrop-blur-2xl border-b border-border/15"
+        className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border/15"
         style={{
           height: 'calc(3.5rem + env(safe-area-inset-top))',
           paddingTop: 'env(safe-area-inset-top)',
@@ -88,18 +102,41 @@ const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
                 )}
               </div>
 
-              {/* Center: city selector (on root pages that have it) */}
+              {/* Center: city selector */}
               {showCitySelector && (
-                <button
-                  onClick={() => setShowCitySheet(true)}
-                  className="flex items-center gap-1.5 bg-secondary/60 hover:bg-secondary transition-colors rounded-full px-3 py-1.5 active:scale-[0.97] max-w-[140px]"
-                >
-                  <MapPin className={`w-3 h-3 shrink-0 ${isAllCities ? 'text-muted-foreground' : 'text-primary'}`} />
-                  <span className={`text-[12px] font-bold truncate ${isAllCities ? 'text-muted-foreground' : 'text-foreground'}`}>
-                    {cityLabel}
-                  </span>
-                  <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
-                </button>
+                <div ref={dropdownRef} className="relative">
+                  <button
+                    onClick={() => setShowCityDropdown(v => !v)}
+                    className="flex items-center gap-1.5 bg-secondary/60 hover:bg-secondary transition-colors rounded-full px-3 py-1.5 active:scale-[0.97] max-w-[140px]"
+                  >
+                    <MapPin className={`w-3 h-3 shrink-0 ${isAllCities ? 'text-muted-foreground' : 'text-primary'}`} />
+                    <span className={`text-[12px] font-bold truncate ${isAllCities ? 'text-muted-foreground' : 'text-foreground'}`}>
+                      {cityLabel}
+                    </span>
+                    <ChevronDown className={`w-3 h-3 text-muted-foreground shrink-0 transition-transform duration-150 ${showCityDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {showCityDropdown && (
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-44 bg-card border border-border/20 rounded-2xl shadow-lg overflow-hidden z-[200]">
+                      {CITIES.map(c => {
+                        const isSelected = c === 'All Cities' ? !city : city === c;
+                        return (
+                          <button
+                            key={c}
+                            onClick={() => { setCity(c === 'All Cities' ? null : c); setShowCityDropdown(false); }}
+                            className={`w-full text-left px-4 py-2.5 text-[13px] font-medium transition-colors ${
+                              isSelected
+                                ? 'bg-primary/10 text-primary font-bold'
+                                : 'text-foreground hover:bg-secondary/60 active:bg-secondary'
+                            }`}
+                          >
+                            {c}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               )}
 
               {/* Right: actions */}
@@ -151,17 +188,7 @@ const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
             </>
           )}
         </div>
-      </div>
-
-      {showCitySheet && (
-        <CitySheet
-          currentCity={city}
-          recentCities={recentCities}
-          onSelect={(c) => { setCity(c); setShowCitySheet(false); }}
-          onClose={() => setShowCitySheet(false)}
-        />
-      )}
-    </>
+    </div>
   );
 });
 
