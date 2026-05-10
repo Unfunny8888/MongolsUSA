@@ -16,7 +16,7 @@ export const ROUTE_MAP = [
   { match: (p) => p === '/vehicles',   tab: 'more',     label: 'Vehicles',         isRoot: false },
   { match: (p) => p === '/marketplace',tab: 'more',     label: 'Marketplace',      isRoot: false },
   { match: (p) => p === '/rideshare',  tab: 'more',     label: 'Ride Share',       isRoot: false },
-  { match: (p) => p === '/community',  tab: 'more',     label: 'Community',        isRoot: false },
+  { match: (p) => p === '/community',  tab: 'community', label: 'Community',       isRoot: true  },
 
   // ── Detail pages ──
   { match: (p) => p.startsWith('/listing/'),      tab: 'home',     label: 'Listing Detail',     isRoot: false },
@@ -43,11 +43,12 @@ export const ROUTE_MAP = [
 ];
 
 export const TAB_ROOTS = {
-  home:     '/',
-  jobs:     '/jobs',
-  housing:  '/housing',
-  services: '/services',
-  more:     '/more',
+  home:      '/',
+  jobs:      '/jobs',
+  housing:   '/housing',
+  services:  '/services',
+  community: '/community',
+  more:      '/more',
 };
 
 export function resolveRoute(pathname) {
@@ -66,13 +67,14 @@ const makeRootEntry = (tab) => ({
 const initialState = {
   activeTab: 'home',
   stacks: {
-    home:     [{ path: '/',         label: 'Home',     tab: 'home'     }],
-    jobs:     [{ path: '/jobs',     label: 'Jobs',     tab: 'jobs'     }],
-    housing:  [{ path: '/housing',  label: 'Housing',  tab: 'housing'  }],
-    services: [{ path: '/services', label: 'Services', tab: 'services' }],
-    more:     [{ path: '/more',     label: 'More',     tab: 'more'     }],
+    home:      [{ path: '/',          label: 'Home',      tab: 'home'      }],
+    jobs:      [{ path: '/jobs',      label: 'Jobs',      tab: 'jobs'      }],
+    housing:   [{ path: '/housing',   label: 'Housing',   tab: 'housing'   }],
+    services:  [{ path: '/services',  label: 'Services',  tab: 'services'  }],
+    community: [{ path: '/community', label: 'Community', tab: 'community' }],
+    more:      [{ path: '/more',      label: 'More',      tab: 'more'      }],
   },
-  scrollPositions: { home: 0, jobs: 0, housing: 0, services: 0, more: 0 },
+  scrollPositions: { home: 0, jobs: 0, housing: 0, services: 0, community: 0, more: 0 },
 };
 
 function navigationReducer(state, action) {

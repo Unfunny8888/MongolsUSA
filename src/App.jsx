@@ -43,6 +43,7 @@ import BusinessDashboard from './pages/BusinessDashboard';
 import RecruiterDashboard from './pages/RecruiterDashboard';
 import Admin from './pages/Admin';
 import Emergency from './pages/Emergency';
+import Community from './pages/Community';
 
 // AUTH
 import Auth from './pages/Auth';
@@ -84,6 +85,7 @@ const AppShell = () => {
         <Route path="/vehicles" element={<Vehicles />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/rideshare" element={<RideShare />} />
+        <Route path="/community" element={<Community />} />
         <Route path="/listing/:listingId" element={<ListingDetail />} />
         <Route path="/business/:businessId" element={<BusinessDetail />} />
         <Route path="/create" element={<CreateListing />} />

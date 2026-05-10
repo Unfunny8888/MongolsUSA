@@ -1,16 +1,16 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Briefcase, Building2, Wrench, MoreHorizontal } from "lucide-react";
+import { Home, Briefcase, Building2, Users, MoreHorizontal } from "lucide-react";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
 import { useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { resolveRoute } from "@/lib/TabNavigationContext";
 
 const TABS = [
-  { id: 'home',     label: 'Home',     icon: Home,          root: '/'         },
-  { id: 'jobs',     label: 'Jobs',     icon: Briefcase,     root: '/jobs'     },
-  { id: 'housing',  label: 'Housing',  icon: Building2,     root: '/housing'  },
-  { id: 'services', label: 'Services', icon: Wrench,        root: '/services' },
-  { id: 'more',     label: 'More',     icon: MoreHorizontal,root: '/more'     },
+  { id: 'home',      label: 'Home',      icon: Home,          root: '/'          },
+  { id: 'jobs',      label: 'Jobs',      icon: Briefcase,     root: '/jobs'      },
+  { id: 'housing',   label: 'Housing',   icon: Building2,     root: '/housing'   },
+  { id: 'community', label: 'Community', icon: Users,         root: '/community' },
+  { id: 'more',      label: 'More',      icon: MoreHorizontal,root: '/more'      },
 ];
 
 export default function BottomNav() {

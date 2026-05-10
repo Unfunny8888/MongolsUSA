@@ -11,6 +11,7 @@ const ROOT_LABELS = {
   '/housing':     'Housing',
   '/services':    'Services',
   '/more':        'More',
+  '/community':   'Community',
   '/events':      'Events',
   '/vehicles':    'Vehicles',
   '/marketplace': 'Marketplace',
@@ -18,7 +19,7 @@ const ROOT_LABELS = {
 };
 
 // Root pages that get the city selector in the header
-const CITY_SELECTOR_ROOTS = new Set(['/', '/jobs', '/housing', '/services', '/events', '/vehicles', '/marketplace', '/rideshare']);
+const CITY_SELECTOR_ROOTS = new Set(['/', '/jobs', '/housing', '/services', '/community', '/events', '/vehicles', '/marketplace', '/rideshare']);
 
 const PageHeader = forwardRef(function PageHeader({ title, rightAction }, ref) {
   const navigate = useNavigate();
