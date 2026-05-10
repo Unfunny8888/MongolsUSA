@@ -267,6 +267,12 @@ export default function OnboardingProfile() {
             }
           );
 
+          // IMPORTANT
+          localStorage.setItem(
+            "onboarding_complete",
+            "true"
+          );
+
           // CLEAR SAVED DATA
           localStorage.removeItem(
             "onboarding_step"
