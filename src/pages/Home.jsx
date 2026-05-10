@@ -31,50 +31,50 @@ function FeaturedBusinessCard({ business }) {
   return (
     <div
       onClick={() => navigate(`/business/${business.id}`)}
-      className="shrink-0 w-48 bg-card rounded-2xl border border-border/20 overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
-    >
+      className="shrink-0 w-48 bg-card rounded-2xl border border-border/20 overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
+      
       {/* Banner */}
       <div className="relative h-28 bg-secondary/40">
-        {business.banner && (
-          <img src={business.banner} alt={business.name} className="w-full h-full object-cover" loading="lazy" />
-        )}
+        {business.banner &&
+        <img src={business.banner} alt={business.name} className="w-full h-full object-cover" loading="lazy" />
+        }
         <button
-          onClick={e => { e.stopPropagation(); setSaved(s => !s); }}
-          className="absolute top-2 right-2 w-7 h-7 bg-white/90 dark:bg-card/90 rounded-full flex items-center justify-center shadow-sm"
-        >
+          onClick={(e) => {e.stopPropagation();setSaved((s) => !s);}}
+          className="absolute top-2 right-2 w-7 h-7 bg-white/90 dark:bg-card/90 rounded-full flex items-center justify-center shadow-sm">
+          
           <Bookmark className={`w-3.5 h-3.5 ${saved ? "fill-primary text-primary" : "text-muted-foreground"}`} />
         </button>
       </div>
       {/* Logo + info */}
       <div className="px-2.5 pb-2.5 -mt-4 relative">
-        {business.logo ? (
-          <img src={business.logo} alt={business.name}
-            className="w-10 h-10 rounded-xl object-cover border-2 border-card shadow-sm mb-1.5" />
-        ) : (
-          <div className="w-10 h-10 rounded-xl bg-primary/10 border-2 border-card flex items-center justify-center mb-1.5">
+        {business.logo ?
+        <img src={business.logo} alt={business.name}
+        className="w-10 h-10 rounded-xl object-cover border-2 border-card shadow-sm mb-1.5" /> :
+
+        <div className="w-10 h-10 rounded-xl bg-primary/10 border-2 border-card flex items-center justify-center mb-1.5">
             <Store className="w-4 h-4 text-primary" />
           </div>
-        )}
+        }
         <p className="text-[13px] font-bold text-foreground leading-tight">{business.name}</p>
-        {business.rating && (
-          <p className="text-[10px] text-amber-600 font-semibold mt-0.5">★ {business.rating} · {business.city}</p>
-        )}
+        {business.rating &&
+        <p className="text-[10px] text-amber-600 font-semibold mt-0.5">★ {business.rating} · {business.city}</p>
+        }
         <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{business.description}</p>
-        {business.is_verified && (
-          <div className="flex items-center gap-1 mt-1.5">
+        {business.is_verified &&
+        <div className="flex items-center gap-1 mt-1.5">
             <span className="text-[9px] text-primary font-bold flex items-center gap-0.5">
               ✓ Verified Business
             </span>
           </div>
-        )}
-        {business.review_count > 0 && (
-          <p className="text-[9px] text-muted-foreground/60 mt-0.5">
+        }
+        {business.review_count > 0 &&
+        <p className="text-[9px] text-muted-foreground/60 mt-0.5">
             {business.review_count} members recently visited · Popular in {business.city}
           </p>
-        )}
+        }
       </div>
-    </div>
-  );
+    </div>);
+
 }
 
 // Community post card — matches screenshot style
@@ -83,11 +83,11 @@ function CommunityPost({ post, currentUser }) {
 }
 
 const FEED_TABS = [
-  { id: "all",       label: "All",       icon: "🌐" },
-  { id: "foryou",    label: "For You",   icon: null },
-  { id: "nearby",    label: "Nearby",    icon: null },
-  { id: "following", label: "Following", icon: null },
-];
+{ id: "all", label: "All", icon: "🌐" },
+{ id: "foryou", label: "For You", icon: null },
+{ id: "nearby", label: "Nearby", icon: null },
+{ id: "following", label: "Following", icon: null }];
+
 
 export default function Home() {
   const navigate = useNavigate();
@@ -109,13 +109,13 @@ export default function Home() {
         if (!me.onboarded) navigate("/onboarding");
       }
       const [dbBiz] = await Promise.allSettled([
-        base44.entities.Business.list("-rating", 10),
-      ]);
+      base44.entities.Business.list("-rating", 10)]
+      );
       if (dbBiz.status === "fulfilled" && dbBiz.value?.length > 0) setBusinesses(dbBiz.value);
 
-      base44.entities.Listing.filter({ status: "active" }, "-created_date", 50)
-        .then(data => { if (data?.length) setListings(data); })
-        .catch(() => {});
+      base44.entities.Listing.filter({ status: "active" }, "-created_date", 50).
+      then((data) => {if (data?.length) setListings(data);}).
+      catch(() => {});
     }
     load();
   }, [navigate]);
@@ -123,8 +123,8 @@ export default function Home() {
   // Build mixed feed: discussions + listings interspersed
   const feedItems = useMemo(() => {
     const d = MOCK_DISCUSSIONS;
-    const jobs = listings.filter(l => l.category === "jobs").slice(0, 4);
-    const other = listings.filter(l => l.category !== "jobs").slice(0, 6);
+    const jobs = listings.filter((l) => l.category === "jobs").slice(0, 4);
+    const other = listings.filter((l) => l.category !== "jobs").slice(0, 6);
     const items = [];
 
     // Interleave discussions + listings
@@ -136,7 +136,7 @@ export default function Home() {
         items.push({ type: "listing", data: jobs[li++] });
       }
     }
-    other.forEach(l => items.push({ type: "listing", data: l }));
+    other.forEach((l) => items.push({ type: "listing", data: l }));
     return items;
   }, [listings]);
 
@@ -156,9 +156,9 @@ export default function Home() {
           <button onClick={() => navigate("/businesses")} className="text-[12px] font-semibold text-primary">See all</button>
         </div>
         <div className="flex gap-3 overflow-x-auto no-scrollbar px-4">
-          {businesses.map((b, i) => (
-            <FeaturedBusinessCard key={b.id} business={b} />
-          ))}
+          {businesses.map((b, i) =>
+          <FeaturedBusinessCard key={b.id} business={b} />
+          )}
         </div>
       </section>
 
@@ -167,21 +167,21 @@ export default function Home() {
         <h2 className="text-[16px] font-bold text-foreground px-4 mb-3">What's happening</h2>
 
         {/* Feed tabs */}
-        <div className="flex gap-1 px-4 mb-3">
-          {FEED_TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-colors shrink-0 ${
-                activeTab === tab.id
-                  ? "bg-foreground text-background"
-                  : "bg-secondary/60 text-muted-foreground border border-border/20"
-              }`}
-            >
+        <div className="flex gap-1 px-4 mb-3 hidden">
+          {FEED_TABS.map((tab) =>
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-colors shrink-0 ${
+            activeTab === tab.id ?
+            "bg-foreground text-background" :
+            "bg-secondary/60 text-muted-foreground border border-border/20"}`
+            }>
+            
               {tab.icon && <span className="text-[11px]">{tab.icon}</span>}
               {tab.label}
             </button>
-          ))}
+          )}
         </div>
 
         {/* Mixed community feed */}
@@ -193,25 +193,25 @@ export default function Home() {
                   key={`d-${item.data.id}`}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(i * 0.03, 0.3) }}
-                >
+                  transition={{ delay: Math.min(i * 0.03, 0.3) }}>
+                  
                   <CommunityPost post={item.data} currentUser={currentUser} />
-                </motion.div>
-              );
+                </motion.div>);
+
             }
             return (
               <motion.div
                 key={`l-${item.data.id}`}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.03, 0.3) }}
-              >
+                transition={{ delay: Math.min(i * 0.03, 0.3) }}>
+                
                 <FeedItem listing={item.data} variant="compact" userCity={currentUser?.city} />
-              </motion.div>
-            );
+              </motion.div>);
+
           })}
         </div>
       </section>
-    </div>
-  );
+    </div>);
+
 }
