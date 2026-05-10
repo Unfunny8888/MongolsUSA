@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Send, Sparkles, Loader2, Bot, Mic } from "lucide-react";
+import { ArrowLeft, Send, Sparkles, Loader2, Bot } from "lucide-react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES } from "../lib/mockData";
@@ -227,21 +227,29 @@ Instructions:
   }
 
   return (
-    <div className="flex flex-col" style={{ height: '100dvh' }}>
-      <div className="glass sticky top-0 z-40 border-b border-border/30 px-4 py-3 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="p-1">
+    <div
+      className="flex flex-col bg-background"
+      style={{ height: 'calc(100dvh - 56px - env(safe-area-inset-bottom, 0px))' }}
+    >
+      {/* ── HEADER ── */}
+      <div className="bg-card border-b border-border/20 px-4 py-3 flex items-center gap-3 shrink-0">
+        <button onClick={() => navigate(-1)} className="p-1 -ml-1">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center">
-          <Sparkles className="w-5 h-5 text-white" />
+        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center shrink-0">
+          <Sparkles className="w-4 h-4 text-white" />
         </div>
         <div className="flex-1">
-          <p className="text-sm font-bold">NomadLink AI</p>
-          <p className="text-[10px] text-primary">Mongolian + English</p>
+          <p className="text-sm font-bold leading-none">NomadLink AI</p>
+          <p className="text-[10px] text-primary mt-0.5">Mongolian + English</p>
         </div>
       </div>
 
-      <div className="flex-1 px-4 py-4 space-y-4 pb-4 overflow-y-auto overscroll-contain">
+      {/* ── MESSAGES (scrollable middle) ── */}
+      <div
+        className="flex-1 overflow-y-auto overscroll-contain px-4 py-3 space-y-3"
+        style={{ paddingBottom: 8 }}
+      >
         {messages.map((msg, i) => (
           <MessageBubble key={i} msg={msg} />
         ))}
@@ -262,37 +270,39 @@ Instructions:
         <div ref={bottomRef} />
       </div>
 
-      {messages.length <= 1 && (
-        <div className="px-4 pb-2">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {SUGGESTIONS.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => sendMessage(s)}
-                className="whitespace-nowrap px-3 py-2 rounded-xl bg-primary/5 border border-primary/15 text-xs font-medium text-primary hover:bg-primary/10 transition-smooth shrink-0"
-              >
-                {s}
-              </button>
-            ))}
+      {/* ── SUGGESTIONS + INPUT (anchored bottom) ── */}
+      <div className="shrink-0 bg-card border-t border-border/20">
+        {messages.length <= 1 && (
+          <div className="px-4 pt-2.5 pb-1">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {SUGGESTIONS.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => sendMessage(s)}
+                  className="whitespace-nowrap px-3 py-1.5 rounded-xl bg-primary/5 border border-primary/15 text-[11px] font-medium text-primary active:bg-primary/10 shrink-0"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
+        )}
+        <div className="px-4 py-3 flex gap-3 items-center">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            placeholder="Ask in Mongolian or English..."
+            className="flex-1 bg-secondary/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+          />
+          <button
+            onClick={() => sendMessage()}
+            disabled={!input.trim() || loading}
+            className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-600 text-white flex items-center justify-center disabled:opacity-40 shrink-0"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          </button>
         </div>
-      )}
-
-      <div className="glass border-t border-border/30 px-4 py-3 flex gap-3 items-center pb-[env(safe-area-inset-bottom)] shrink-0">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Ask in Mongolian or English..."
-          className="flex-1 bg-secondary/70 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-        />
-        <button
-          onClick={() => sendMessage()}
-          disabled={!input.trim() || loading}
-          className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-600 text-white flex items-center justify-center disabled:opacity-40"
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-        </button>
       </div>
     </div>
   );
