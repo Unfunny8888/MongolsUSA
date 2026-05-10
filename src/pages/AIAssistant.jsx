@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Send, Sparkles, Loader2, Bot, Bookmark, MapPin, Users, Briefcase, Home, Car, Utensils, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES } from "../lib/mockData";
+import { getAISession, saveAIMessages, saveAIScroll } from "@/lib/aiSessionStore";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -143,7 +144,7 @@ function ResultCard({ item, type }) {
   return null;
 }
 
-function AIMessage({ msg }) {
+function AIMessage({ msg, onFollowup }) {
   const isUser = msg.role === "user";
   const hasResults = msg.listings?.length || msg.businesses?.length || msg.groups?.length;
 
@@ -185,7 +186,7 @@ function AIMessage({ msg }) {
               {msg.followups.map((f, i) => (
                 <button
                   key={i}
-                  onClick={() => msg.onFollowup?.(f)}
+                  onClick={() => onFollowup?.(f)}
                   className="flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/8 border border-primary/15 rounded-full px-2.5 py-1 active:bg-primary/15"
                 >
                   <TrendingUp className="w-2.5 h-2.5" /> {f}
@@ -249,14 +250,42 @@ function DiscoveryHome({ onSend }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AIAssistant() {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState([]);
+
+  // Restore session from module-level store on mount
+  const session = getAISession();
+  const [messages, setMessages] = useState(session.messages);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const scrollRef = useRef(null);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const isRestoredScroll = useRef(false);
 
+  // Restore scroll position after mount
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!scrollRef.current || isRestoredScroll.current) return;
+    isRestoredScroll.current = true;
+    const saved = getAISession().scrollTop;
+    if (saved > 0) {
+      // Defer until after paint so content is fully laid out
+      requestAnimationFrame(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = saved;
+      });
+    }
+  }, []);
+
+  // Persist scroll position on scroll
+  const onScroll = useCallback(() => {
+    if (scrollRef.current) saveAIScroll(scrollRef.current.scrollTop);
+  }, []);
+
+  // Auto-scroll to bottom only when a NEW message arrives (not on restore)
+  const prevMsgCount = useRef(messages.length);
+  useEffect(() => {
+    if (messages.length > prevMsgCount.current || loading) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    prevMsgCount.current = messages.length;
   }, [messages, loading]);
 
   async function sendMessage(text) {
@@ -266,6 +295,7 @@ export default function AIAssistant() {
 
     const newMessages = [...messages, { role: "user", content: userText }];
     setMessages(newMessages);
+    saveAIMessages(newMessages);
     setLoading(true);
 
     let allListings = [...MOCK_LISTINGS];
@@ -344,11 +374,14 @@ Rules:
       businesses: matchedBiz,
       groups: matchedGroups,
       followups: result.followups || [],
+      // onFollowup is NOT stored — re-attached at render time via sendMessage ref
     };
-    // Attach followup handler
-    assistantMsg.onFollowup = (f) => sendMessage(f);
 
-    setMessages((prev) => [...prev, assistantMsg]);
+    setMessages((prev) => {
+      const next = [...prev, assistantMsg];
+      saveAIMessages(next);
+      return next;
+    });
     setLoading(false);
   }
 
@@ -377,7 +410,7 @@ Rules:
       </div>
 
       {/* ── MESSAGES / DISCOVERY ── */}
-      <div className="flex-1 overflow-y-auto overscroll-contain">
+      <div ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto overscroll-contain">
         <AnimatePresence mode="wait">
           {isEmptyChat ? (
             <motion.div key="discovery" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -386,7 +419,7 @@ Rules:
           ) : (
             <motion.div key="chat" className="px-4 py-3 space-y-3" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               {messages.map((msg, i) => (
-                <AIMessage key={i} msg={msg} />
+                <AIMessage key={i} msg={msg} onFollowup={sendMessage} />
               ))}
               {loading && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-2.5">
