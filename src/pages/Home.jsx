@@ -167,22 +167,22 @@ export default function Home() {
         <h2 className="text-[16px] font-bold text-foreground px-4 mb-3">What's happening</h2>
 
         {/* Feed tabs */}
-        <div className="flex gap-1 px-4 mb-3 hidden">
-          {FEED_TABS.map((tab) =>
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-colors shrink-0 ${
-            activeTab === tab.id ?
-            "bg-foreground text-background" :
-            "bg-secondary/60 text-muted-foreground border border-border/20"}`
-            }>
-            
-              {tab.icon && <span className="text-[11px]">{tab.icon}</span>}
-              {tab.label}
-            </button>
-          )}
-        </div>
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
 
         {/* Mixed community feed */}
         <div className="px-4 space-y-3">
