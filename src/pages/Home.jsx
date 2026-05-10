@@ -2,7 +2,7 @@
  * Home — unified social + discovery feed.
  * Featured businesses → What's happening tabs → mixed community posts.
  */
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MapPin, Bookmark, ChevronRight, MessageCircle, Heart, Clock, Store } from "lucide-react";
@@ -10,7 +10,7 @@ import { MOCK_BUSINESSES, MOCK_DISCUSSIONS, MOCK_LISTINGS } from "../lib/mockDat
 import { useDiscovery } from "@/lib/DiscoveryContext";
 import { base44 } from "@/api/base44Client";
 import DiscussionCard from "../components/feed/DiscussionCard";
-import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
 import FeedItem from "../components/feed/FeedItem";
 import { getUserCityFromIP } from "../lib/geolocationUtils";
 
@@ -91,7 +91,7 @@ const FEED_TABS = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { city } = useDiscovery();
+  const { city, getFilter, setFilter } = useDiscovery();
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
@@ -147,7 +147,11 @@ export default function Home() {
     <div ref={containerRef} className="min-h-dvh pb-4">
 
       {/* ── GLOBAL DISCOVERY BAR ── */}
-      <GlobalDiscoveryBar suggestions={["Nearby", "For You", "Following", "Top Rated", "Free Items"]} activeSug="Nearby" />
+      <GlobalDiscoveryBar
+        suggestions={["Nearby", "For You", "Following", "Top Rated", "Free Items"]}
+        activeSug={getFilter('home')}
+        onSuggest={s => setFilter('home', s)}
+      />
 
       {/* ── FEATURED BUSINESSES ── */}
       <section className="pt-4 pb-2">

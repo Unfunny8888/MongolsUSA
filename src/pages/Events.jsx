@@ -4,10 +4,9 @@ import { CalendarDays, MapPin, Clock, Heart } from "lucide-react";
 import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import {
-  SubTabs, SectionLabel, EmptyState, ImageCard, MapDiscovery,
-} from "../components/shared/CategoryPageLayout";
-import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { SubTabs, SectionLabel, EmptyState, ImageCard } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
+import GlobalMapDiscovery from "../components/maps/GlobalMapDiscovery";
 import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "This Week", "Free", "Popular", "Concerts", "Community", "Sports"];
@@ -52,10 +51,10 @@ function EventCard({ listing, index }) {
 
 export default function Events() {
   const navigate = useNavigate();
-  const { city } = useDiscovery();
-  const [activeSug, setActiveSug] = useState("Nearby");
+  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
+  const activeSug = getFilter('events');
+  const viewMode = getViewMode('events');
   const [activeTab, setActiveTab] = useState("upcoming");
-  const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "events"));
 
   useEffect(() => {
@@ -75,14 +74,18 @@ export default function Events() {
       <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
-        onSuggest={setActiveSug}
+        onSuggest={s => setFilter('events', s)}
         showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode("map")}
+        onMapToggle={() => setViewMode('events', 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} onBackToList={() => setViewMode("list")} />
+        <GlobalMapDiscovery
+          listings={filtered}
+          onSelect={l => navigate(`/listing/${l.id}`)}
+          onBackToList={() => setViewMode('events', 'list')}
+        />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "upcoming" && (

@@ -4,10 +4,9 @@ import { MapPin, Star, Wrench, Heart, CheckCircle2 } from "lucide-react";
 import { MOCK_LISTINGS, MOCK_BUSINESSES } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import {
-  SubTabs, SectionLabel, EmptyState, MapDiscovery,
-} from "../components/shared/CategoryPageLayout";
-import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { SubTabs, SectionLabel, EmptyState } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
+import GlobalMapDiscovery from "../components/maps/GlobalMapDiscovery";
 import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "Top Rated", "Open Now", "Home", "Auto", "Legal", "Cleaning", "Tax", "Beauty"];
@@ -83,11 +82,6 @@ function FreelancerCard({ listing, index }) {
               <MapPin className="w-2.5 h-2.5" />{listing.location_city}
             </span>
           )}
-          {listing.rating && (
-            <span className="text-[10px] font-semibold text-amber-600 flex items-center gap-0.5">
-              <Star className="w-2.5 h-2.5 fill-amber-400" />{listing.rating}
-            </span>
-          )}
           {listing.price && (
             <span className="text-[13px] font-bold text-primary ml-auto">
               ${listing.price}{listing.price_type === "hourly" ? "/hr" : ""}
@@ -104,10 +98,10 @@ function FreelancerCard({ listing, index }) {
 
 export default function ServicesPage() {
   const navigate = useNavigate();
-  const { city } = useDiscovery();
-  const [activeSug, setActiveSug] = useState("Nearby");
+  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
+  const activeSug = getFilter('services');
+  const viewMode = getViewMode('services');
   const [activeTab, setActiveTab] = useState("businesses");
-  const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "services"));
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
 
@@ -129,7 +123,6 @@ export default function ServicesPage() {
     );
   }, [businesses, activeSug, city]);
 
-  // For map: combine businesses + listings
   const mapItems = useMemo(() =>
     [...filteredBiz.map(b => ({ id: b.id, title: b.name, price: null, location_city: b.city, images: b.logo ? [b.logo] : [] })),
      ...listings],
@@ -141,17 +134,21 @@ export default function ServicesPage() {
       <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
-        onSuggest={setActiveSug}
+        onSuggest={s => setFilter('services', s)}
         showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode("map")}
+        onMapToggle={() => setViewMode('services', 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={mapItems} onBackToList={() => setViewMode("list")} onSelect={item => {
-          if (filteredBiz.find(b => b.id === item.id)) navigate(`/business/${item.id}`);
-          else navigate(`/listing/${item.id}`);
-        }} />
+        <GlobalMapDiscovery
+          listings={mapItems}
+          onBackToList={() => setViewMode('services', 'list')}
+          onSelect={item => {
+            if (filteredBiz.find(b => b.id === item.id)) navigate(`/business/${item.id}`);
+            else navigate(`/listing/${item.id}`);
+          }}
+        />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "businesses" && (

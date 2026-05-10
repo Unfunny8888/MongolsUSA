@@ -4,13 +4,11 @@ import { ShoppingBag, MapPin, Heart } from "lucide-react";
 import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import {
-  SubTabs, SectionLabel, EmptyState,
-} from "../components/shared/CategoryPageLayout";
-import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { SubTabs, SectionLabel, EmptyState } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
 import { useDiscovery } from "@/lib/DiscoveryContext";
 
-const SUGGESTIONS = ["Nearby", "Recently Posted", "Free", "Electronics", "Furniture", "Clothing", "Books", "Under $50"];
+const SUGGESTIONS = ["Nearby", "Recently Posted", "Free", "Electronics", "Furniture", "Clothing", "Under $50"];
 const TABS = [["buy", "Buy"], ["sell", "Sell"], ["free", "Free Items"]];
 
 function ItemCard({ listing, index }) {
@@ -55,8 +53,8 @@ function ItemCard({ listing, index }) {
 }
 
 export default function Marketplace() {
-  const { city } = useDiscovery();
-  const [activeSug, setActiveSug] = useState("Nearby");
+  const { city, getFilter, setFilter } = useDiscovery();
+  const activeSug = getFilter('marketplace');
   const [activeTab, setActiveTab] = useState("buy");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => ["electronics", "community"].includes(l.category)));
 
@@ -83,7 +81,7 @@ export default function Marketplace() {
       <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
-        onSuggest={setActiveSug}
+        onSuggest={s => setFilter('marketplace', s)}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 

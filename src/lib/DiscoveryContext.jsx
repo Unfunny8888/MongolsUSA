@@ -1,42 +1,42 @@
 /**
- * DiscoveryContext — single source of truth for location + discovery state.
- * Shared across Home, Jobs, Housing, Services, Events, Vehicles, RideShare, Marketplace.
+ * DiscoveryContext — single source of truth for global discovery state.
  *
- * City:    null = "All Cities" (soft proximity ranking)
- *          string = hard city filter applied to all pages
+ * city:         null = "All Cities" (soft proximity ranking)
+ *               string = hard city filter across ALL pages
  *
- * Filter memory per category is also tracked so each tab remembers the last chip.
+ * viewMode:     "list" | "map" — persisted per category
+ * filterMemory: last-selected chip per category tab
  */
 import { createContext, useContext, useState, useCallback } from 'react';
 
 const DiscoveryContext = createContext(null);
 
-export function DiscoveryProvider({ children }) {
-  const [city, setCity] = useState(null);          // null = All Cities
-  const [filterMemory, setFilterMemory] = useState({
-    home:        'Nearby',
-    jobs:        'Nearby',
-    housing:     'Nearby',
-    services:    'Nearby',
-    events:      'Nearby',
-    vehicles:    'Nearby',
-    marketplace: 'Nearby',
-    rideshare:   'Nearby',
-  });
+const CATEGORIES = ['home', 'jobs', 'housing', 'services', 'events', 'vehicles', 'marketplace', 'rideshare'];
 
-  const setCategory = useCallback((category, filter) => {
+export function DiscoveryProvider({ children }) {
+  const [city, setCity] = useState(null);
+
+  const [filterMemory, setFilterMemory] = useState(
+    Object.fromEntries(CATEGORIES.map(c => [c, 'Nearby']))
+  );
+
+  const [viewModes, setViewModes] = useState(
+    Object.fromEntries(CATEGORIES.map(c => [c, 'list']))
+  );
+
+  const setFilter = useCallback((category, filter) => {
     setFilterMemory(prev => ({ ...prev, [category]: filter }));
   }, []);
 
-  const value = {
-    city,
-    setCity,
-    filterMemory,
-    setCategory,
-  };
+  const setViewMode = useCallback((category, mode) => {
+    setViewModes(prev => ({ ...prev, [category]: mode }));
+  }, []);
+
+  const getFilter = useCallback((category) => filterMemory[category] ?? 'Nearby', [filterMemory]);
+  const getViewMode = useCallback((category) => viewModes[category] ?? 'list', [viewModes]);
 
   return (
-    <DiscoveryContext.Provider value={value}>
+    <DiscoveryContext.Provider value={{ city, setCity, filterMemory, setFilter, getFilter, viewModes, setViewMode, getViewMode }}>
       {children}
     </DiscoveryContext.Provider>
   );

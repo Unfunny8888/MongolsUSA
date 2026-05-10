@@ -4,10 +4,9 @@ import { MapPin, Home, Heart, BedDouble, Bath } from "lucide-react";
 import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import {
-  SubTabs, SectionLabel, EmptyState, ImageCard, MapDiscovery,
-} from "../components/shared/CategoryPageLayout";
-import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { SubTabs, SectionLabel, EmptyState, ImageCard } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
+import GlobalMapDiscovery from "../components/maps/GlobalMapDiscovery";
 import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "Apartments", "Houses", "Rooms", "Short-term", "Furnished", "Popular"];
@@ -88,10 +87,10 @@ function RoommateCard({ listing, index }) {
 
 export default function Housing() {
   const navigate = useNavigate();
-  const { city } = useDiscovery();
-  const [activeSug, setActiveSug] = useState("Nearby");
+  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
+  const activeSug = getFilter('housing');
+  const viewMode = getViewMode('housing');
   const [activeTab, setActiveTab] = useState("rentals");
-  const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "housing"));
 
   useEffect(() => {
@@ -120,14 +119,18 @@ export default function Housing() {
       <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
-        onSuggest={setActiveSug}
+        onSuggest={s => setFilter('housing', s)}
         showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode("map")}
+        onMapToggle={() => setViewMode('housing', 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} onBackToList={() => setViewMode("list")} />
+        <GlobalMapDiscovery
+          listings={filtered}
+          onSelect={l => navigate(`/listing/${l.id}`)}
+          onBackToList={() => setViewMode('housing', 'list')}
+        />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "rentals" && (

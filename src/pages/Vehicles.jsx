@@ -4,10 +4,9 @@ import { Car, MapPin, Gauge, Heart, Fuel } from "lucide-react";
 import { MOCK_LISTINGS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import {
-  SubTabs, SectionLabel, EmptyState, ImageCard, MapDiscovery,
-} from "../components/shared/CategoryPageLayout";
-import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { SubTabs, SectionLabel, EmptyState, ImageCard } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
+import GlobalMapDiscovery from "../components/maps/GlobalMapDiscovery";
 import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "Under $5k", "Under $10k", "Under $20k", "Trucks", "SUVs", "Recently Posted"];
@@ -16,7 +15,6 @@ const TABS = [["buy", "Buy"], ["sell", "Sell"], ["rent", "Rent"]];
 function VehicleCard({ listing, index }) {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -63,10 +61,10 @@ function VehicleCard({ listing, index }) {
 
 export default function Vehicles() {
   const navigate = useNavigate();
-  const { city } = useDiscovery();
-  const [activeSug, setActiveSug] = useState("Nearby");
+  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
+  const activeSug = getFilter('vehicles');
+  const viewMode = getViewMode('vehicles');
   const [activeTab, setActiveTab] = useState("buy");
-  const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "cars"));
 
   useEffect(() => {
@@ -88,14 +86,18 @@ export default function Vehicles() {
       <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
-        onSuggest={setActiveSug}
+        onSuggest={s => setFilter('vehicles', s)}
         showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode("map")}
+        onMapToggle={() => setViewMode('vehicles', 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} onBackToList={() => setViewMode("list")} />
+        <GlobalMapDiscovery
+          listings={filtered}
+          onSelect={l => navigate(`/listing/${l.id}`)}
+          onBackToList={() => setViewMode('vehicles', 'list')}
+        />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "buy" && (

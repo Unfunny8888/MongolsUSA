@@ -4,13 +4,12 @@ import { MapPin, Briefcase, Heart, Clock } from "lucide-react";
 import { MOCK_LISTINGS, MOCK_DISCUSSIONS } from "../lib/mockData";
 import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import {
-  SubTabs, SectionLabel, EmptyState, MapDiscovery,
-} from "../components/shared/CategoryPageLayout";
-import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { SubTabs, SectionLabel, EmptyState } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
+import GlobalMapDiscovery from "../components/maps/GlobalMapDiscovery";
 import { useDiscovery } from "@/lib/DiscoveryContext";
 
-const SUGGESTIONS = ["Nearby", "Full-time", "Part-time", "Remote", "Top Rated", "CDL", "Cash"];
+const SUGGESTIONS = ["Nearby", "Full-time", "Part-time", "Remote", "CDL", "Cash", "Top Rated"];
 const TABS = [["hiring", "Hiring"], ["looking", "Looking for Work"]];
 
 function timeAgo(d) {
@@ -101,10 +100,10 @@ function CandidateCard({ disc, index }) {
 
 export default function Jobs() {
   const navigate = useNavigate();
-  const { city } = useDiscovery();
-  const [activeSug, setActiveSug] = useState("Nearby");
+  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
+  const activeSug = getFilter('jobs');
+  const viewMode = getViewMode('jobs');
   const [activeTab, setActiveTab] = useState("hiring");
-  const [viewMode, setViewMode] = useState("list");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "jobs"));
 
   useEffect(() => {
@@ -135,14 +134,18 @@ export default function Jobs() {
       <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
-        onSuggest={setActiveSug}
+        onSuggest={s => setFilter('jobs', s)}
         showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode("map")}
+        onMapToggle={() => setViewMode('jobs', 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={filtered} onSelect={l => navigate(`/listing/${l.id}`)} onBackToList={() => setViewMode("list")} />
+        <GlobalMapDiscovery
+          listings={filtered}
+          onSelect={l => navigate(`/listing/${l.id}`)}
+          onBackToList={() => setViewMode('jobs', 'list')}
+        />
       ) : (
         <div className="px-4 py-4 space-y-2.5">
           {activeTab === "hiring" && (

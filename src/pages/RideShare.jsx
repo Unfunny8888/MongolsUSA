@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Users } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { MOCK_DISCUSSIONS } from "../lib/mockData";
-import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
-import {
-  SubTabs, SectionLabel, EmptyState, MapDiscovery,
-} from "../components/shared/CategoryPageLayout";
-import GlobalDiscoveryBar from "../components/shared/GlobalDiscoveryBar";
+import { SubTabs, SectionLabel, EmptyState } from "../components/shared/CategoryPageLayout";
+import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
+import GlobalMapDiscovery from "../components/maps/GlobalMapDiscovery";
 import { useDiscovery } from "@/lib/DiscoveryContext";
 
 const SUGGESTIONS = ["Nearby", "Today", "This Week", "Airport", "Long Distance"];
@@ -19,7 +17,7 @@ function RideCard({ item, index }) {
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="bg-card border border-border/15 rounded-2xl px-3 py-3 cursor-pointer active:scale-[0.98] transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+      className="bg-card border border-border/15 rounded-2xl px-3 py-3 active:scale-[0.98] transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
     >
       <div className="flex items-center gap-3">
         <img
@@ -46,18 +44,19 @@ function RideCard({ item, index }) {
 }
 
 export default function RideShare() {
-  const navigate = useNavigate();
-  const { city } = useDiscovery();
-  const [activeSug, setActiveSug] = useState("Nearby");
+  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
+  const activeSug = getFilter('rideshare');
+  const viewMode = getViewMode('rideshare');
   const [activeTab, setActiveTab] = useState("find");
-  const [viewMode, setViewMode] = useState("list");
 
   const rides = MOCK_DISCUSSIONS.filter(d => d.tag === "Ride Share");
 
-  // Adapt rides for map
-  const rideListings = rides.map((r, i) => ({
-    id: r.id, title: r.content?.slice(0, 50), price: null,
-    location_city: r.city, images: r.author_avatar ? [r.author_avatar] : [],
+  const rideListings = rides.map(r => ({
+    id: r.id,
+    title: r.content?.slice(0, 50),
+    price: null,
+    location_city: r.city,
+    images: r.author_avatar ? [r.author_avatar] : [],
   }));
 
   return (
@@ -65,14 +64,18 @@ export default function RideShare() {
       <GlobalDiscoveryBar
         suggestions={SUGGESTIONS}
         activeSug={activeSug}
-        onSuggest={setActiveSug}
+        onSuggest={s => setFilter('rideshare', s)}
         showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode("map")}
+        onMapToggle={() => setViewMode('rideshare', 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
-        <MapDiscovery listings={rideListings} onSelect={() => {}} onBackToList={() => setViewMode("list")} />
+        <GlobalMapDiscovery
+          listings={rideListings}
+          onSelect={() => {}}
+          onBackToList={() => setViewMode('rideshare', 'list')}
+        />
       ) : (
         <div className="px-4 py-4">
           {activeTab === "find" && (
