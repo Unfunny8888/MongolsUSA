@@ -8,6 +8,31 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Bookmark, Store } from "lucide-react";
 import { MOCK_BUSINESSES, MOCK_DISCUSSIONS, MOCK_LISTINGS } from "../lib/mockData";
+
+// Rank listings by recency + engagement + city match
+function rankListings(listings, userCity) {
+  const now = Date.now();
+  return [...listings].sort((a, b) => {
+    let scoreA = 0, scoreB = 0;
+    // City match — strong boost
+    if (userCity) {
+      if (a.location_city === userCity) scoreA += 40;
+      if (b.location_city === userCity) scoreB += 40;
+    }
+    // Featured/boosted
+    if (a.is_featured) scoreA += 20;
+    if (b.is_featured) scoreB += 20;
+    // Engagement (views + saves weighted)
+    scoreA += Math.min((a.views || 0) / 30, 15) + Math.min((a.saves || 0) * 2, 10);
+    scoreB += Math.min((b.views || 0) / 30, 15) + Math.min((b.saves || 0) * 2, 10);
+    // Recency — decay over 7 days
+    const ageA = (now - new Date(a.created_date || now)) / 3600000;
+    const ageB = (now - new Date(b.created_date || now)) / 3600000;
+    scoreA += Math.max(0, 15 - ageA / 12);
+    scoreB += Math.max(0, 15 - ageB / 12);
+    return scoreB - scoreA;
+  });
+}
 import { useDiscovery } from "@/lib/DiscoveryContext";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
@@ -75,41 +100,61 @@ function CommunityPost({ post, currentUser }) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { applyDiscovery } = useDiscovery();
+  const { applyDiscovery, city } = useDiscovery();
   const { user } = useAuth();
+  // Start with seeded data — replace with live DB data when available
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [listings, setListings] = useState(MOCK_LISTINGS);
+  const [discussions, setDiscussions] = useState(MOCK_DISCUSSIONS);
   const containerRef = useRef(null);
 
   useEffect(() => {
-    base44.entities.Business.list("-rating", 10)
-      .then(data => { if (data?.length) setBusinesses(data); })
+    // Merge live DB data on top of seeded — DB data takes priority
+    base44.entities.Business.list("-rating", 20)
+      .then(data => { if (data?.length) setBusinesses([...data, ...MOCK_BUSINESSES].slice(0, 20)); })
       .catch(() => {});
-    base44.entities.Listing.filter({ status: "active" }, "-created_date", 50)
-      .then(data => { if (data?.length) setListings(data); })
+    base44.entities.Listing.filter({ status: "active" }, "-created_date", 80)
+      .then(data => { if (data?.length) setListings([...data, ...MOCK_LISTINGS]); })
+      .catch(() => {});
+    base44.entities.Post.list("-created_date", 20)
+      .then(data => {
+        if (data?.length) {
+          const livePosts = data.map(p => ({
+            id: p.id, author_name: p.author_name, author_avatar: p.author_avatar,
+            content: p.content, city: p.city, tag: p.type || "Post",
+            reply_count: p.comment_count || 0, views: 0, likes: p.like_count || 0,
+            created_date: p.created_date, top_reply: null, tone: "active",
+          }));
+          setDiscussions([...livePosts, ...MOCK_DISCUSSIONS].slice(0, 20));
+        }
+      })
       .catch(() => {});
   }, []);
 
-  // Build mixed feed: discussions + ranked listings interspersed
+  // Build ranked mixed feed
   const feedItems = useMemo(() => {
-    const d = MOCK_DISCUSSIONS;
-    const rankedListings = applyDiscovery(listings, 'home');
-    const jobs = rankedListings.filter((l) => l.category === "jobs").slice(0, 4);
-    const other = rankedListings.filter((l) => l.category !== "jobs").slice(0, 6);
-    const items = [];
+    const userCity = city || user?.city;
+    const ranked = rankListings(applyDiscovery(listings, 'home'), userCity);
+    const jobs = ranked.filter(l => l.category === "jobs").slice(0, 5);
+    const urgent = ranked.filter(l => l.category !== "jobs" && l.is_featured).slice(0, 3);
+    const rest = ranked.filter(l => l.category !== "jobs" && !l.is_featured).slice(0, 8);
+    const allListings = [...urgent, ...jobs, ...rest];
 
-    // Interleave discussions + listings
-    const all = [...d];
+    const items = [];
     let li = 0;
-    for (let i = 0; i < all.length; i++) {
-      items.push({ type: "discussion", data: all[i] });
-      if (i % 2 === 1 && li < jobs.length) {
-        items.push({ type: "listing", data: jobs[li++] });
+    for (let i = 0; i < discussions.length; i++) {
+      items.push({ type: "discussion", data: discussions[i] });
+      // Insert a listing every 2 discussions
+      if (i % 2 === 1 && li < allListings.length) {
+        items.push({ type: "listing", data: allListings[li++] });
       }
     }
-    other.forEach((l) => items.push({ type: "listing", data: l }));
+    // Append remaining listings
+    while (li < allListings.length) {
+      items.push({ type: "listing", data: allListings[li++] });
+    }
     return items;
-  }, [listings, applyDiscovery]);
+  }, [listings, discussions, applyDiscovery, city, user?.city]);
 
   return (
     <div ref={containerRef} className="min-h-dvh pb-4">
@@ -127,9 +172,15 @@ export default function Home() {
           <button onClick={() => navigate("/businesses")} className="text-[12px] font-semibold text-primary">See all</button>
         </div>
         <div className="flex gap-3 overflow-x-auto no-scrollbar px-4">
-          {businesses.map((b, i) =>
-          <FeaturedBusinessCard key={b.id} business={b} />
-          )}
+          {[...businesses]
+            .sort((a, b) => {
+              const ua = city || user?.city;
+              const matchA = ua && a.city === ua ? 10 : 0;
+              const matchB = ua && b.city === ua ? 10 : 0;
+              return (b.rating || 0) + matchB - ((a.rating || 0) + matchA);
+            })
+            .slice(0, 8)
+            .map(b => <FeaturedBusinessCard key={b.id} business={b} />)}
         </div>
       </section>
 
