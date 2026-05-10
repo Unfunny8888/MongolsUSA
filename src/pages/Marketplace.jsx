@@ -53,7 +53,7 @@ function ItemCard({ listing, index }) {
 }
 
 export default function Marketplace() {
-  const { city, getFilter, setFilter } = useDiscovery();
+  const { getFilter, applyDiscovery } = useDiscovery();
   const activeSug = getFilter('marketplace');
   const [activeTab, setActiveTab] = useState("buy");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => ["electronics", "community"].includes(l.category)));
@@ -68,20 +68,18 @@ export default function Marketplace() {
   }, []);
 
   const filtered = useMemo(() => {
-    let result = city ? listings.filter(l => l.location_city === city) : listings;
+    let result = applyDiscovery(listings, 'marketplace');
     if (activeTab === "free") return result.filter(l => l.price_type === "free" || l.price === 0);
-    if (activeSug === "Free") return result.filter(l => l.price_type === "free" || l.price === 0);
     if (activeSug === "Under $50") return result.filter(l => l.price && l.price <= 50);
     if (activeSug === "Electronics") return result.filter(l => l.category === "electronics");
     return result;
-  }, [listings, activeSug, activeTab, city]);
+  }, [listings, activeSug, activeTab, applyDiscovery]);
 
   return (
     <div className="min-h-dvh">
       <GlobalDiscoveryBar
+        category="marketplace"
         suggestions={SUGGESTIONS}
-        activeSug={activeSug}
-        onSuggest={s => setFilter('marketplace', s)}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 

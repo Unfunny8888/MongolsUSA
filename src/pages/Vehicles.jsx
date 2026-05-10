@@ -61,8 +61,8 @@ function VehicleCard({ listing, index }) {
 
 export default function Vehicles() {
   const navigate = useNavigate();
-  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
-  const activeSug = getFilter('vehicles');
+  const { getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
+  const activeFilter = getFilter('vehicles');
   const viewMode = getViewMode('vehicles');
   const [activeTab, setActiveTab] = useState("buy");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "cars"));
@@ -74,21 +74,21 @@ export default function Vehicles() {
   }, []);
 
   const filtered = useMemo(() => {
-    let result = city ? listings.filter(l => l.location_city === city) : listings;
-    if (activeSug === "Under $5k") return result.filter(l => l.price && l.price <= 5000);
-    if (activeSug === "Under $10k") return result.filter(l => l.price && l.price <= 10000);
-    if (activeSug === "Under $20k") return result.filter(l => l.price && l.price <= 20000);
+    let result = applyDiscovery(listings, 'vehicles');
+    if (activeFilter === "Under $5k") return result.filter(l => l.price && l.price <= 5000);
+    if (activeFilter === "Under $10k") return result.filter(l => l.price && l.price <= 10000);
+    if (activeFilter === "Under $20k") return result.filter(l => l.price && l.price <= 20000);
     return result;
-  }, [listings, activeSug, city]);
+  }, [listings, activeFilter, applyDiscovery]);
 
   return (
     <div className="min-h-dvh">
       <GlobalDiscoveryBar
+        category="vehicles"
         suggestions={SUGGESTIONS}
-        activeSug={activeSug}
-        onSuggest={s => setFilter('vehicles', s)}
-        showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode('vehicles', 'map')}
+        showMapToggle
+        isMapMode={viewMode === "map"}
+        onMapToggle={() => setViewMode('vehicles', viewMode === 'map' ? 'list' : 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 

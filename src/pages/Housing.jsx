@@ -87,8 +87,8 @@ function RoommateCard({ listing, index }) {
 
 export default function Housing() {
   const navigate = useNavigate();
-  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
-  const activeSug = getFilter('housing');
+  const { getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
+  const activeFilter = getFilter('housing');
   const viewMode = getViewMode('housing');
   const [activeTab, setActiveTab] = useState("rentals");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "housing"));
@@ -99,29 +99,22 @@ export default function Housing() {
       .catch(() => {});
   }, []);
 
-  const filtered = useMemo(() => {
-    let result = city ? listings.filter(l => l.location_city === city) : listings;
-    const map = { Apartments: "apartment", Houses: "house", Rooms: "room", "Short-term": "studio" };
-    const type = map[activeSug];
-    if (type) return result.filter(l => l.housing_type === type);
-    if (activeSug === "Furnished") return result.filter(l => l.housing_furnished);
-    return result;
-  }, [listings, activeSug, city]);
+  const filtered = useMemo(() => applyDiscovery(listings, 'housing'), [listings, applyDiscovery]);
 
-  const roommates = listings.filter(l =>
+  const roommates = useMemo(() => listings.filter(l =>
     l.housing_type === "room" ||
     l.tags?.includes("roommate") ||
     l.description?.toLowerCase().includes("roommate")
-  );
+  ), [listings]);
 
   return (
     <div className="min-h-dvh">
       <GlobalDiscoveryBar
+        category="housing"
         suggestions={SUGGESTIONS}
-        activeSug={activeSug}
-        onSuggest={s => setFilter('housing', s)}
-        showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode('housing', 'map')}
+        showMapToggle
+        isMapMode={viewMode === "map"}
+        onMapToggle={() => setViewMode('housing', viewMode === 'map' ? 'list' : 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
@@ -131,6 +124,7 @@ export default function Housing() {
           onSelect={l => navigate(`/listing/${l.id}`)}
           onBackToList={() => setViewMode('housing', 'list')}
         />
+
       ) : (
         <div className="px-4 py-4">
           {activeTab === "rentals" && (

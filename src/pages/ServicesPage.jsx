@@ -98,7 +98,7 @@ function FreelancerCard({ listing, index }) {
 
 export default function ServicesPage() {
   const navigate = useNavigate();
-  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
+  const { city, getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
   const activeSug = getFilter('services');
   const viewMode = getViewMode('services');
   const [activeTab, setActiveTab] = useState("businesses");
@@ -115,7 +115,7 @@ export default function ServicesPage() {
   }, []);
 
   const filteredBiz = useMemo(() => {
-    let result = city ? businesses.filter(b => b.city === city) : businesses;
+    let result = city ? businesses.filter(b => b.city === city || b.city?.includes(city?.split(',')[0])) : businesses;
     if (!activeSug || ["Nearby", "Top Rated", "Open Now"].includes(activeSug)) return result;
     return result.filter(b =>
       b.category?.toLowerCase().includes(activeSug.toLowerCase()) ||
@@ -132,11 +132,11 @@ export default function ServicesPage() {
   return (
     <div className="min-h-dvh">
       <GlobalDiscoveryBar
+        category="services"
         suggestions={SUGGESTIONS}
-        activeSug={activeSug}
-        onSuggest={s => setFilter('services', s)}
-        showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode('services', 'map')}
+        showMapToggle
+        isMapMode={viewMode === "map"}
+        onMapToggle={() => setViewMode('services', viewMode === 'map' ? 'list' : 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 

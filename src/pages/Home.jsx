@@ -92,7 +92,7 @@ const FEED_TABS = [
 
 export default function Home() {
   const navigate = useNavigate();
-  const { city, getFilter, setFilter } = useDiscovery();
+  const { city, applyDiscovery } = useDiscovery();
   const { user } = useAuth();
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
   const [activeTab, setActiveTab] = useState("all");
@@ -108,11 +108,12 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  // Build mixed feed: discussions + listings interspersed
+  // Build mixed feed: discussions + ranked listings interspersed
   const feedItems = useMemo(() => {
     const d = MOCK_DISCUSSIONS;
-    const jobs = listings.filter((l) => l.category === "jobs").slice(0, 4);
-    const other = listings.filter((l) => l.category !== "jobs").slice(0, 6);
+    const rankedListings = applyDiscovery(listings, 'home');
+    const jobs = rankedListings.filter((l) => l.category === "jobs").slice(0, 4);
+    const other = rankedListings.filter((l) => l.category !== "jobs").slice(0, 6);
     const items = [];
 
     // Interleave discussions + listings
@@ -126,7 +127,7 @@ export default function Home() {
     }
     other.forEach((l) => items.push({ type: "listing", data: l }));
     return items;
-  }, [listings]);
+  }, [listings, applyDiscovery]);
 
   const displayCity = city || user?.city || "your area";
 
@@ -135,9 +136,8 @@ export default function Home() {
 
       {/* ── GLOBAL DISCOVERY BAR ── */}
       <GlobalDiscoveryBar
-        suggestions={["Nearby", "For You", "Following", "Top Rated", "Free Items"]}
-        activeSug={getFilter('home')}
-        onSuggest={s => setFilter('home', s)}
+        category="home"
+        suggestions={["Nearby", "Top Rated", "Recently Posted", "Verified", "Free"]}
       />
 
       {/* ── FEATURED BUSINESSES ── */}

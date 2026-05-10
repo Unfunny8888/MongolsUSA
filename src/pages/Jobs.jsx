@@ -100,8 +100,8 @@ function CandidateCard({ disc, index }) {
 
 export default function Jobs() {
   const navigate = useNavigate();
-  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
-  const activeSug = getFilter('jobs');
+  const { getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
+  const activeFilter = getFilter('jobs');
   const viewMode = getViewMode('jobs');
   const [activeTab, setActiveTab] = useState("hiring");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "jobs"));
@@ -112,38 +112,25 @@ export default function Jobs() {
       .catch(() => {});
   }, []);
 
-  const filtered = useMemo(() => {
-    let result = city ? listings.filter(l => l.location_city === city) : listings;
-    const map = { "Full-time": "full-time", "Part-time": "part-time", "Remote": "remote", "CDL": "cdl", "Cash": "cash" };
-    const key = map[activeSug] || activeSug?.toLowerCase();
-    if (key && !["nearby", "top rated"].includes(key)) {
-      result = result.filter(l =>
-        l.job_type === key ||
-        l.tags?.some(t => t.toLowerCase().includes(key)) ||
-        l.title.toLowerCase().includes(key) ||
-        l.description?.toLowerCase().includes(key)
-      );
-    }
-    return result;
-  }, [listings, activeSug, city]);
+  const filtered = useMemo(() => applyDiscovery(listings, 'jobs'), [listings, applyDiscovery]);
 
   const candidates = MOCK_DISCUSSIONS.filter(d => ["Ride Share", "CDL", "Roommate"].includes(d.tag));
 
   return (
     <div className="min-h-dvh">
       <GlobalDiscoveryBar
+        category="jobs"
         suggestions={SUGGESTIONS}
-        activeSug={activeSug}
-        onSuggest={s => setFilter('jobs', s)}
-        showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode('jobs', 'map')}
+        showMapToggle
+        isMapMode={viewMode === "map"}
+        onMapToggle={() => setViewMode('jobs', viewMode === 'map' ? 'list' : 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
       {viewMode === "map" ? (
         <GlobalMapDiscovery
           listings={filtered}
-          onSelect={l => navigate(`/listing/${l.id}`)}
+          onSelect={l => { navigate(`/listing/${l.id}`); }}
           onBackToList={() => setViewMode('jobs', 'list')}
         />
       ) : (

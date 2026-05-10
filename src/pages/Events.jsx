@@ -51,8 +51,8 @@ function EventCard({ listing, index }) {
 
 export default function Events() {
   const navigate = useNavigate();
-  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
-  const activeSug = getFilter('events');
+  const { getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
+  const activeFilter = getFilter('events');
   const viewMode = getViewMode('events');
   const [activeTab, setActiveTab] = useState("upcoming");
   const [listings, setListings] = useState(MOCK_LISTINGS.filter(l => l.category === "events"));
@@ -63,20 +63,16 @@ export default function Events() {
       .catch(() => {});
   }, []);
 
-  const filtered = useMemo(() => {
-    let result = city ? listings.filter(l => l.location_city === city) : listings;
-    if (activeSug === "Free") return result.filter(l => !l.event_ticket_price || l.event_ticket_price === 0);
-    return result;
-  }, [listings, activeSug, city]);
+  const filtered = useMemo(() => applyDiscovery(listings, 'events'), [listings, applyDiscovery]);
 
   return (
     <div className="min-h-dvh">
       <GlobalDiscoveryBar
+        category="events"
         suggestions={SUGGESTIONS}
-        activeSug={activeSug}
-        onSuggest={s => setFilter('events', s)}
-        showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode('events', 'map')}
+        showMapToggle
+        isMapMode={viewMode === "map"}
+        onMapToggle={() => setViewMode('events', viewMode === 'map' ? 'list' : 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
@@ -85,6 +81,7 @@ export default function Events() {
           listings={filtered}
           onSelect={l => navigate(`/listing/${l.id}`)}
           onBackToList={() => setViewMode('events', 'list')}
+
         />
       ) : (
         <div className="px-4 py-4">

@@ -44,8 +44,8 @@ function RideCard({ item, index }) {
 }
 
 export default function RideShare() {
-  const { city, getFilter, setFilter, getViewMode, setViewMode } = useDiscovery();
-  const activeSug = getFilter('rideshare');
+  const { getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
+  const activeFilter = getFilter('rideshare');
   const viewMode = getViewMode('rideshare');
   const [activeTab, setActiveTab] = useState("find");
 
@@ -62,11 +62,11 @@ export default function RideShare() {
   return (
     <div className="min-h-dvh">
       <GlobalDiscoveryBar
+        category="rideshare"
         suggestions={SUGGESTIONS}
-        activeSug={activeSug}
-        onSuggest={s => setFilter('rideshare', s)}
-        showMapToggle={viewMode === "list"}
-        onMapToggle={() => setViewMode('rideshare', 'map')}
+        showMapToggle
+        isMapMode={viewMode === "map"}
+        onMapToggle={() => setViewMode('rideshare', viewMode === 'map' ? 'list' : 'map')}
       />
       <SubTabs tabs={TABS} active={activeTab} onSelect={setActiveTab} />
 
