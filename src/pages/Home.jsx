@@ -4,15 +4,16 @@
  */
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+
 import { motion } from "framer-motion";
 import { MapPin, Bookmark, ChevronRight, MessageCircle, Heart, Clock, Store } from "lucide-react";
 import { MOCK_BUSINESSES, MOCK_DISCUSSIONS, MOCK_LISTINGS } from "../lib/mockData";
 import { useDiscovery } from "@/lib/DiscoveryContext";
+import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import DiscussionCard from "../components/feed/DiscussionCard";
 import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
 import FeedItem from "../components/feed/FeedItem";
-import { getUserCityFromIP } from "../lib/geolocationUtils";
 
 function timeAgo(d) {
   if (!d) return "";
@@ -92,33 +93,20 @@ const FEED_TABS = [
 export default function Home() {
   const navigate = useNavigate();
   const { city, getFilter, setFilter } = useDiscovery();
+  const { user } = useAuth();
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
-  const [currentUser, setCurrentUser] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
   const [listings, setListings] = useState(MOCK_LISTINGS);
   const containerRef = useRef(null);
 
   useEffect(() => {
-    async function load() {
-      const geoData = await getUserCityFromIP().catch(() => null);
-      const authed = await base44.auth.isAuthenticated();
-      if (authed) {
-        const me = await base44.auth.me();
-        const userWithLocation = { ...me, city: me.city || geoData?.city };
-        setCurrentUser(userWithLocation);
-        if (!me.onboarded) navigate("/onboarding");
-      }
-      const [dbBiz] = await Promise.allSettled([
-      base44.entities.Business.list("-rating", 10)]
-      );
-      if (dbBiz.status === "fulfilled" && dbBiz.value?.length > 0) setBusinesses(dbBiz.value);
-
-      base44.entities.Listing.filter({ status: "active" }, "-created_date", 50).
-      then((data) => {if (data?.length) setListings(data);}).
-      catch(() => {});
-    }
-    load();
-  }, [navigate]);
+    base44.entities.Business.list("-rating", 10)
+      .then(data => { if (data?.length) setBusinesses(data); })
+      .catch(() => {});
+    base44.entities.Listing.filter({ status: "active" }, "-created_date", 50)
+      .then(data => { if (data?.length) setListings(data); })
+      .catch(() => {});
+  }, []);
 
   // Build mixed feed: discussions + listings interspersed
   const feedItems = useMemo(() => {
@@ -140,8 +128,7 @@ export default function Home() {
     return items;
   }, [listings]);
 
-  // city from global discovery context (or user's detected city as fallback)
-  const displayCity = city || currentUser?.city || "your area";
+  const displayCity = city || user?.city || "your area";
 
   return (
     <div ref={containerRef} className="min-h-dvh pb-4">
@@ -199,7 +186,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.03, 0.3) }}>
                   
-                  <CommunityPost post={item.data} currentUser={currentUser} />
+                  <CommunityPost post={item.data} currentUser={user} />
                 </motion.div>);
 
             }
@@ -210,7 +197,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.03, 0.3) }}>
                 
-                <FeedItem listing={item.data} variant="compact" userCity={currentUser?.city} />
+                <FeedItem listing={item.data} variant="compact" userCity={user?.city} />
               </motion.div>);
 
           })}

@@ -1,34 +1,15 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-  useLocation,
-} from 'react-router-dom';
-
-
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { useSystemTheme } from '@/hooks/useSystemTheme';
 import { useEffect } from 'react';
-
 import { initializeGestureHandler } from '@/lib/gestureHandler';
 
 import PageNotFound from './lib/PageNotFound';
-
-import {
-  AuthProvider,
-  useAuth,
-} from '@/lib/AuthContext';
-
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-
+import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { TabNavigationProvider } from '@/lib/TabNavigationContext';
-
 import { DiscoveryProvider } from '@/lib/DiscoveryContext';
-
 import AppLayout from './components/layout/AppLayout';
 
 // CORE PAGES
@@ -65,27 +46,18 @@ import Emergency from './pages/Emergency';
 
 // AUTH
 import Auth from './pages/Auth';
-import OnboardingProfile from './pages/OnboardingProfile';
 
-const AuthenticatedApp = () => {
+const AppShell = () => {
   useSystemTheme();
 
   useEffect(() => {
     initializeGestureHandler();
   }, []);
 
-  const location = useLocation();
+  const { isLoading, user } = useAuth();
 
-  const {
-    isLoadingAuth,
-    isLoadingPublicSettings,
-    authError,
-    navigateToLogin,
-    user,
-  } = useAuth();
-
-  // LOADING — do NOT evaluate onboarding until auth is fully resolved
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  // Only block render on initial boot — show spinner once
+  if (isLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
@@ -93,221 +65,43 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // AUTH ERRORS
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    }
-    if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
-    }
-  }
-
-  // SINGLE ONBOARDING GUARD — render-time, not useEffect, no localStorage
-  // user.onboarded is the ONE source of truth
-  if (user && !user.onboarded && location.pathname !== '/onboarding') {
-    return (
-      <Routes>
-        <Route path="*" element={<Navigate to="/onboarding" replace />} />
-      </Routes>
-    );
-  }
+  // user_not_registered is a platform-level block — still show it
+  // but for auth_required we just let guests browse (no redirect)
 
   return (
     <Routes>
+      {/* AUTH — dedicated page */}
+      <Route path="/auth" element={<Auth />} />
 
-      {/* AUTH */}
-      <Route
-        path="/auth"
-        element={<Auth />}
-      />
-
-      {/* ONBOARDING */}
-      <Route
-        path="/onboarding"
-        element={
-          <OnboardingProfile />
-        }
-      />
-
-      {/* APP */}
-      <Route
-        element={<AppLayout />}
-      >
-
-        {/* ROOT */}
-        <Route
-          path="/"
-          element={<Home />}
-        />
-
-        <Route
-          path="/jobs"
-          element={<Jobs />}
-        />
-
-        <Route
-          path="/housing"
-          element={<Housing />}
-        />
-
-        <Route
-          path="/services"
-          element={
-            <ServicesPage />
-          }
-        />
-
-        <Route
-          path="/more"
-          element={<More />}
-        />
-
-        {/* CATEGORY */}
-        <Route
-          path="/events"
-          element={<Events />}
-        />
-
-        <Route
-          path="/vehicles"
-          element={<Vehicles />}
-        />
-
-        <Route
-          path="/marketplace"
-          element={
-            <Marketplace />
-          }
-        />
-
-        <Route
-          path="/rideshare"
-          element={
-            <RideShare />
-          }
-        />
-
-        {/* DETAILS */}
-        <Route
-          path="/listing/:listingId"
-          element={
-            <ListingDetail />
-          }
-        />
-
-        <Route
-          path="/business/:businessId"
-          element={
-            <BusinessDetail />
-          }
-        />
-
-        <Route
-          path="/create"
-          element={
-            <CreateListing />
-          }
-        />
-
-        <Route
-          path="/emergency"
-          element={<Emergency />}
-        />
-
-        {/* USER */}
-        <Route
-          path="/profile"
-          element={<Profile />}
-        />
-
-        <Route
-          path="/edit-profile"
-          element={
-            <EditProfile />
-          }
-        />
-
-        <Route
-          path="/my-listings"
-          element={
-            <MyListings />
-          }
-        />
-
-        <Route
-          path="/saved"
-          element={
-            <SavedListings />
-          }
-        />
-
-        <Route
-          path="/notifications"
-          element={
-            <Notifications />
-          }
-        />
-
-        <Route
-          path="/search"
-          element={<Search />}
-        />
-
-        <Route
-          path="/inbox"
-          element={<Inbox />}
-        />
-
-        <Route
-          path="/conversation/:conversationId"
-          element={
-            <Conversation />
-          }
-        />
-
-        {/* PREMIUM */}
-        <Route
-          path="/ai-assistant"
-          element={
-            <AIAssistant />
-          }
-        />
-
-        <Route
-          path="/vip"
-          element={
-            <VIPMembership />
-          }
-        />
-
-        <Route
-          path="/business-dashboard"
-          element={
-            <BusinessDashboard />
-          }
-        />
-
-        <Route
-          path="/recruiter"
-          element={
-            <RecruiterDashboard />
-          }
-        />
-
-        <Route
-          path="/admin"
-          element={<Admin />}
-        />
-
-        {/* 404 */}
-        <Route
-          path="*"
-          element={
-            <PageNotFound />
-          }
-        />
+      {/* FULL APP — guests and members both access everything */}
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/jobs" element={<Jobs />} />
+        <Route path="/housing" element={<Housing />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/more" element={<More />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/vehicles" element={<Vehicles />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/rideshare" element={<RideShare />} />
+        <Route path="/listing/:listingId" element={<ListingDetail />} />
+        <Route path="/business/:businessId" element={<BusinessDetail />} />
+        <Route path="/create" element={<CreateListing />} />
+        <Route path="/emergency" element={<Emergency />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/my-listings" element={<MyListings />} />
+        <Route path="/saved" element={<SavedListings />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/inbox" element={<Inbox />} />
+        <Route path="/conversation/:conversationId" element={<Conversation />} />
+        <Route path="/ai-assistant" element={<AIAssistant />} />
+        <Route path="/vip" element={<VIPMembership />} />
+        <Route path="/business-dashboard" element={<BusinessDashboard />} />
+        <Route path="/recruiter" element={<RecruiterDashboard />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
   );
@@ -315,18 +109,13 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <QueryClientProvider
-      client={queryClientInstance}
-    >
+    <QueryClientProvider client={queryClientInstance}>
       <AuthProvider>
         <Router>
           <TabNavigationProvider>
             <DiscoveryProvider>
-
-              <AuthenticatedApp />
-
+              <AppShell />
               <Toaster />
-
             </DiscoveryProvider>
           </TabNavigationProvider>
         </Router>
