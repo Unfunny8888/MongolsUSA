@@ -16,7 +16,7 @@ const CATEGORIES = [
   { label: "Community",    icon: Users,        color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/30",route: "/community"   },
   { label: "Electronics",  icon: Smartphone,   color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-950/30",      route: "/marketplace" },
   { label: "Travel",       icon: Plane,        color: "text-indigo-600",  bg: "bg-indigo-50 dark:bg-indigo-950/30",  route: "/rideshare"   },
-  { label: "Help",         icon: LifeBuoy,     color: "text-rose-600",    bg: "bg-rose-50 dark:bg-rose-950/30",      route: "/emergency"   },
+  { label: "Help",         icon: LifeBuoy,     color: "text-rose-600",    bg: "bg-rose-50 dark:bg-rose-950/30",      route: "/AIAssitant"   },
   { label: "Education",    icon: BookOpen,     color: "text-teal-600",    bg: "bg-teal-50 dark:bg-teal-950/30",      route: "/marketplace" },
   { label: "Sports",       icon: Dumbbell,     color: "text-red-600",     bg: "bg-red-50 dark:bg-red-950/30",        route: "/events"      },
   { label: "Pets",         icon: PawPrint,     color: "text-amber-600",   bg: "bg-amber-50 dark:bg-amber-950/30",    route: "/marketplace" },
