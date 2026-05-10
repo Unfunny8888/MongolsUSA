@@ -5,7 +5,8 @@ import PageHeader from "./PageHeader";
 import PageTransition from "./PageTransition";
 import { useTabNavigation } from "@/hooks/useTabNavigation";
 
-const NO_HEADER_PATHS = new Set(['/auth', '/onboarding', '/search']);
+const NO_HEADER_PATHS = new Set(['/auth', '/onboarding', '/search', '/ai-assistant']);
+const NO_BOTTOMNAV_PATHS = new Set(['/ai-assistant']);
 
 export default function AppLayout() {
   const location = useLocation();
@@ -94,6 +95,7 @@ export default function AppLayout() {
   }, [location.pathname]);
 
   const hideHeader = NO_HEADER_PATHS.has(location.pathname);
+  const hideBottomNav = NO_BOTTOMNAV_PATHS.has(location.pathname);
   const currentRoute = getCurrentRoute();
 
   return (
@@ -113,7 +115,7 @@ export default function AppLayout() {
         style={{
           // Account for fixed header + bottom nav
           paddingTop: hideHeader ? 0 : 'calc(3.5rem + env(safe-area-inset-top))',
-          paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))',
+          paddingBottom: hideBottomNav ? 0 : 'calc(5rem + env(safe-area-inset-bottom))',
           WebkitOverflowScrolling: 'touch',
           overscrollBehaviorY: 'contain',
         }}
@@ -123,7 +125,7 @@ export default function AppLayout() {
         </PageTransition>
       </main>
 
-      <BottomNav />
+      {!hideBottomNav && <BottomNav />}
     </div>
   );
 }
