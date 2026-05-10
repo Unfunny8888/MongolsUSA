@@ -245,12 +245,15 @@ export default function ListingDetail() {
         const me = await base44.auth.me();
         setUser(me);
       }
-      if (!listingId.startsWith("mock-")) {
-        const data = await base44.entities.Listing.get(listingId);
-        setListing(data);
+      // Check seeded/mock data first (IDs like car-1, job-1, etc.)
+      const seeded = MOCK_LISTINGS.find((l) => l.id === listingId);
+      if (seeded) {
+        setListing(seeded);
         return;
       }
-      setListing(MOCK_LISTINGS.find((l) => l.id === listingId));
+      // Otherwise fetch from DB
+      const data = await base44.entities.Listing.get(listingId);
+      setListing(data);
     }
     load();
   }, [listingId]);
