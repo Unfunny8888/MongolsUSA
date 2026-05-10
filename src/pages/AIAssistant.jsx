@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Send, Sparkles, Loader2, Bot, Bookmark, MapPin, Users, Briefcase, Home, Car, Utensils, TrendingUp } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { MOCK_LISTINGS, MOCK_GROUPS, MOCK_BUSINESSES } from "../lib/mockData";
-import { getAISession, saveAIMessages, saveAIScroll } from "@/lib/aiSessionStore";
+import { getAISession, saveAIMessages, saveAIScroll, saveAIDraft, saveAIMeta } from "@/lib/aiSessionStore";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -251,47 +251,76 @@ function DiscoveryHome({ onSend }) {
 export default function AIAssistant() {
   const navigate = useNavigate();
 
-  // Restore session from module-level store on mount
-  const session = getAISession();
-  const [messages, setMessages] = useState(session.messages);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const scrollRef = useRef(null);
-  const bottomRef = useRef(null);
-  const inputRef = useRef(null);
-  const isRestoredScroll = useRef(false);
+  // ── Single-mount session restore ──────────────────────────────────────────
+  // getAISession() is called ONCE at module init time, not on every render.
+  const sessionRef = useRef(null);
+  if (!sessionRef.current) sessionRef.current = getAISession();
+  const initialSession = sessionRef.current;
 
-  // Restore scroll position after mount
-  useEffect(() => {
-    if (!scrollRef.current || isRestoredScroll.current) return;
-    isRestoredScroll.current = true;
-    const saved = getAISession().scrollTop;
-    if (saved > 0) {
-      // Defer until after paint so content is fully laid out
+  const [messages, setMessages] = useState(initialSession.messages);
+  const [input, setInput]       = useState(initialSession.draftInput || "");
+  const [loading, setLoading]   = useState(false);
+
+  const scrollRef   = useRef(null);
+  const bottomRef   = useRef(null);
+  const inputRef    = useRef(null);
+  const didInit     = useRef(false);
+  const prevMsgLen  = useRef(initialSession.messages.length);
+
+  // ── Scroll restoration — double-rAF so images/cards have time to paint ────
+  useLayoutEffect(() => {
+    if (didInit.current) return;
+    didInit.current = true;
+    const savedScroll = initialSession.scrollTop;
+    if (savedScroll > 0 && scrollRef.current) {
+      // First rAF: DOM laid out. Second rAF: paint complete.
       requestAnimationFrame(() => {
-        if (scrollRef.current) scrollRef.current.scrollTop = saved;
+        requestAnimationFrame(() => {
+          if (scrollRef.current) scrollRef.current.scrollTop = savedScroll;
+        });
       });
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Persist scroll position on scroll
+  // ── Persist scroll on scroll ───────────────────────────────────────────────
   const onScroll = useCallback(() => {
     if (scrollRef.current) saveAIScroll(scrollRef.current.scrollTop);
   }, []);
 
-  // Auto-scroll to bottom only when a NEW message arrives (not on restore)
-  const prevMsgCount = useRef(messages.length);
-  useEffect(() => {
-    if (messages.length > prevMsgCount.current || loading) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-    prevMsgCount.current = messages.length;
-  }, [messages, loading]);
+  // ── Persist draft on every keystroke ──────────────────────────────────────
+  const onInputChange = useCallback((e) => {
+    setInput(e.target.value);
+    saveAIDraft(e.target.value);
+  }, []);
 
-  async function sendMessage(text) {
-    const userText = (text || input).trim();
+  // ── Auto-scroll to bottom only on NEW messages (not on restore) ───────────
+  useEffect(() => {
+    if (messages.length > prevMsgLen.current) {
+      // Small delay so cards render before scrolling
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 60);
+    }
+    prevMsgLen.current = messages.length;
+  }, [messages]);
+
+  // Also scroll on loading indicator appearing
+  useEffect(() => {
+    if (loading) {
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 60);
+    }
+  }, [loading]);
+
+  const sendMessage = useCallback(async (text) => {
+    const userText = (typeof text === "string" ? text : input).trim();
     if (!userText || loading) return;
     setInput("");
+    saveAIDraft("");
+
+    // Persist meta: last query
+    saveAIMeta({ lastQuery: userText });
 
     const newMessages = [...messages, { role: "user", content: userText }];
     setMessages(newMessages);
@@ -377,13 +406,17 @@ Rules:
       // onFollowup is NOT stored — re-attached at render time via sendMessage ref
     };
 
+    // Persist result type metadata
+    const resultType = matchedListings.length ? "listing" : matchedBiz.length ? "business" : matchedGroups.length ? "group" : null;
+    if (resultType) saveAIMeta({ resultType });
+
     setMessages((prev) => {
       const next = [...prev, assistantMsg];
       saveAIMessages(next);
       return next;
     });
     setLoading(false);
-  }
+  }, [messages, input, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const isEmptyChat = messages.length === 0;
 
@@ -391,7 +424,10 @@ Rules:
     <div
       className="flex flex-col bg-background"
       style={{
-        height: 'calc(100dvh - env(safe-area-inset-bottom, 0px))',
+        // 100dvh shrinks with iOS keyboard so the input stays visible.
+        // overflow:hidden on this container prevents scroll jumping.
+        height: '100dvh',
+        overflow: 'hidden',
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
@@ -462,13 +498,16 @@ Rules:
           <input
             ref={inputRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+            onChange={onInputChange}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
             placeholder="Ask anything..."
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
             className="flex-1 bg-secondary/60 border border-border/20 rounded-2xl px-4 py-2.5 text-[14px] outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary/30"
           />
           <button
-            onClick={() => sendMessage()}
+            onClick={sendMessage}
             disabled={!input.trim() || loading}
             className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 text-white flex items-center justify-center disabled:opacity-40 shrink-0 active:scale-95 transition-transform"
           >
