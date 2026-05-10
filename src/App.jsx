@@ -5,9 +5,10 @@ import {
   BrowserRouter as Router,
   Route,
   Routes,
+  Navigate,
   useLocation,
-  useNavigate,
 } from 'react-router-dom';
+
 
 import { Toaster } from '@/components/ui/sonner';
 import { useSystemTheme } from '@/hooks/useSystemTheme';
@@ -74,7 +75,6 @@ const AuthenticatedApp = () => {
   }, []);
 
   const location = useLocation();
-  const navigate = useNavigate();
 
   const {
     isLoadingAuth,
@@ -84,39 +84,8 @@ const AuthenticatedApp = () => {
     user,
   } = useAuth();
 
-  // ONBOARDING STATUS
-  const onboardingComplete =
-    localStorage.getItem(
-      'onboarding_complete'
-    ) === 'true';
-
-  const isOnboardingPage =
-    location.pathname ===
-    '/onboarding';
-
-  // FORCE ONBOARDING
-  useEffect(() => {
-    if (
-      user &&
-      !onboardingComplete &&
-      !isOnboardingPage
-    ) {
-      navigate('/onboarding', {
-        replace: true,
-      });
-    }
-  }, [
-    user,
-    onboardingComplete,
-    isOnboardingPage,
-    navigate,
-  ]);
-
-  // LOADING
-  if (
-    isLoadingPublicSettings ||
-    isLoadingAuth
-  ) {
+  // LOADING — do NOT evaluate onboarding until auth is fully resolved
+  if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
@@ -126,22 +95,23 @@ const AuthenticatedApp = () => {
 
   // AUTH ERRORS
   if (authError) {
-    if (
-      authError.type ===
-      'user_not_registered'
-    ) {
-      return (
-        <UserNotRegisteredError />
-      );
+    if (authError.type === 'user_not_registered') {
+      return <UserNotRegisteredError />;
     }
-
-    if (
-      authError.type ===
-      'auth_required'
-    ) {
+    if (authError.type === 'auth_required') {
       navigateToLogin();
       return null;
     }
+  }
+
+  // SINGLE ONBOARDING GUARD — render-time, not useEffect, no localStorage
+  // user.onboarded is the ONE source of truth
+  if (user && !user.onboarded && location.pathname !== '/onboarding') {
+    return (
+      <Routes>
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+      </Routes>
+    );
   }
 
   return (
