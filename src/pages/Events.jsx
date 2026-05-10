@@ -12,7 +12,7 @@ import { useDiscovery } from "@/lib/DiscoveryContext";
 const SUGGESTIONS = ["Nearby", "This Week", "Free", "Popular", "Concerts", "Community", "Sports"];
 const TABS = [["upcoming", "Upcoming"], ["past", "Past"], ["hosting", "Hosting"]];
 
-function EventCard({ listing, index }) {
+function EventCard({ listing, index, isHighlighted, onHighlight }) {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
   const dateStr = listing.event_date
@@ -24,6 +24,7 @@ function EventCard({ listing, index }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
+      className={isHighlighted ? 'ring-2 ring-primary/40 rounded-2xl' : ''}
     >
       <ImageCard
         imageSrc={listing.images?.[0]}
@@ -43,7 +44,7 @@ function EventCard({ listing, index }) {
             {listing.event_venue && <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{listing.event_venue}</span>}
           </>
         }
-        onClick={() => navigate(`/listing/${listing.id}`)}
+        onClick={() => { onHighlight?.(listing.id); navigate(`/listing/${listing.id}`); }}
       />
     </motion.div>
   );
@@ -51,7 +52,7 @@ function EventCard({ listing, index }) {
 
 export default function Events() {
   const navigate = useNavigate();
-  const { getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
+  const { getFilter, getViewMode, setViewMode, applyDiscovery, selectedListingId, setSelectedListingId } = useDiscovery();
   const activeFilter = getFilter('events');
   const viewMode = getViewMode('events');
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -90,7 +91,15 @@ export default function Events() {
               <SectionLabel>Events near you</SectionLabel>
               {filtered.length > 0 ? (
                 <div className="space-y-3">
-                  {filtered.map((l, i) => <EventCard key={l.id} listing={l} index={i} />)}
+                  {filtered.map((l, i) => (
+                    <EventCard
+                      key={l.id}
+                      listing={l}
+                      index={i}
+                      isHighlighted={selectedListingId === l.id}
+                      onHighlight={setSelectedListingId}
+                    />
+                  ))}
                 </div>
               ) : (
                 <EmptyState emoji="🎉" title="No events found" subtitle="Check back soon for local events" />

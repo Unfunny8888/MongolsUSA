@@ -12,7 +12,7 @@ import { useDiscovery } from "@/lib/DiscoveryContext";
 const SUGGESTIONS = ["Nearby", "Apartments", "Houses", "Rooms", "Short-term", "Furnished", "Popular"];
 const TABS = [["rentals", "Rentals"], ["roommates", "Roommates"], ["help", "Housing Help"]];
 
-function HousingCard({ listing, index }) {
+function HousingCard({ listing, index, isHighlighted, onHighlight }) {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
   return (
@@ -20,6 +20,7 @@ function HousingCard({ listing, index }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
+      className={isHighlighted ? 'ring-2 ring-primary/40 rounded-2xl' : ''}
     >
       <ImageCard
         imageSrc={listing.images?.[0]}
@@ -46,7 +47,7 @@ function HousingCard({ listing, index }) {
             )}
           </>
         }
-        onClick={() => navigate(`/listing/${listing.id}`)}
+        onClick={() => { onHighlight?.(listing.id); navigate(`/listing/${listing.id}`); }}
       />
     </motion.div>
   );
@@ -87,7 +88,7 @@ function RoommateCard({ listing, index }) {
 
 export default function Housing() {
   const navigate = useNavigate();
-  const { getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
+  const { getFilter, getViewMode, setViewMode, applyDiscovery, selectedListingId, setSelectedListingId } = useDiscovery();
   const activeFilter = getFilter('housing');
   const viewMode = getViewMode('housing');
   const [activeTab, setActiveTab] = useState("rentals");
@@ -132,7 +133,15 @@ export default function Housing() {
               <SectionLabel>Rentals near you</SectionLabel>
               {filtered.length > 0 ? (
                 <div className="space-y-3">
-                  {filtered.map((l, i) => <HousingCard key={l.id} listing={l} index={i} />)}
+                  {filtered.map((l, i) => (
+                    <HousingCard
+                      key={l.id}
+                      listing={l}
+                      index={i}
+                      isHighlighted={selectedListingId === l.id}
+                      onHighlight={setSelectedListingId}
+                    />
+                  ))}
                 </div>
               ) : (
                 <EmptyState emoji="🏠" title="No rentals found" subtitle="Try adjusting your filters" />

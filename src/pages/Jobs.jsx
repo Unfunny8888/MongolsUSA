@@ -20,7 +20,7 @@ function timeAgo(d) {
   return `${Math.floor(h / 24)}d`;
 }
 
-function JobCard({ listing, index }) {
+function JobCard({ listing, index, isHighlighted, onHighlight }) {
   const navigate = useNavigate();
   const [saved, setSaved] = useState(false);
   return (
@@ -28,8 +28,12 @@ function JobCard({ listing, index }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      onClick={() => navigate(`/listing/${listing.id}`)}
-      className="flex items-center gap-3 bg-card border border-border/15 rounded-2xl px-3 py-3 active:scale-[0.98] cursor-pointer transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+      onClick={() => { onHighlight(listing.id); navigate(`/listing/${listing.id}`); }}
+      className={`flex items-center gap-3 border rounded-2xl px-3 py-3 active:scale-[0.98] cursor-pointer transition-all duration-150 shadow-[0_1px_3px_rgba(0,0,0,0.04)] ${
+        listing.id === isHighlighted
+          ? 'bg-primary/8 border-primary/30 ring-1 ring-primary/20'
+          : 'bg-card border-border/15'
+      }`}
     >
       {listing.images?.[0] ? (
         <img src={listing.images[0]} alt={listing.title} className="w-14 h-14 rounded-xl object-cover shrink-0" />
@@ -100,7 +104,7 @@ function CandidateCard({ disc, index }) {
 
 export default function Jobs() {
   const navigate = useNavigate();
-  const { getFilter, getViewMode, setViewMode, applyDiscovery } = useDiscovery();
+  const { getFilter, getViewMode, setViewMode, applyDiscovery, selectedListingId, setSelectedListingId } = useDiscovery();
   const activeFilter = getFilter('jobs');
   const viewMode = getViewMode('jobs');
   const [activeTab, setActiveTab] = useState("hiring");
@@ -139,7 +143,15 @@ export default function Jobs() {
             <>
               <SectionLabel>Jobs near you</SectionLabel>
               {filtered.length > 0
-                ? filtered.map((l, i) => <JobCard key={l.id} listing={l} index={i} />)
+                ? filtered.map((l, i) => (
+                    <JobCard
+                      key={l.id}
+                      listing={l}
+                      index={i}
+                      isHighlighted={selectedListingId === l.id}
+                      onHighlight={setSelectedListingId}
+                    />
+                  ))
                 : <EmptyState emoji="💼" title="No jobs found" subtitle="Try adjusting your filters" />
               }
             </>

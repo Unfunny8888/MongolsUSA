@@ -1,22 +1,22 @@
 /**
  * DiscoveryContext — THE global discovery engine.
  *
- * city:        null = "All Cities" (soft proximity ranking via coords)
- *              string = hard city filter
- * coords:      { lat, lng } | null — device/IP approximate location
- * radius:      discovery radius in miles (default 50)
- * filters:     per-category active filter chips
- * viewModes:   "list" | "map" per category
- * mapViewport: last known map center/zoom (synced across pages)
+ * Single source of truth for:
+ *   - city / coords / radius
+ *   - active filter chips (per category)
+ *   - view modes list|map (per category)
+ *   - map viewport (synced across all pages)
+ *   - selectedListingId (cross-highlights feed ↔ map)
+ *   - searchAreaViewport (set by "Search this area")
  */
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 
 const DiscoveryContext = createContext(null);
 
 const CATEGORIES = ['home', 'jobs', 'housing', 'services', 'events', 'vehicles', 'marketplace', 'rideshare'];
 
-// Approximate coords for Mongolian community hubs
-const CITY_COORDS = {
+// Approximate coords for Mongolian community hubs in the USA
+export const CITY_COORDS = {
   'Chicago, IL':       { lat: 41.8781, lng: -87.6298 },
   'New York, NY':      { lat: 40.7128, lng: -74.0060 },
   'Los Angeles, CA':   { lat: 34.0522, lng: -118.2437 },
@@ -48,35 +48,28 @@ export function distanceMiles(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Geographic ranking score for a listing (0–100, higher = show first)
-export function rankListing(listing, userCoords, activeFilter) {
+// Geographic ranking score for a listing (higher = show first)
+export function rankListing(listing, userCoords) {
   let score = 50;
-
-  // Recency boost (0–20 pts)
+  // Recency (0–20)
   const ageHours = listing.created_date
     ? (Date.now() - new Date(listing.created_date)) / 3600000
     : 720;
   score += Math.max(0, 20 - ageHours / 24);
-
-  // Engagement boost (0–15 pts)
+  // Engagement (0–15)
   score += Math.min(15, (listing.views || 0) * 0.05 + (listing.saves || 0) * 0.5);
-
-  // Featured / boosted (10 pts)
+  // Featured/boosted
   if (listing.is_featured) score += 10;
   if (listing.is_boosted) score += 6;
-
-  // Geographic proximity (0–30 pts) — only when we have coords
+  // Geographic proximity (0–30)
   if (userCoords && listing.location_city) {
-    const cityC = CITY_COORDS[listing.location_city] || CITY_COORDS[`${listing.location_city}`];
+    const cityC = CITY_COORDS[listing.location_city];
     if (cityC) {
       const miles = distanceMiles(userCoords.lat, userCoords.lng, cityC.lat, cityC.lng);
       score += Math.max(0, 30 - miles * 0.3);
     }
   }
-
-  // Verified poster boost
   if (listing.poster_verified) score += 5;
-
   return score;
 }
 
@@ -84,18 +77,20 @@ export function getCoordsForCity(city) {
   return CITY_COORDS[city] || null;
 }
 
-export { CITY_COORDS };
-
 export function DiscoveryProvider({ children }) {
   const [city, _setCity] = useState(() => {
     try { return localStorage.getItem('disco_city') || null; } catch { return null; }
   });
   const [coords, setCoords] = useState(null);
-  const [radius, setRadius] = useState(50);
+  const [radius] = useState(50);
   const [recentCities, setRecentCities] = useState(() => {
     try { return JSON.parse(localStorage.getItem('disco_recent') || '[]'); } catch { return []; }
   });
   const [mapViewport, setMapViewport] = useState({ lat: 41.8781, lng: -87.6298, zoom: 10 });
+  // Viewport set by "Search this area" — null means use city/coords default
+  const [searchAreaViewport, setSearchAreaViewport] = useState(null);
+  // Cross-highlight: listing selected from feed OR from map pin
+  const [selectedListingId, setSelectedListingId] = useState(null);
 
   const [filterMemory, setFilterMemory] = useState(
     Object.fromEntries(CATEGORIES.map(c => [c, null]))
@@ -104,32 +99,31 @@ export function DiscoveryProvider({ children }) {
     Object.fromEntries(CATEGORIES.map(c => [c, 'list']))
   );
 
-  // Attempt geolocation on mount (non-blocking)
+  // Geolocation on mount (non-blocking)
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setMapViewport(prev => ({ ...prev, lat: pos.coords.latitude, lng: pos.coords.longitude }));
-        },
-        () => {} // silent fail — use default
-      );
-    }
-  }, []);
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const c = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setCoords(c);
+        // Only update viewport if no city selected yet
+        setMapViewport(prev => city ? prev : { ...prev, ...c });
+      },
+      () => {}
+    );
+  }, []); // eslint-disable-line
 
   const setCity = useCallback((val) => {
     _setCity(val);
-    try { 
+    setSearchAreaViewport(null); // clear "search area" when city changes
+    setSelectedListingId(null);
+    try {
       if (val) localStorage.setItem('disco_city', val);
       else localStorage.removeItem('disco_city');
     } catch {}
-
-    // Update map viewport when city changes
     if (val && CITY_COORDS[val]) {
       setMapViewport({ lat: CITY_COORDS[val].lat, lng: CITY_COORDS[val].lng, zoom: 11 });
     }
-
-    // Track recent cities
     if (val) {
       setRecentCities(prev => {
         const next = [val, ...prev.filter(c => c !== val)].slice(0, 5);
@@ -141,6 +135,7 @@ export function DiscoveryProvider({ children }) {
 
   const setFilter = useCallback((category, filter) => {
     setFilterMemory(prev => ({ ...prev, [category]: prev[category] === filter ? null : filter }));
+    setSelectedListingId(null);
   }, []);
 
   const setViewMode = useCallback((category, mode) => {
@@ -150,29 +145,56 @@ export function DiscoveryProvider({ children }) {
   const getFilter = useCallback((category) => filterMemory[category], [filterMemory]);
   const getViewMode = useCallback((category) => viewModes[category] ?? 'list', [viewModes]);
 
-  // Apply location + filter to a listings array → ranked result
-  const applyDiscovery = useCallback((listings, category, activeFilter) => {
+  // "Search this area" — activates viewport-based filtering
+  const searchThisArea = useCallback((viewport) => {
+    setSearchAreaViewport(viewport);
+    setMapViewport(viewport);
+    setSelectedListingId(null);
+  }, []);
+
+  const clearSearchArea = useCallback(() => {
+    setSearchAreaViewport(null);
+  }, []);
+
+  // Core discovery function — applies city, viewport, filter chips, geographic ranking
+  const applyDiscovery = useCallback((listings, category, overrideFilter) => {
     if (!listings?.length) return [];
     let result = [...listings];
+    const filter = overrideFilter ?? filterMemory[category];
 
-    // Hard city filter
-    if (city) {
+    // Hard city filter (unless "Search this area" is active)
+    if (city && !searchAreaViewport) {
+      const cityBase = city.split(',')[0];
       result = result.filter(l =>
-        !l.location_city || l.location_city === city || l.location_city.includes(city.split(',')[0])
+        !l.location_city ||
+        l.location_city === city ||
+        l.location_city.includes(cityBase)
       );
     }
 
-    const filter = activeFilter ?? filterMemory[category];
+    // Viewport-based geographic filter (Search this area)
+    if (searchAreaViewport) {
+      const { lat, lng, zoom } = searchAreaViewport;
+      // Approximate bounding box based on zoom level
+      const degRange = Math.max(0.5, 40 / Math.pow(2, (zoom || 10) - 4));
+      result = result.filter(l => {
+        const c = CITY_COORDS[l.location_city];
+        if (!c) return false;
+        return (
+          Math.abs(c.lat - lat) <= degRange &&
+          Math.abs(c.lng - lng) <= degRange
+        );
+      });
+    }
 
     // Filter chip logic
     if (filter === 'Nearby') {
-      if (city) {
-        // already hard-filtered, no-op
-      } else if (coords) {
+      const refCoords = coords;
+      if (refCoords) {
         result = result.filter(l => {
           const c = CITY_COORDS[l.location_city];
           if (!c) return true;
-          return distanceMiles(coords.lat, coords.lng, c.lat, c.lng) <= radius;
+          return distanceMiles(refCoords.lat, refCoords.lng, c.lat, c.lng) <= radius;
         });
       }
     } else if (filter === 'Free') {
@@ -193,26 +215,33 @@ export function DiscoveryProvider({ children }) {
       result = result.filter(l => l.job_type === 'full-time');
     } else if (filter === 'Part-time') {
       result = result.filter(l => l.job_type === 'part-time');
-    } else if (filter === 'Open Now') {
-      // Approximate — in future connect to hours data
-      result = result.filter(l => l.status === 'active');
+    } else if (filter === 'Cash') {
+      result = result.filter(l => l.job_type === 'cash');
+    } else if (filter === 'CDL') {
+      result = result.filter(l =>
+        l.tags?.some(t => t.toLowerCase().includes('cdl')) ||
+        l.title?.toLowerCase().includes('cdl')
+      );
     }
 
-    // Geographic ranking sort (when no hard sort applied)
+    // Geographic ranking (when no hard sort)
     if (!['Top Rated', 'Recently Posted'].includes(filter)) {
-      result = result.sort((a, b) => rankListing(b, coords, filter) - rankListing(a, coords, filter));
+      const refCoords = coords;
+      result = result.sort((a, b) => rankListing(b, refCoords) - rankListing(a, refCoords));
     }
 
     return result;
-  }, [city, coords, radius, filterMemory]);
+  }, [city, coords, radius, filterMemory, searchAreaViewport]);
 
   return (
     <DiscoveryContext.Provider value={{
       city, setCity,
       coords, setCoords,
-      radius, setRadius,
+      radius,
       recentCities,
       mapViewport, setMapViewport,
+      searchAreaViewport, searchThisArea, clearSearchArea,
+      selectedListingId, setSelectedListingId,
       filterMemory, setFilter, getFilter,
       viewModes, setViewMode, getViewMode,
       applyDiscovery,
