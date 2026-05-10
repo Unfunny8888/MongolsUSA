@@ -2,11 +2,11 @@
  * Home — unified social + discovery feed.
  * Featured businesses → What's happening tabs → mixed community posts.
  */
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { motion } from "framer-motion";
-import { MapPin, Bookmark, ChevronRight, MessageCircle, Heart, Clock, Store } from "lucide-react";
+import { Bookmark, Store } from "lucide-react";
 import { MOCK_BUSINESSES, MOCK_DISCUSSIONS, MOCK_LISTINGS } from "../lib/mockData";
 import { useDiscovery } from "@/lib/DiscoveryContext";
 import { useAuth } from "@/lib/AuthContext";
@@ -14,16 +14,6 @@ import { base44 } from "@/api/base44Client";
 import DiscussionCard from "../components/feed/DiscussionCard";
 import GlobalDiscoveryBar from "../components/discovery/GlobalDiscoveryBar";
 import FeedItem from "../components/feed/FeedItem";
-
-function timeAgo(d) {
-  if (!d) return "";
-  const mins = Math.floor((Date.now() - new Date(d)) / 60000);
-  if (mins < 2) return "Just now";
-  if (mins < 60) return `${mins}m`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}d`;
-}
 
 // Featured business card (horizontal scroll)
 function FeaturedBusinessCard({ business }) {
@@ -83,19 +73,11 @@ function CommunityPost({ post, currentUser }) {
   return <DiscussionCard post={post} currentUser={currentUser} />;
 }
 
-const FEED_TABS = [
-{ id: "all", label: "All", icon: "🌐" },
-{ id: "foryou", label: "For You", icon: null },
-{ id: "nearby", label: "Nearby", icon: null },
-{ id: "following", label: "Following", icon: null }];
-
-
 export default function Home() {
   const navigate = useNavigate();
-  const { city, applyDiscovery } = useDiscovery();
+  const { applyDiscovery } = useDiscovery();
   const { user } = useAuth();
   const [businesses, setBusinesses] = useState(MOCK_BUSINESSES);
-  const [activeTab, setActiveTab] = useState("all");
   const [listings, setListings] = useState(MOCK_LISTINGS);
   const containerRef = useRef(null);
 
@@ -129,12 +111,10 @@ export default function Home() {
     return items;
   }, [listings, applyDiscovery]);
 
-  const displayCity = city || user?.city || "your area";
-
   return (
     <div ref={containerRef} className="min-h-dvh pb-4">
 
-      {/* ── GLOBAL DISCOVERY BAR ── */}
+      {/* ── DISCOVERY FILTER CHIPS ── */}
       <GlobalDiscoveryBar
         category="home"
         suggestions={["Nearby", "Top Rated", "Recently Posted", "Verified", "Free"]}
@@ -156,24 +136,6 @@ export default function Home() {
       {/* ── WHAT'S HAPPENING ── */}
       <section className="pt-4">
         <h2 className="text-[16px] font-bold text-foreground px-4 mb-3">What's happening</h2>
-
-        {/* Feed tabs */}
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
 
         {/* Mixed community feed */}
         <div className="px-4 space-y-3">
